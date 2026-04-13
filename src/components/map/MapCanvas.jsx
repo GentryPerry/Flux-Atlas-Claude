@@ -114,16 +114,18 @@ const MapNode = memo(({ id, x, y, type, name, isSelected, isInactive, isHidden, 
 });
 MapNode.displayName = 'MapNode';
 
-export default function MapCanvas({ placingType, onPlacingDone, showConnections, connectingFrom, onConnectionClick, onNodeContextMenu, drawingMode, setDrawingMode }) {
+export default function MapCanvas({
+  placingType, onPlacingDone, showConnections, connectingFrom, onConnectionClick,
+  onNodeContextMenu, drawingMode, setDrawingMode,
+  polygonPoints, setPolygonPoints,
+  selectedTerritoryId, setSelectedTerritoryId,
+}) {
   const stageRef = useRef(null);
   const [bgImage, setBgImage] = useState(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const [stageScale, setStageScale] = useState(1);
   const containerRef = useRef(null);
-  const [polygonPoints, setPolygonPoints] = useState([]);
-  const lastClickTimeRef = useRef(0);
-  const clickTimeoutRef = useRef(null);
 
   const activeMapId = useMapStore((s) => s.activeMapId);
   const allMaps = useMapStore((s) => s.maps);
@@ -192,12 +194,6 @@ export default function MapCanvas({ placingType, onPlacingDone, showConnections,
     return () => obs.disconnect();
   }, []);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
-    };
-  }, []);
 
   // Wheel zoom
   const handleWheel = useCallback((e) => {
@@ -218,12 +214,14 @@ export default function MapCanvas({ placingType, onPlacingDone, showConnections,
     });
   }, [stageScale, stagePos]);
 
-  // Click on canvas — place node, draw polygon (with double-click detection), or deselect
+  // Click on canvas — place node, add polygon point, or deselect
   const handleStageClick = useCallback((e) => {
     const targetName = e.target?.name?.() || '';
     const isStage = e.target === e.currentTarget;
     const isBg = targetName === 'bg-image' || targetName === 'bg-rect';
-    if (!isStage && !isBg) return;
+    const isTerritory = targetName.startsWith('territory-');
+
+    if (!isStage && !isBg && !isTerritory) return;
     const stage = stageRef.current;
     if (!stage) return;
     const pointer = stage.getPointerPosition();
@@ -231,28 +229,20 @@ export default function MapCanvas({ placingType, onPlacingDone, showConnections,
     const y = (pointer.y - stagePos.y) / stageScale;
 
     if (drawingMode === 'polygon') {
-      const now = Date.now();
-      const timeSinceLastClick = now - lastClickTimeRef.current;
-      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
-
-      if (timeSinceLastClick < 300 && polygonPoints.length >= 3) {
-        // Double-click → finish polygon
-        createTerritory(campaignId, activeMapId, 'polygon', { points: polygonPoints });
-        setPolygonPoints([]);
-        setDrawingMode(null);
-        lastClickTimeRef.current = 0;
-      } else {
-        // Single click → add point
-        setPolygonPoints([...polygonPoints, { x, y }]);
-        lastClickTimeRef.current = now;
-      }
+      // Just add the point — finishing is done via the Finish button
+      setPolygonPoints((prev) => [...prev, { x, y }]);
     } else if (placingType) {
       createNode(campaignId, activeMapId, placingType, x, y);
       onPlacingDone();
+    } else if (isTerritory) {
+      // Click on a territory shape → select it
+      const territoryId = targetName.replace('territory-', '');
+      setSelectedTerritoryId?.(territoryId);
     } else {
+      setSelectedTerritoryId?.(null);
       deselectNode();
     }
-  }, [placingType, drawingMode, campaignId, activeMapId, createNode, onPlacingDone, deselectNode, stagePos, stageScale, polygonPoints, createTerritory, setDrawingMode]);
+  }, [placingType, drawingMode, campaignId, activeMapId, createNode, onPlacingDone, deselectNode, stagePos, stageScale, setPolygonPoints, setSelectedTerritoryId]);
 
   const handleNodeDragEnd = useCallback((nodeId, e) => {
     moveNode(campaignId, nodeId, e.target.x(), e.target.y());
@@ -311,6 +301,12 @@ export default function MapCanvas({ placingType, onPlacingDone, showConnections,
         onWheel={handleWheel}
         onClick={handleStageClick}
         onTap={handleStageClick}
+        onContextMenu={(e) => {
+          if (drawingMode === 'polygon' && polygonPoints.length > 0) {
+            e.evt.preventDefault();
+            setPolygonPoints((prev) => prev.slice(0, -1));
+          }
+        }}
       >
         <Layer>
           {/* Background */}
@@ -322,42 +318,51 @@ export default function MapCanvas({ placingType, onPlacingDone, showConnections,
 
           {/* Territories */}
           {territories.map((territory) => {
+            const isSel = territory.id === selectedTerritoryId;
             if (territory.shapeType === 'polygon') {
               const flatPoints = [];
               for (const p of territory.points) flatPoints.push(p.x, p.y);
               return (
                 <Line
                   key={territory.id}
+                  name={`territory-${territory.id}`}
                   points={flatPoints}
                   closed={true}
                   fill={territory.color}
-                  opacity={territory.opacity}
-                  stroke={territory.strokeColor}
-                  strokeWidth={territory.strokeWidth}
-                  listening={false}
+                  opacity={isSel ? 0.35 : territory.opacity}
+                  stroke={isSel ? '#fff' : territory.strokeColor}
+                  strokeWidth={isSel ? 3 : territory.strokeWidth}
+                  listening={true}
                   perfectDrawEnabled={false}
+                  hitStrokeWidth={10}
                 />
               );
             } else if (territory.shapeType === 'rectangle') {
               return (
                 <Rect
                   key={territory.id}
+                  name={`territory-${territory.id}`}
                   x={territory.x} y={territory.y}
                   width={territory.width} height={territory.height}
-                  fill={territory.color} opacity={territory.opacity}
-                  stroke={territory.strokeColor} strokeWidth={territory.strokeWidth}
-                  listening={false} perfectDrawEnabled={false}
+                  fill={territory.color}
+                  opacity={isSel ? 0.35 : territory.opacity}
+                  stroke={isSel ? '#fff' : territory.strokeColor}
+                  strokeWidth={isSel ? 3 : territory.strokeWidth}
+                  listening={true} perfectDrawEnabled={false}
                 />
               );
             } else if (territory.shapeType === 'circle') {
               return (
                 <Circle
                   key={territory.id}
+                  name={`territory-${territory.id}`}
                   x={territory.center?.cx || 0} y={territory.center?.cy || 0}
                   radius={territory.radius}
-                  fill={territory.color} opacity={territory.opacity}
-                  stroke={territory.strokeColor} strokeWidth={territory.strokeWidth}
-                  listening={false} perfectDrawEnabled={false}
+                  fill={territory.color}
+                  opacity={isSel ? 0.35 : territory.opacity}
+                  stroke={isSel ? '#fff' : territory.strokeColor}
+                  strokeWidth={isSel ? 3 : territory.strokeWidth}
+                  listening={true} perfectDrawEnabled={false}
                 />
               );
             }
@@ -366,16 +371,44 @@ export default function MapCanvas({ placingType, onPlacingDone, showConnections,
 
           {/* Polygon preview while drawing */}
           {drawingMode === 'polygon' && polygonPoints.length > 0 && (
-            <Line
-              points={polygonPoints.flatMap((p) => [p.x, p.y])}
-              stroke="#8890a0"
-              strokeWidth={2}
-              opacity={0.5}
-              listening={false}
-            />
+            <>
+              <Line
+                points={polygonPoints.flatMap((p) => [p.x, p.y])}
+                stroke="#7b9bff"
+                strokeWidth={2}
+                opacity={0.7}
+                dash={[8, 4]}
+                listening={false}
+              />
+              {/* Close preview line from last point to first */}
+              {polygonPoints.length >= 3 && (
+                <Line
+                  points={[
+                    polygonPoints[polygonPoints.length - 1].x,
+                    polygonPoints[polygonPoints.length - 1].y,
+                    polygonPoints[0].x,
+                    polygonPoints[0].y,
+                  ]}
+                  stroke="#7b9bff"
+                  strokeWidth={1}
+                  opacity={0.3}
+                  dash={[4, 6]}
+                  listening={false}
+                />
+              )}
+            </>
           )}
           {drawingMode === 'polygon' && polygonPoints.map((p, i) => (
-            <Circle key={`pp-${i}`} x={p.x} y={p.y} radius={5} fill="#8890a0" opacity={0.7} listening={false} />
+            <Circle
+              key={`pp-${i}`}
+              x={p.x} y={p.y}
+              radius={i === 0 ? 7 : 5}
+              fill={i === 0 ? '#7b9bff' : '#8890a0'}
+              stroke={i === 0 ? '#fff' : undefined}
+              strokeWidth={i === 0 ? 1.5 : 0}
+              opacity={0.8}
+              listening={false}
+            />
           ))}
 
           {/* Connections */}

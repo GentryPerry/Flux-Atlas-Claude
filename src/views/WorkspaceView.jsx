@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import useCampaignStore from '../stores/campaignStore';
 import useMapStore from '../stores/mapStore';
 import useNodeStore from '../stores/nodeStore';
@@ -16,6 +16,8 @@ import MapLegend from '../components/map/MapLegend';
 import NodeContextMenu from '../components/map/NodeContextMenu';
 import KanbanBoard from '../components/map/KanbanBoard';
 import ImportModal from '../components/import/ImportModal';
+import TerritoryToolbar from '../components/map/TerritoryToolbar';
+import TerritoryDetailPanel from '../components/map/TerritoryDetailPanel';
 
 export default function WorkspaceView() {
   const campaignId = useCampaignStore((s) => s.activeCampaignId);
@@ -43,11 +45,48 @@ export default function WorkspaceView() {
   const [kanbanMode, setKanbanMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
+  const [polygonPoints, setPolygonPoints] = useState([]);
+  const [territoryOwnerId, setTerritoryOwnerId] = useState(null);
+  const [selectedTerritoryId, setSelectedTerritoryId] = useState(null);
+
+  const activeMapId = useMapStore((s) => s.activeMapId);
+  const createTerritory = useTerritoryStore((s) => s.createTerritory);
+  const deleteTerritory = useTerritoryStore((s) => s.deleteTerritory);
+  const updateTerritory = useTerritoryStore((s) => s.updateTerritory);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null); // { nodeId, x, y }
 
   const createConnection = useConnectionStore((s) => s.createConnection);
+
+  // Get color from the owner node for territory coloring
+  const TYPE_COLORS = { faction: '#fb923c', religion: '#fbbf24', realm: '#e879a8' };
+
+  const handleSetDrawingMode = useCallback((mode) => {
+    if (!mode) {
+      // Exiting drawing mode — clear polygon points
+      setPolygonPoints([]);
+      setTerritoryOwnerId(null);
+    }
+    setDrawingMode(mode);
+  }, []);
+
+  const handleFinishDrawing = useCallback(() => {
+    if (polygonPoints.length < 3) return;
+    const ownerNode = territoryOwnerId ? allNodes.find((n) => n.id === territoryOwnerId) : null;
+    const ownerColor = ownerNode ? (TYPE_COLORS[ownerNode.type] || '#8890a0') : '#8890a0';
+    createTerritory(campaignId, activeMapId, 'polygon', {
+      points: polygonPoints,
+      nodeId: territoryOwnerId || null,
+      name: ownerNode ? `${ownerNode.fields?.name} Territory` : `Territory ${new Date().toLocaleTimeString()}`,
+      color: ownerColor,
+      strokeColor: ownerColor,
+      opacity: 0.15,
+    });
+    setPolygonPoints([]);
+    setDrawingMode(null);
+    setTerritoryOwnerId(null);
+  }, [polygonPoints, territoryOwnerId, allNodes, campaignId, activeMapId, createTerritory]);
 
   // Load campaign data
   useEffect(() => {
@@ -122,7 +161,11 @@ export default function WorkspaceView() {
       onConnectionClick={handleConnectionClick}
       onNodeContextMenu={handleNodeContextMenu}
       drawingMode={drawingMode}
-      setDrawingMode={setDrawingMode}
+      setDrawingMode={handleSetDrawingMode}
+      polygonPoints={polygonPoints}
+      setPolygonPoints={setPolygonPoints}
+      selectedTerritoryId={selectedTerritoryId}
+      setSelectedTerritoryId={setSelectedTerritoryId}
     />
   );
 
@@ -141,7 +184,7 @@ export default function WorkspaceView() {
           setKanbanMode={setKanbanMode}
           onOpenImport={() => setImportOpen(true)}
           drawingMode={drawingMode}
-          setDrawingMode={setDrawingMode}
+          setDrawingMode={handleSetDrawingMode}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -180,6 +223,24 @@ export default function WorkspaceView() {
           )}
         </div>
       </div>
+
+      {/* Territory drawing toolbar */}
+      <TerritoryToolbar
+        drawingMode={drawingMode}
+        setDrawingMode={handleSetDrawingMode}
+        territoryOwnerId={territoryOwnerId}
+        setTerritoryOwnerId={setTerritoryOwnerId}
+        polygonPointCount={polygonPoints.length}
+        onFinishDrawing={handleFinishDrawing}
+      />
+
+      {/* Territory detail panel (when a territory is selected) */}
+      {selectedTerritoryId && !drawingMode && (
+        <TerritoryDetailPanel
+          territoryId={selectedTerritoryId}
+          onClose={() => setSelectedTerritoryId(null)}
+        />
+      )}
 
       {/* Connection mode indicator */}
       {connectingFrom && (

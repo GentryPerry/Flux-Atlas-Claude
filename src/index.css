@@ -1661,3 +1661,222 @@ label {
 .sidebar-collapsed .sidebar-section {
   display: none;
 }
+
+/* ===== Territory Drawing Toolbar ===== */
+.territory-toolbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 8px 16px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.territory-toolbar-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.territory-point-count {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 4px;
+  background: var(--bg-inset);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.territory-toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+}
+
+.territory-toolbar-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.territory-owner-select {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: 140px;
+  cursor: pointer;
+}
+
+.territory-owner-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.territory-color-preview {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.territory-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+}
+
+.btn-territory-finish {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-territory-finish:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn-territory-finish:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-territory-cancel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-territory-cancel:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ===== Territory Detail Panel ===== */
+.territory-detail-panel {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 0;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  min-width: 280px;
+  max-width: 360px;
+}
+
+.territory-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.territory-detail-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.territory-color-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.territory-detail-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.territory-detail-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.territory-owner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  width: fit-content;
+}
+
+.territory-detail-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.btn-danger-sm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--danger-dim);
+  color: var(--danger);
+  border: 1px solid rgba(244, 112, 112, 0.2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: fit-content;
+}
+
+.btn-danger-sm:hover {
+  background: rgba(244, 112, 112, 0.25);
+}
