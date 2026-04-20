@@ -118,13 +118,17 @@ function EndCap({ label, linkedNodeId, allNodes, alignRight, onChangeLabel, onLi
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); }}
         />
       ) : (
-        <span
-        className={`lt-end-label${!label ? ' lt-end-label-empty' : ''}`}
-        onDoubleClick={() => setEditing(true)}
-        title={label ? undefined : 'Double-click to add label'}
-      >
-        {label || (hovering ? '+ label' : '')}
-      </span>
+        <button
+          className={`lt-end-label-btn${!label ? ' empty' : ''}`}
+          onDoubleClick={() => setEditing(true)}
+          title={label ? 'Double-click to edit label' : 'Double-click to add label'}
+          type="button"
+        >
+          <span className={`lt-end-label${!label ? ' lt-end-label-empty' : ''}`}>
+            {label || (hovering ? '+ label' : 'Set label')}
+          </span>
+          <span className="lt-end-label-hint" aria-hidden="true">✎</span>
+        </button>
       )}
 
       {hovering && !editing && (

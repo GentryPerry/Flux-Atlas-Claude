@@ -718,6 +718,11 @@ export default function DetailPanel() {
                         >★</button>
                       )}
                       <button
+                        className="detail-strip-action"
+                        onClick={(e) => { e.stopPropagation(); addToImagePool(campaignId, img.url); }}
+                        title="Save to campaign image pool"
+                      >Pool</button>
+                      <button
                         className="detail-strip-action danger"
                         onClick={(e) => { e.stopPropagation(); removeNodeImage(campaignId, node.id, img.id); }}
                         title="Remove image"

@@ -13,6 +13,7 @@ import IconPickerModal from '../common/IconPickerModal';
 
 const CATEGORIES = [
   { id: 'view',      label: 'View',       icon: Eye,         description: 'Layout, canvas, and display preferences' },
+  { id: 'images',    label: 'Images',     icon: Rows,        description: 'Campaign image pool for quick reuse' },
   { id: 'nodeTypes', label: 'Node Types', icon: Cube,        description: 'Customize and add node type schemas' },
   { id: 'fields',    label: 'Fields',     icon: ListDashes,  description: 'Global field schemas for each node type' },
   // { id: 'pinterest', label: 'Pinterest', icon: Key, description: 'Session token for board access' },
@@ -165,6 +166,11 @@ export default function SettingsPanel() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* ──── Node Types ──── */}
+          {settingsCategory === 'images' && (
+            <ImagePoolPane campaignId={campaignId} />
           )}
 
           {/* ──── Node Types ──── */}
@@ -634,6 +640,108 @@ function CustomTypeRow({ ct, IconComp, onUpdate, onDelete }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Image Pool Pane ── */
+function ImagePoolPane({ campaignId }) {
+  const imagePool            = useSettingsStore((s) => s.imagePool) || [];
+  const addToImagePool       = useSettingsStore((s) => s.addToImagePool);
+  const removeFromImagePool  = useSettingsStore((s) => s.removeFromImagePool);
+  const clearImagePool       = useSettingsStore((s) => s.clearImagePool);
+
+  const [urlDraft, setUrlDraft] = useState('');
+
+  const addUrl = () => {
+    const trimmed = urlDraft.trim();
+    if (!trimmed) return;
+    try { new URL(trimmed); } catch { return; }
+    addToImagePool(campaignId, trimmed);
+    setUrlDraft('');
+  };
+
+  const addFiles = (fileList) => {
+    Array.from(fileList || [])
+      .filter((f) => f.type?.startsWith('image/'))
+      .forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => addToImagePool(campaignId, ev.target.result, file.name);
+        reader.readAsDataURL(file);
+      });
+  };
+
+  return (
+    <div className="settings-pane">
+      <div className="settings-pane-header">
+        <Rows size={28} weight="duotone" />
+        <div>
+          <h3>Images</h3>
+          <p>Dump images here once, then pick them from any node detail panel.</p>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Add to Pool</div>
+        <div className="settings-card">
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <label className="btn btn-secondary btn-sm" style={{ gap: 6, cursor: 'pointer' }}>
+              <Plus size={13} /> Upload images
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 6, flex: 1, minWidth: 220 }}>
+              <input
+                placeholder="https://..."
+                value={urlDraft}
+                onChange={(e) => setUrlDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') addUrl(); }}
+              />
+              <button className="btn btn-secondary btn-sm" onClick={addUrl}>
+                Add URL
+              </button>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Pool size: {imagePool.length} image{imagePool.length === 1 ? '' : 's'}
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Image Library</div>
+        <div className="settings-card">
+          {imagePool.length === 0 ? (
+            <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No pooled images yet.</div>
+          ) : (
+            <div className="settings-image-pool-grid">
+              {imagePool.map((img) => (
+                <div key={img.id} className="settings-image-pool-item">
+                  <img src={img.url} alt="" />
+                  <button
+                    className="settings-image-pool-remove"
+                    onClick={() => removeFromImagePool(campaignId, img.id)}
+                    title="Remove from pool"
+                  >
+                    <Trash size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {imagePool.length > 0 && (
+            <button className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start', gap: 6 }} onClick={() => clearImagePool(campaignId)}>
+              <Trash size={13} /> Clear image pool
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
