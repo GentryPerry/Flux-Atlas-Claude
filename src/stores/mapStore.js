@@ -11,14 +11,23 @@ const useMapStore = create((set, get) => ({
 
   /** Load maps for a campaign */
   loadMaps: (campaignId) => {
-    const raw = localStorage.getItem(`flux_maps_${campaignId}`);
-    const maps = raw ? JSON.parse(raw) : [];
-    set({ maps, activeMapId: maps[0]?.id || null, mapStack: [] });
+    try {
+      const raw = localStorage.getItem(`flux_maps_${campaignId}`);
+      const maps = raw ? JSON.parse(raw) : [];
+      set({ maps, activeMapId: maps[0]?.id || null, mapStack: [] });
+    } catch (e) {
+      console.warn('loadMaps failed:', e);
+      set({ maps: [], activeMapId: null, mapStack: [] });
+    }
   },
 
   /** Persist maps to storage */
   _persist: (campaignId) => {
-    localStorage.setItem(`flux_maps_${campaignId}`, JSON.stringify(get().maps));
+    try {
+      localStorage.setItem(`flux_maps_${campaignId}`, JSON.stringify(get().maps));
+    } catch (e) {
+      console.warn('Map persist failed:', e);
+    }
   },
 
   /** Create a new map (optionally as child of a parent map/node) */
@@ -33,7 +42,7 @@ const useMapStore = create((set, get) => ({
     };
     const maps = [...get().maps, map];
     set({ maps, activeMapId: map.id });
-    localStorage.setItem(`flux_maps_${campaignId}`, JSON.stringify(maps));
+    get()._persist(campaignId);
     return map;
   },
 
@@ -84,12 +93,36 @@ const useMapStore = create((set, get) => ({
     return trail;
   },
 
-  /** Delete a map */
+  /** Update a map's properties */
+  updateMap: (campaignId, mapId, updates) => {
+    const maps = get().maps.map((m) =>
+      m.id === mapId ? { ...m, ...updates } : m
+    );
+    set({ maps });
+    get()._persist(campaignId);
+  },
+
+  /** Delete a map and all its children recursively */
   deleteMap: (campaignId, mapId) => {
-    const maps = get().maps.filter((m) => m.id !== mapId);
-    localStorage.setItem(`flux_maps_${campaignId}`, JSON.stringify(maps));
-    const activeMapId = get().activeMapId === mapId ? (maps[0]?.id || null) : get().activeMapId;
-    set({ maps, activeMapId });
+    // Collect all descendant map IDs
+    const idsToDelete = new Set([mapId]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const m of get().maps) {
+        if (m.parentMapId && idsToDelete.has(m.parentMapId) && !idsToDelete.has(m.id)) {
+          idsToDelete.add(m.id);
+          changed = true;
+        }
+      }
+    }
+    const maps = get().maps.filter((m) => !idsToDelete.has(m.id));
+    const { activeMapId: currentActive, mapStack } = get();
+    // Clean stale IDs out of the breadcrumb stack
+    const cleanStack = mapStack.filter((id) => !idsToDelete.has(id));
+    const newActiveMapId = idsToDelete.has(currentActive) ? (maps[0]?.id || null) : currentActive;
+    set({ maps, activeMapId: newActiveMapId, mapStack: cleanStack });
+    get()._persist(campaignId);
   },
 }));
 

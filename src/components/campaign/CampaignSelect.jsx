@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import useCampaignStore from '../../stores/campaignStore';
+import TopoBackground from '../common/TopoBackground';
 
 export default function CampaignSelect() {
   const { campaigns, createCampaign, setActiveCampaign } = useCampaignStore();
+  const splashLogo = '/logo/splash.svg';
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -24,11 +26,16 @@ export default function CampaignSelect() {
   };
 
   return (
-    <div className="campaign-select">
-      <img src="/logo/white-logo.png" alt="Flux Atlas" className="splash-logo" />
-      <p className="subtitle">Campaign World Manager</p>
+    <div className="campaign-select" style={{ position: 'relative', isolation: 'isolate' }}>
+      {/* Animated topo background — sits at z-index 0 inside the isolate context */}
+      {/* Design-system topo — slate lines on dark teal, same settings as brand site */}
+      <TopoBackground style={{ zIndex: 0 }} opacity={0.9} />
 
-      <div className="campaign-grid">
+      {/* All page content floats above the canvas at z-index 1 */}
+      <img src={splashLogo} alt="Flux Atlas" className="splash-logo" style={{ position: 'relative', zIndex: 1 }} />
+      <p className="subtitle" style={{ position: 'relative', zIndex: 1 }}>Campaign World Manager</p>
+
+      <div className="campaign-grid" style={{ position: 'relative', zIndex: 1 }}>
         {campaigns.map((c) => (
           <div key={c.id} className="campaign-card" onClick={() => setActiveCampaign(c.id)}>
             <h3>{c.name}</h3>

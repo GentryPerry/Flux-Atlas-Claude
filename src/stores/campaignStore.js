@@ -12,9 +12,14 @@ const useCampaignStore = create((set, get) => ({
 
   /** Load all campaigns from localStorage (swap to PB later) */
   loadCampaigns: () => {
-    const raw = localStorage.getItem('flux_campaigns');
-    const campaigns = raw ? JSON.parse(raw) : [];
-    set({ campaigns });
+    try {
+      const raw = localStorage.getItem('flux_campaigns');
+      const campaigns = raw ? JSON.parse(raw) : [];
+      set({ campaigns });
+    } catch (e) {
+      console.warn('loadCampaigns failed:', e);
+      set({ campaigns: [] });
+    }
   },
 
   /** Create a new campaign */

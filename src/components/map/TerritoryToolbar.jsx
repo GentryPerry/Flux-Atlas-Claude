@@ -1,35 +1,42 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { Shield, Cross, Crown, X, Check, Polygon } from '@phosphor-icons/react';
+import CustomSelect from '../common/CustomSelect';
 import useNodeStore from '../../stores/nodeStore';
 import useMapStore from '../../stores/mapStore';
 
-const OWNER_TYPES = ['faction', 'religion', 'realm'];
-const TYPE_ICONS = { faction: Shield, religion: Cross, realm: Crown };
+const OWNER_TYPES = ['faction', 'religion', 'polity'];
 const TYPE_COLORS = {
   faction: '#fb923c',
   religion: '#fbbf24',
-  realm: '#e879a8',
+  polity: '#e879a8',
 };
+
+const PRESET_COLORS = [
+  '#fb923c', '#fbbf24', '#e879a8', '#60a5fa', '#4ade80',
+  '#f87171', '#c084fc', '#38bdf8', '#a3e635', '#fb7185',
+];
 
 /**
  * Floating toolbar shown during territory drawing mode.
- * Lets user pick which entity (faction/religion/realm) to assign,
- * shows point count, and has Finish / Cancel buttons.
+ * Lets user pick which entity (faction/religion/polity) to assign,
+ * choose a custom color, and has Finish / Cancel buttons.
  */
 export default function TerritoryToolbar({
   drawingMode,
   setDrawingMode,
   territoryOwnerId,
   setTerritoryOwnerId,
+  territoryColor,
+  setTerritoryColor,
   polygonPointCount,
   onFinishDrawing,
 }) {
   if (drawingMode !== 'polygon') return null;
 
+  const colorInputRef = useRef(null);
   const allNodes = useNodeStore((s) => s.nodes);
-  const activeMapId = useMapStore((s) => s.activeMapId);
 
-  // Get available faction/religion/realm nodes for assignment
+  // Get available faction/religion/polity nodes for assignment
   const ownerOptions = useMemo(() => {
     return allNodes
       .filter((n) => OWNER_TYPES.includes(n.type) && n.fields?.name)
@@ -42,41 +49,64 @@ export default function TerritoryToolbar({
       .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
   }, [allNodes]);
 
-  const selectedOwner = ownerOptions.find((o) => o.id === territoryOwnerId);
+  const handleOwnerChange = (newOwnerId) => {
+    setTerritoryOwnerId(newOwnerId || null);
+    // Suggest the owner's type color, but don't force it
+    if (newOwnerId) {
+      const owner = ownerOptions.find((o) => o.id === newOwnerId);
+      if (owner) setTerritoryColor(owner.color);
+    }
+  };
 
   return (
     <div className="territory-toolbar">
       <div className="territory-toolbar-header">
         <Polygon size={16} weight="fill" />
         <span>Draw Territory</span>
-        <span className="territory-point-count">
-          {polygonPointCount} point{polygonPointCount !== 1 ? 's' : ''}
-        </span>
       </div>
 
       <div className="territory-toolbar-section">
         <label className="territory-toolbar-label">Assign to:</label>
-        <select
-          className="territory-owner-select"
+        <CustomSelect
           value={territoryOwnerId || ''}
-          onChange={(e) => setTerritoryOwnerId(e.target.value || null)}
-        >
-          <option value="">Unassigned</option>
-          {ownerOptions.map((opt) => {
-            const Icon = TYPE_ICONS[opt.type];
-            return (
-              <option key={opt.id} value={opt.id}>
-                {opt.name} ({opt.type})
-              </option>
-            );
-          })}
-        </select>
-        {selectedOwner && (
-          <div
-            className="territory-color-preview"
-            style={{ background: selectedOwner.color }}
+          onChange={handleOwnerChange}
+          placeholder="Unassigned"
+          style={{ minWidth: 160 }}
+          options={[
+            { value: '', label: 'Unassigned' },
+            ...ownerOptions.map((o) => ({ value: o.id, label: `${o.name} (${o.type})` })),
+          ]}
+        />
+      </div>
+
+      <div className="territory-toolbar-section">
+        <label className="territory-toolbar-label">Color:</label>
+        <div className="territory-color-swatches">
+          {PRESET_COLORS.map((c) => (
+            <button
+              key={c}
+              className={`territory-swatch ${territoryColor === c ? 'active' : ''}`}
+              style={{ background: c }}
+              onClick={() => setTerritoryColor(c)}
+              title={c}
+            />
+          ))}
+          <button
+            className="territory-swatch territory-swatch-custom"
+            style={{ background: PRESET_COLORS.includes(territoryColor) ? 'var(--bg-inset)' : territoryColor }}
+            onClick={() => colorInputRef.current?.click()}
+            title="Custom color"
+          >
+            +
+          </button>
+          <input
+            ref={colorInputRef}
+            type="color"
+            className="territory-color-input-hidden"
+            value={territoryColor}
+            onChange={(e) => setTerritoryColor(e.target.value)}
           />
-        )}
+        </div>
       </div>
 
       <div className="territory-toolbar-actions">

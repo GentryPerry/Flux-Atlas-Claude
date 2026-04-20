@@ -1,18 +1,20 @@
-import { useMemo, useCallback } from 'react';
-import { X, Trash, Shield, Cross, Crown } from '@phosphor-icons/react';
+import { useMemo, useCallback, useRef } from 'react';
+import { X, Trash, Shield, Cross, Crown, PencilSimple } from '@phosphor-icons/react';
+import CustomSelect from '../common/CustomSelect';
 import useTerritoryStore from '../../stores/territoryStore';
 import useNodeStore from '../../stores/nodeStore';
 import useCampaignStore from '../../stores/campaignStore';
 
-const OWNER_TYPES = ['faction', 'religion', 'realm'];
-const TYPE_ICONS = { faction: Shield, religion: Cross, realm: Crown };
-const TYPE_COLORS = {
-  faction: '#fb923c',
-  religion: '#fbbf24',
-  realm: '#e879a8',
-};
+const OWNER_TYPES = ['faction', 'religion', 'polity'];
+const TYPE_ICONS = { faction: Shield, religion: Cross, polity: Crown };
 
-export default function TerritoryDetailPanel({ territoryId, onClose }) {
+const PRESET_COLORS = [
+  '#fb923c', '#fbbf24', '#e879a8', '#60a5fa', '#4ade80',
+  '#f87171', '#c084fc', '#38bdf8', '#a3e635', '#fb7185',
+];
+
+export default function TerritoryDetailPanel({ territoryId, onClose, editingPoints, onToggleEditPoints }) {
+  const colorInputRef = useRef(null);
   const campaignId = useCampaignStore((s) => s.activeCampaignId);
   const allTerritories = useTerritoryStore((s) => s.territories);
   const updateTerritory = useTerritoryStore((s) => s.updateTerritory);
@@ -28,7 +30,6 @@ export default function TerritoryDetailPanel({ territoryId, onClose }) {
         id: n.id,
         name: n.fields.name,
         type: n.type,
-        color: TYPE_COLORS[n.type] || '#8890a0',
       }))
       .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
   }, [allNodes]);
@@ -38,14 +39,18 @@ export default function TerritoryDetailPanel({ territoryId, onClose }) {
   const handleReassign = useCallback((newOwnerId) => {
     if (!territory) return;
     const ownerNode = newOwnerId ? allNodes.find((n) => n.id === newOwnerId) : null;
-    const color = ownerNode ? (TYPE_COLORS[ownerNode.type] || '#8890a0') : '#8890a0';
     updateTerritory(campaignId, territoryId, {
       nodeId: newOwnerId || null,
       name: ownerNode ? `${ownerNode.fields?.name} Territory` : territory.name,
+    });
+  }, [territory, allNodes, campaignId, territoryId, updateTerritory]);
+
+  const handleColorChange = useCallback((color) => {
+    updateTerritory(campaignId, territoryId, {
       color,
       strokeColor: color,
     });
-  }, [territory, allNodes, campaignId, territoryId, updateTerritory]);
+  }, [campaignId, territoryId, updateTerritory]);
 
   const handleDelete = useCallback(() => {
     deleteTerritory(campaignId, territoryId);
@@ -71,33 +76,76 @@ export default function TerritoryDetailPanel({ territoryId, onClose }) {
 
       <div className="territory-detail-body">
         <label className="territory-detail-label">Owner</label>
-        <select
-          className="territory-owner-select"
+        <CustomSelect
           value={territory.nodeId || ''}
-          onChange={(e) => handleReassign(e.target.value || null)}
-        >
-          <option value="">Unassigned</option>
-          {ownerOptions.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.name} ({opt.type})
-            </option>
-          ))}
-        </select>
+          onChange={(val) => handleReassign(val || null)}
+          placeholder="Unassigned"
+          options={[
+            { value: '', label: 'Unassigned' },
+            ...ownerOptions.map((o) => ({ value: o.id, label: `${o.name} (${o.type})` })),
+          ]}
+        />
 
         {currentOwner && (
-          <div className="territory-owner-badge" style={{ borderColor: currentOwner.color }}>
+          <div className="territory-owner-badge" style={{ borderColor: territory.color }}>
             {(() => {
               const Icon = TYPE_ICONS[currentOwner.type];
-              return Icon ? <Icon size={14} color={currentOwner.color} /> : null;
+              return Icon ? <Icon size={14} color={territory.color} /> : null;
             })()}
             <span>{currentOwner.name}</span>
           </div>
         )}
 
+        <label className="territory-detail-label">Color</label>
+        <div className="territory-color-swatches">
+          {PRESET_COLORS.map((c) => (
+            <button
+              key={c}
+              className={`territory-swatch ${territory.color === c ? 'active' : ''}`}
+              style={{ background: c }}
+              onClick={() => handleColorChange(c)}
+              title={c}
+            />
+          ))}
+          <button
+            className="territory-swatch territory-swatch-custom"
+            style={{ background: PRESET_COLORS.includes(territory.color) ? 'var(--bg-inset)' : territory.color }}
+            onClick={() => colorInputRef.current?.click()}
+            title="Custom color"
+          >
+            +
+          </button>
+          <input
+            ref={colorInputRef}
+            type="color"
+            className="territory-color-input-hidden"
+            value={territory.color}
+            onChange={(e) => handleColorChange(e.target.value)}
+          />
+        </div>
+
         <div className="territory-detail-meta">
           <span>{territory.shapeType}</span>
           {territory.points && <span>{territory.points.length} points</span>}
         </div>
+
+        {territory.shapeType === 'polygon' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <button
+              className={`btn btn-sm ${editingPoints ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={onToggleEditPoints}
+              style={{ gap: 6, alignSelf: 'flex-start' }}
+            >
+              <PencilSimple size={13} weight={editingPoints ? 'fill' : 'regular'} />
+              {editingPoints ? 'Done editing' : 'Edit points'}
+            </button>
+            {editingPoints && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                Drag handles to reposition. Shift+click a handle to remove it.
+              </div>
+            )}
+          </div>
+        )}
 
         <button className="btn-danger-sm" onClick={handleDelete}>
           <Trash size={14} />

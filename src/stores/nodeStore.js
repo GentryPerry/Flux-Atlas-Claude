@@ -31,9 +31,14 @@ const useNodeStore = create((set, get) => ({
 
   /** Load nodes for a campaign */
   loadNodes: (campaignId) => {
-    const raw = localStorage.getItem(`flux_nodes_${campaignId}`);
-    const nodes = raw ? JSON.parse(raw) : [];
-    set({ nodes, selectedNodeId: null });
+    try {
+      const raw = localStorage.getItem(`flux_nodes_${campaignId}`);
+      const nodes = raw ? JSON.parse(raw) : [];
+      set({ nodes, selectedNodeId: null });
+    } catch (e) {
+      console.warn('loadNodes failed:', e);
+      set({ nodes: [], selectedNodeId: null });
+    }
   },
 
   /** Create a node on a specific map at a position */
@@ -52,7 +57,7 @@ const useNodeStore = create((set, get) => ({
       customIcon: null,
       images: [],
       tagIds: [],
-      drillDownTargets: [],
+      parentNodeId: null,
       createdAt: new Date().toISOString(),
     };
     const nodes = [...get().nodes, node];
@@ -105,10 +110,43 @@ const useNodeStore = create((set, get) => ({
     return get().nodes.filter((n) => n.mapId === mapId);
   },
 
-  /** Delete a node */
+  /** Nest a node inside a parent — any type can go inside any type */
+  nestNode: (campaignId, childId, parentId) => {
+    const nodes = get().nodes.map((n) =>
+      n.id === childId ? { ...n, parentNodeId: parentId } : n
+    );
+    set({ nodes });
+    debouncedPersist(campaignId, () => get().nodes);
+  },
+
+  /** Unnest a node — restore to top level at given position */
+  unnestNode: (campaignId, nodeId, x, y) => {
+    const nodes = get().nodes.map((n) =>
+      n.id === nodeId ? { ...n, parentNodeId: null, x: x ?? n.x, y: y ?? n.y } : n
+    );
+    set({ nodes });
+    debouncedPersist(campaignId, () => get().nodes);
+  },
+
+  /**
+   * Delete a node and ALL its descendants (recursive cascade).
+   * If a folder node is deleted, all nodes nested inside it are also deleted.
+   */
   deleteNode: (campaignId, nodeId) => {
-    const nodes = get().nodes.filter((n) => n.id !== nodeId);
-    const selectedNodeId = get().selectedNodeId === nodeId ? null : get().selectedNodeId;
+    // Collect all descendant IDs via BFS
+    const toDelete = new Set([nodeId]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const n of get().nodes) {
+        if (n.parentNodeId && toDelete.has(n.parentNodeId) && !toDelete.has(n.id)) {
+          toDelete.add(n.id);
+          changed = true;
+        }
+      }
+    }
+    const nodes = get().nodes.filter((n) => !toDelete.has(n.id));
+    const selectedNodeId = toDelete.has(get().selectedNodeId) ? null : get().selectedNodeId;
     set({ nodes, selectedNodeId });
     debouncedPersist(campaignId, () => get().nodes);
   },

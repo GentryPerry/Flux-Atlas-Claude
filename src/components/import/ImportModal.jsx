@@ -15,7 +15,7 @@ const TYPE_COLORS = {
   faction: 'var(--node-faction)',
   religion: 'var(--node-religion)',
   event: 'var(--node-event)',
-  realm: 'var(--node-realm)',
+  polity: 'var(--node-polity)',
   thing: 'var(--node-thing)',
 };
 

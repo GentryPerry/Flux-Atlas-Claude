@@ -18,6 +18,14 @@ import KanbanBoard from '../components/map/KanbanBoard';
 import ImportModal from '../components/import/ImportModal';
 import TerritoryToolbar from '../components/map/TerritoryToolbar';
 import TerritoryDetailPanel from '../components/map/TerritoryDetailPanel';
+import SearchOverlay from '../components/map/SearchOverlay';
+import StagingPanel from '../components/map/StagingPanel';
+import TopoBackground from '../components/common/TopoBackground';
+import AdvanceTimeModal from '../components/time/AdvanceTimeModal';
+import SnapshotSidebar from '../components/time/SnapshotSidebar';
+import WidgetLayer from '../components/widgets/WidgetLayer';
+import useSnapshotStore from '../stores/snapshotStore';
+import useWidgetStore from '../stores/widgetStore';
 
 export default function WorkspaceView() {
   const campaignId = useCampaignStore((s) => s.activeCampaignId);
@@ -25,29 +33,40 @@ export default function WorkspaceView() {
 
   const loadMaps = useMapStore((s) => s.loadMaps);
   const loadNodes = useNodeStore((s) => s.loadNodes);
+  const allNodes = useNodeStore((s) => s.nodes);
   const loadTags = useTagStore((s) => s.loadTags);
   const loadConnections = useConnectionStore((s) => s.loadConnections);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
   const loadTerritories = useTerritoryStore((s) => s.loadTerritories);
-  const allNodes = useNodeStore((s) => s.nodes);
-  const updateNodeFields = useNodeStore((s) => s.updateNodeFields);
-  const tags = useTagStore((s) => s.tags);
-  const createTag = useTagStore((s) => s.createTag);
+  const deselectNode = useNodeStore((s) => s.deselectNode);
+  const loadSnapshots = useSnapshotStore((s) => s.loadSnapshots);
+  const loadWidgets   = useWidgetStore((s) => s.loadWidgets);
 
   // Settings-driven layout
   const layout = useSettingsStore((s) => s.layout);
   const mapSide = useSettingsStore((s) => s.mapSide);
-  const showConnections = useSettingsStore((s) => s.showConnections);
   const settingsOpen = useSettingsStore((s) => s.settingsOpen);
 
+  // Close detail panel when switching to full-canvas mode
+  useEffect(() => {
+    if (layout === 'full') deselectNode();
+  }, [layout, deselectNode]);
+
   const [placingType, setPlacingType] = useState(null);
-  const [connectingFrom, setConnectingFrom] = useState(null);
   const [kanbanMode, setKanbanMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
   const [polygonPoints, setPolygonPoints] = useState([]);
   const [territoryOwnerId, setTerritoryOwnerId] = useState(null);
+  const [territoryColor, setTerritoryColor] = useState('#8890a0');
   const [selectedTerritoryId, setSelectedTerritoryId] = useState(null);
+  const [editingTerritoryId, setEditingTerritoryId] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchHighlightIds, setSearchHighlightIds] = useState(null);
+  const [stagingOpen, setStagingOpen]             = useState(false);
+  const [advanceTimeOpen, setAdvanceTimeOpen]     = useState(false);
+  const [historyOpen, setHistoryOpen]             = useState(false);
+  const [orgView, setOrgView]                     = useState(false);
 
   const activeMapId = useMapStore((s) => s.activeMapId);
   const createTerritory = useTerritoryStore((s) => s.createTerritory);
@@ -57,16 +76,11 @@ export default function WorkspaceView() {
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null); // { nodeId, x, y }
 
-  const createConnection = useConnectionStore((s) => s.createConnection);
-
-  // Get color from the owner node for territory coloring
-  const TYPE_COLORS = { faction: '#fb923c', religion: '#fbbf24', realm: '#e879a8' };
-
   const handleSetDrawingMode = useCallback((mode) => {
     if (!mode) {
-      // Exiting drawing mode — clear polygon points
       setPolygonPoints([]);
       setTerritoryOwnerId(null);
+      setTerritoryColor('#8890a0');
     }
     setDrawingMode(mode);
   }, []);
@@ -74,21 +88,22 @@ export default function WorkspaceView() {
   const handleFinishDrawing = useCallback(() => {
     if (polygonPoints.length < 3) return;
     const ownerNode = territoryOwnerId ? allNodes.find((n) => n.id === territoryOwnerId) : null;
-    const ownerColor = ownerNode ? (TYPE_COLORS[ownerNode.type] || '#8890a0') : '#8890a0';
     createTerritory(campaignId, activeMapId, 'polygon', {
       points: polygonPoints,
       nodeId: territoryOwnerId || null,
       name: ownerNode ? `${ownerNode.fields?.name} Territory` : `Territory ${new Date().toLocaleTimeString()}`,
-      color: ownerColor,
-      strokeColor: ownerColor,
+      color: territoryColor,
+      strokeColor: territoryColor,
       opacity: 0.15,
     });
     setPolygonPoints([]);
     setDrawingMode(null);
     setTerritoryOwnerId(null);
-  }, [polygonPoints, territoryOwnerId, allNodes, campaignId, activeMapId, createTerritory]);
+    setTerritoryColor('#8890a0');
+  }, [polygonPoints, territoryOwnerId, territoryColor, allNodes, campaignId, activeMapId, createTerritory]);
 
-  // Load campaign data
+  // Load campaign data — snapshots MUST be loaded here so the store is populated
+  // before AdvanceTimeModal runs handleCommit (avoids cold-store overwrite bug)
   useEffect(() => {
     if (!campaignId) return;
     loadMaps(campaignId);
@@ -97,68 +112,22 @@ export default function WorkspaceView() {
     loadConnections(campaignId);
     loadSettings(campaignId);
     loadTerritories(campaignId);
-  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories]);
+    loadSnapshots(campaignId);
+    loadWidgets(campaignId);
+  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories, loadSnapshots, loadWidgets]);
 
   const handlePlacingDone = useCallback(() => {
     setPlacingType(null);
   }, []);
 
-  const handleConnectionClick = useCallback((nodeId) => {
-    if (connectingFrom === '__waiting__') {
-      setConnectingFrom(nodeId);
-    } else if (connectingFrom && connectingFrom !== nodeId) {
-      createConnection(campaignId, connectingFrom, nodeId);
-
-      // Cross-reference: add each node's name as a tag on the other
-      const nodeA = allNodes.find((n) => n.id === connectingFrom);
-      const nodeB = allNodes.find((n) => n.id === nodeId);
-      if (nodeA && nodeB) {
-        // Determine appropriate tag field based on node type
-        const getTagField = (targetType, sourceType) => {
-          if (sourceType === 'faction') return targetType === 'character' ? 'faction' : targetType === 'location' ? 'controllingFaction' : null;
-          if (sourceType === 'religion') return targetType === 'character' ? 'religion' : null;
-          if (sourceType === 'location') return targetType === 'character' ? 'notableNPCs' : null;
-          return null;
-        };
-
-        const addTagRef = (target, source, field) => {
-          if (!field) return;
-          const name = source.fields?.name;
-          if (!name) return;
-          let tag = tags.find((t) => t.name.toLowerCase() === name.toLowerCase());
-          if (!tag) tag = createTag(campaignId, name);
-          const current = Array.isArray(target.fields?.[field]) ? target.fields[field] : [];
-          if (!current.includes(tag.id)) {
-            updateNodeFields(campaignId, target.id, { [field]: [...current, tag.id] });
-          }
-        };
-
-        // Try both directions
-        const fieldAtoB = getTagField(nodeB.type, nodeA.type);
-        const fieldBtoA = getTagField(nodeA.type, nodeB.type);
-        addTagRef(nodeB, nodeA, fieldAtoB);
-        addTagRef(nodeA, nodeB, fieldBtoA);
-      }
-
-      setConnectingFrom(null);
-    }
-  }, [connectingFrom, campaignId, createConnection, allNodes, tags, createTag, updateNodeFields]);
-
   const handleNodeContextMenu = useCallback((nodeId, viewportX, viewportY) => {
     setContextMenu({ nodeId, x: viewportX, y: viewportY });
-  }, []);
-
-  const handleStartConnect = useCallback((nodeId) => {
-    setConnectingFrom(nodeId);
   }, []);
 
   const mapCanvas = (
     <MapCanvas
       placingType={placingType}
       onPlacingDone={handlePlacingDone}
-      showConnections={showConnections}
-      connectingFrom={connectingFrom}
-      onConnectionClick={handleConnectionClick}
       onNodeContextMenu={handleNodeContextMenu}
       drawingMode={drawingMode}
       setDrawingMode={handleSetDrawingMode}
@@ -166,30 +135,67 @@ export default function WorkspaceView() {
       setPolygonPoints={setPolygonPoints}
       selectedTerritoryId={selectedTerritoryId}
       setSelectedTerritoryId={setSelectedTerritoryId}
+      editingTerritoryId={editingTerritoryId}
+      searchHighlightIds={searchHighlightIds}
+      orgView={orgView}
     />
   );
 
   const rightPanel = selectedNodeId ? <DetailPanel /> : <CardPanel />;
 
+  // Apply node type color overrides + custom type colors as CSS variables
+  const nodeTypeOverrides = useSettingsStore((s) => s.nodeTypeOverrides) || {};
+  const customNodeTypes   = useSettingsStore((s) => s.customNodeTypes)   || [];
+  const colorOverrideStyle = useMemo(() => {
+    const style = {};
+    // Built-in type overrides
+    for (const [type, overrides] of Object.entries(nodeTypeOverrides)) {
+      if (overrides.color) {
+        style[`--node-${type}`] = overrides.color;
+      }
+    }
+    // Custom type colors
+    for (const ct of customNodeTypes) {
+      if (ct.color) {
+        style[`--node-${ct.id}`] = ct.color;
+      }
+    }
+    return style;
+  }, [nodeTypeOverrides, customNodeTypes]);
+
   return (
-    <div className="app-layout">
+    <div className="app-layout" style={colorOverrideStyle}>
       <MapSidebar />
       <div className="main-content">
         <MapToolbar
           placingType={placingType}
           setPlacingType={setPlacingType}
-          connectingFrom={connectingFrom}
-          setConnectingFrom={setConnectingFrom}
           kanbanMode={kanbanMode}
           setKanbanMode={setKanbanMode}
           onOpenImport={() => setImportOpen(true)}
           drawingMode={drawingMode}
           setDrawingMode={handleSetDrawingMode}
+          onOpenSearch={() => setSearchOpen(true)}
+          onToggleStaging={() => setStagingOpen(!stagingOpen)}
+          stagingOpen={stagingOpen}
+          onOpenAdvanceTime={() => setAdvanceTimeOpen(true)}
+          onToggleHistory={() => setHistoryOpen((v) => !v)}
+          historyOpen={historyOpen}
+          onToggleOrgView={() => setOrgView((v) => !v)}
+          orgView={orgView}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+          {/* Topo background fills the workspace area behind map and panels */}
+          <TopoBackground style={{ position: 'absolute', inset: 0, zIndex: 0 }} opacity={0.35} />
+          {/* Widget layer must live here so its coordinate space starts at the same
+              origin as the Konva canvas (after sidebar). position: fixed would be
+              offset by the sidebar width and toolbar height. */}
+          {!kanbanMode && <WidgetLayer />}
           {kanbanMode ? (
-            <KanbanBoard />
+            <div className="view-enter" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              <KanbanBoard />
+            </div>
           ) : layout === 'full' ? (
             <>
               <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -230,6 +236,8 @@ export default function WorkspaceView() {
         setDrawingMode={handleSetDrawingMode}
         territoryOwnerId={territoryOwnerId}
         setTerritoryOwnerId={setTerritoryOwnerId}
+        territoryColor={territoryColor}
+        setTerritoryColor={setTerritoryColor}
         polygonPointCount={polygonPoints.length}
         onFinishDrawing={handleFinishDrawing}
       />
@@ -238,23 +246,12 @@ export default function WorkspaceView() {
       {selectedTerritoryId && !drawingMode && (
         <TerritoryDetailPanel
           territoryId={selectedTerritoryId}
-          onClose={() => setSelectedTerritoryId(null)}
+          onClose={() => { setSelectedTerritoryId(null); setEditingTerritoryId(null); }}
+          editingPoints={editingTerritoryId === selectedTerritoryId}
+          onToggleEditPoints={() => setEditingTerritoryId(
+            editingTerritoryId === selectedTerritoryId ? null : selectedTerritoryId
+          )}
         />
-      )}
-
-      {/* Connection mode indicator */}
-      {connectingFrom && (
-        <div className="connection-indicator">
-          {connectingFrom === '__waiting__'
-            ? 'Click the first node to connect...'
-            : 'Now click the second node...'}
-          <button
-            className="btn-ghost btn-sm"
-            onClick={() => setConnectingFrom(null)}
-          >
-            Cancel
-          </button>
-        </div>
       )}
 
       {/* Right-click context menu */}
@@ -263,15 +260,42 @@ export default function WorkspaceView() {
           nodeId={contextMenu.nodeId}
           position={{ x: contextMenu.x, y: contextMenu.y }}
           onClose={() => setContextMenu(null)}
-          onStartConnect={handleStartConnect}
         />
       )}
 
       {/* Import modal */}
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
 
+      {/* Advance Time modal */}
+      {advanceTimeOpen && (
+        <AdvanceTimeModal
+          campaignId={campaignId}
+          onClose={() => setAdvanceTimeOpen(false)}
+        />
+      )}
+
+      {/* Snapshot / history sidebar */}
+      {historyOpen && (
+        <SnapshotSidebar
+          campaignId={campaignId}
+          onClose={() => setHistoryOpen(false)}
+        />
+      )}
+
       {/* Settings panel */}
       {settingsOpen && <SettingsPanel />}
+
+      {/* Staging panel */}
+      {stagingOpen && <StagingPanel onClose={() => setStagingOpen(false)} />}
+
+      {/* Search overlay */}
+      {searchOpen && (
+        <SearchOverlay
+          onClose={() => { setSearchOpen(false); setSearchHighlightIds(null); }}
+          onHighlight={setSearchHighlightIds}
+        />
+      )}
+
     </div>
   );
 }

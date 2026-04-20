@@ -1,7 +1,7 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useRef, useMemo, useState } from 'react';
 import {
-  Trash, Copy, Clipboard, Shield, Cross, Eye, EyeSlash,
-  Skull, Heart, LinkSimple, PencilSimple,
+  Trash, Shield, Cross, Eye, EyeSlash,
+  Skull, Heart, PencilSimple, ArrowsOut, TreeStructure, Tray,
 } from '@phosphor-icons/react';
 import useNodeStore from '../../stores/nodeStore';
 import useTagStore from '../../stores/tagStore';
@@ -16,7 +16,6 @@ export default function NodeContextMenu({
   nodeId,
   position,   // { x, y } in viewport coords
   onClose,
-  onStartConnect,
 }) {
   const ref = useRef(null);
   const campaignId = useCampaignStore((s) => s.activeCampaignId);
@@ -24,6 +23,8 @@ export default function NodeContextMenu({
   const selectNode = useNodeStore((s) => s.selectNode);
   const updateNode = useNodeStore((s) => s.updateNode);
   const deleteNode = useNodeStore((s) => s.deleteNode);
+  const nestNode = useNodeStore((s) => s.nestNode);
+  const unnestNode = useNodeStore((s) => s.unnestNode);
   const tags = useTagStore((s) => s.tags);
   const createTag = useTagStore((s) => s.createTag);
   const updateNodeFields = useNodeStore((s) => s.updateNodeFields);
@@ -90,14 +91,56 @@ export default function NodeContextMenu({
     onClose();
   };
 
-  // Position adjustment so menu doesn't go off screen
-  const style = {
-    left: Math.min(position.x, window.innerWidth - 260),
-    top: Math.min(position.y, window.innerHeight - 400),
-  };
+  // Clamp menu inside viewport after measuring its actual size
+  const [adjusted, setAdjusted] = useState(false);
+  const [pos, setPos] = useState({ left: position.x, top: position.y });
+
+  // Max height: leave 24px padding from viewport edges
+  const maxH = typeof window !== 'undefined' ? window.innerHeight - 24 : 600;
+
+  useLayoutEffect(() => {
+    setPos({ left: position.x, top: position.y });
+    setAdjusted(false);
+  }, [position.x, position.y]);
+
+  useLayoutEffect(() => {
+    if (adjusted) return;
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const vpW = window.innerWidth;
+    const vpH = window.innerHeight;
+    const pad = 12;
+
+    let left = position.x;
+    let top = position.y;
+
+    // Push left if it goes off right edge
+    if (left + rect.width > vpW - pad) left = vpW - rect.width - pad;
+    if (left < pad) left = pad;
+
+    // Push up if it goes off bottom edge — account for maxHeight constraint
+    const menuH = Math.min(rect.height, maxH);
+    if (top + menuH > vpH - pad) top = vpH - menuH - pad;
+    if (top < pad) top = pad;
+
+    if (left !== position.x || top !== position.y) {
+      setPos({ left, top });
+    }
+    setAdjusted(true);
+  }, [position.x, position.y, adjusted, maxH]);
 
   return (
-    <div className="context-menu" ref={ref} style={style}>
+    <div
+      className="context-menu"
+      ref={ref}
+      style={{
+        left: pos.left,
+        top: pos.top,
+        maxHeight: `calc(100vh - ${pos.top + 12}px)`,
+        overflowY: 'auto',
+      }}
+    >
       {/* Header */}
       <div className="context-menu-label" style={{ color: typeColor }}>
         {typeInfo?.label || node.type} — {node.fields?.name || 'Unnamed'}
@@ -106,10 +149,6 @@ export default function NodeContextMenu({
       <button className="context-menu-item" onClick={handleEdit}>
         <PencilSimple size={16} /> Edit Details
         <span className="ctx-shortcut">Click</span>
-      </button>
-
-      <button className="context-menu-item" onClick={() => { onStartConnect?.(node.id); onClose(); }}>
-        <LinkSimple size={16} /> Connect to...
       </button>
 
       <div className="context-menu-divider" />
@@ -168,7 +207,53 @@ export default function NodeContextMenu({
         </>
       )}
 
+      {/* Remove from folder */}
+      {node.parentNodeId && (
+        <>
+          <div className="context-menu-divider" />
+          <button className="context-menu-item" onClick={() => {
+            unnestNode(campaignId, node.id, node.x + 80, node.y);
+            onClose();
+          }}>
+            <ArrowsOut size={16} /> Remove from folder
+          </button>
+        </>
+      )}
+
+      {/* Move into a folder — any node can go inside any other node */}
+      {!node.parentNodeId && (() => {
+        const validParents = allNodes.filter((n) => {
+          if (n.id === nodeId || n.mapId !== node.mapId) return false;
+          if (n.parentNodeId) return false; // don't show nested nodes as targets
+          return true;
+        });
+        if (!validParents.length) return null;
+        return (
+          <>
+            <div className="context-menu-divider" />
+            <div className="context-menu-label">Move into folder</div>
+            {validParents.slice(0, 8).map((parent) => (
+              <button
+                key={parent.id}
+                className="context-menu-item"
+                onClick={() => { nestNode(campaignId, node.id, parent.id); onClose(); }}
+              >
+                <TreeStructure size={16} color={`var(--node-${parent.type})`} />
+                {parent.fields?.name || 'Unnamed'}
+              </button>
+            ))}
+          </>
+        );
+      })()}
+
       <div className="context-menu-divider" />
+
+      <button className="context-menu-item" onClick={() => {
+        updateNode(campaignId, node.id, { mapId: '__staging__', parentNodeId: null });
+        onClose();
+      }}>
+        <Tray size={16} /> Remove from Map
+      </button>
 
       <button className="context-menu-item danger" onClick={handleDelete}>
         <Trash size={16} /> Delete Node

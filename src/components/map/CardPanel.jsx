@@ -1,26 +1,26 @@
 import { useState, useMemo, useCallback, memo } from 'react';
 import {
   MagnifyingGlass, Funnel, X, ArrowSquareIn,
-  UserCircle, MapPin, Shield, Cross, Lightning, Sword, Crown,
-  Eye, EyeSlash, Skull,
+  Eye, Skull,
 } from '@phosphor-icons/react';
 import useNodeStore from '../../stores/nodeStore';
 import useTagStore from '../../stores/tagStore';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
-import { NODE_TYPES } from '../../utils/nodeSchemas';
+import useSettingsStore from '../../stores/settingsStore';
+import { NODE_TYPES, isAbstractType } from '../../utils/nodeSchemas';
+import { resolveIcon } from '../../utils/iconRegistry';
+import { getTypeIcon, getTypeLabel, getTypeColor } from '../../utils/typeColors';
 
-const ICON_MAP = {
-  UserCircle, MapPin, Shield, Cross, Lightning, Sword, Crown,
-};
-
+// CSS-variable based colors — work for both built-in and custom types
+// (WorkspaceView injects --node-{typeId} for all types including custom)
 const TYPE_COLORS = {
   character: 'var(--node-character)',
   location: 'var(--node-location)',
   faction: 'var(--node-faction)',
   religion: 'var(--node-religion)',
   event: 'var(--node-event)',
-  realm: 'var(--node-realm)',
+  polity: 'var(--node-polity)',
   thing: 'var(--node-thing)',
 };
 
@@ -30,13 +30,17 @@ const CARDS_PER_PAGE = 50;
  * Individual card component — pure render, no store hooks.
  * All data passed via props to avoid per-card store subscriptions.
  */
-const NodeCard = memo(({ node, isSelected, tagMap, childMapId, onSelect, onDrill }) => {
-  const schema = NODE_TYPES[node.type];
-  const iconName = schema?.icon || 'Cube';
-  const Icon = ICON_MAP[iconName] || MapPin;
-  const color = TYPE_COLORS[node.type] || 'var(--text-secondary)';
+const NodeCard = memo(({ node, isSelected, tagMap, nodeMap, childMapId, onSelect, onDrill, onChipletSelect, nodeTypeOverrides, customNodeTypes }) => {
+  const schema   = NODE_TYPES[node.type] || null;
+  const iconName = getTypeIcon(node.type, NODE_TYPES, nodeTypeOverrides || {}, customNodeTypes || []);
+  const Icon     = resolveIcon(iconName);
+  const color    = `var(--node-${node.type}, var(--text-secondary))`;
+  const typeLabel = (nodeTypeOverrides || {})[node.type]?.label
+    || schema?.label
+    || (customNodeTypes || []).find((c) => c.id === node.type)?.label
+    || node.type;
 
-  // Resolve tags from pre-built map
+  // User-defined tag chips (from tagStore)
   const tagFields = schema?.fields?.filter((f) => f.type === 'tags') || [];
   const allFieldTags = [];
   for (const field of tagFields) {
@@ -45,6 +49,49 @@ const NodeCard = memo(({ node, isSelected, tagMap, childMapId, onSelect, onDrill
     for (const id of ids) {
       const tag = tagMap[id];
       if (tag) allFieldTags.push(tag);
+    }
+  }
+
+  // Relationship chiplets — three sources:
+  //  1. Abstract-type tag references (faction, religion, polity, …)
+  //  2. Parent node (spatial container this node lives inside)
+  //  3. Children nodes (nodes nested inside this one)
+  const relChiplets = [];
+  const seenChipIds = new Set();
+
+  const pushChip = (refNode) => {
+    if (!refNode || seenChipIds.has(refNode.id)) return;
+    seenChipIds.add(refNode.id);
+    const chipColor    = getTypeColor(refNode.type, nodeTypeOverrides || {}, customNodeTypes || []);
+    const chipIconName = getTypeIcon(refNode.type, NODE_TYPES, nodeTypeOverrides || {}, customNodeTypes || []);
+    const ChipIcon     = resolveIcon(chipIconName);
+    relChiplets.push({ refNode, chipColor, ChipIcon });
+  };
+
+  // 1. Abstract-type tag field references
+  for (const field of tagFields) {
+    if (!field.filterTypes?.length) continue;
+    const raw = node.fields?.[field.key];
+    if (!Array.isArray(raw) || raw.length === 0) continue;
+    for (const refId of raw) {
+      const refNode = nodeMap?.[refId];
+      if (!refNode) continue;
+      if (!isAbstractType(refNode.type, customNodeTypes || [])) continue;
+      pushChip(refNode);
+    }
+  }
+
+  // 2. Parent node (spatial container)
+  if (node.parentNodeId) {
+    pushChip(nodeMap?.[node.parentNodeId]);
+  }
+
+  // 3. Children nodes (nodes nested inside this one) — cap at 4 to avoid overflow
+  if (nodeMap) {
+    const children = Object.values(nodeMap).filter((n) => n.parentNodeId === node.id);
+    for (const child of children.slice(0, 4)) pushChip(child);
+    if (children.length > 4) {
+      relChiplets.push({ overflow: children.length - 4 });
     }
   }
 
@@ -67,7 +114,7 @@ const NodeCard = memo(({ node, isSelected, tagMap, childMapId, onSelect, onDrill
           </div>
           <div className="node-card-title">
             <span className="node-card-name">{node.fields?.name || 'Unnamed'}</span>
-            <span className="node-card-type" style={{ color }}>{schema?.label}</span>
+            <span className="node-card-type" style={{ color }}>{typeLabel}</span>
           </div>
           <div className="node-card-status">
             {schema?.statusFlags &&
@@ -82,16 +129,40 @@ const NodeCard = memo(({ node, isSelected, tagMap, childMapId, onSelect, onDrill
                   </span>
                 );
               })}
-            {node.statusFlags?.revealed ? (
-              <span className="status-badge status-revealed"><Eye size={11} /> Visible</span>
-            ) : (
-              <span className="status-badge status-hidden"><EyeSlash size={11} /> Hidden</span>
-            )}
           </div>
         </div>
 
         {displayDesc && <p className="node-card-desc">{displayDesc}</p>}
 
+        {/* Relationship chiplets — faction/parent/children */}
+        {relChiplets.length > 0 && (
+          <div className="node-card-chiplets">
+            {relChiplets.map((chip, i) => {
+              if (chip.overflow) {
+                return (
+                  <span key="overflow" className="rel-chiplet" style={{ borderColor: 'var(--border-strong)', color: 'var(--text-muted)', background: 'var(--bg-inset)' }}>
+                    +{chip.overflow}
+                  </span>
+                );
+              }
+              const { refNode, chipColor, ChipIcon } = chip;
+              return (
+                <span
+                  key={refNode.id}
+                  className="rel-chiplet"
+                  style={{ borderColor: `${chipColor}50`, color: chipColor, background: `${chipColor}14`, cursor: 'pointer' }}
+                  onClick={(e) => { e.stopPropagation(); onChipletSelect?.(refNode.id); }}
+                  title={`Open ${refNode.fields?.name || refNode.type}`}
+                >
+                  <ChipIcon size={9} weight="fill" />
+                  {refNode.fields?.name || '—'}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* User-defined tag chips */}
         {allFieldTags.length > 0 && (
           <div className="node-card-tags">
             {allFieldTags.slice(0, 4).map((tag) => (
@@ -126,6 +197,7 @@ const NodeCard = memo(({ node, isSelected, tagMap, childMapId, onSelect, onDrill
   prev.node === next.node &&
   prev.isSelected === next.isSelected &&
   prev.tagMap === next.tagMap &&
+  prev.nodeMap === next.nodeMap &&
   prev.childMapId === next.childMapId
 ));
 
@@ -139,6 +211,8 @@ export default function CardPanel() {
   const drillDown = useMapStore((s) => s.drillDown);
   const tags = useTagStore((s) => s.tags);
   const maps = useMapStore((s) => s.maps);
+  const nodeTypeOverrides = useSettingsStore((s) => s.nodeTypeOverrides) || {};
+  const customNodeTypes   = useSettingsStore((s) => s.customNodeTypes)   || [];
 
   // Build a single tag lookup map — shared by ALL cards via props
   const tagMap = useMemo(() => {
@@ -146,6 +220,13 @@ export default function CardPanel() {
     for (const t of tags) m[t.id] = t;
     return m;
   }, [tags]);
+
+  // Build a node lookup map for relationship chiplets
+  const nodeMap = useMemo(() => {
+    const m = {};
+    for (const n of allNodes) m[n.id] = n;
+    return m;
+  }, [allNodes]);
 
   // Build child map lookup
   const childMapLookup = useMemo(() => {
@@ -245,9 +326,13 @@ export default function CardPanel() {
             node={node}
             isSelected={node.id === selectedNodeId}
             tagMap={tagMap}
+            nodeMap={nodeMap}
             childMapId={childMapLookup[node.id] || null}
             onSelect={handleSelectNode}
             onDrill={handleDrill}
+            onChipletSelect={handleSelectNode}
+            nodeTypeOverrides={nodeTypeOverrides}
+            customNodeTypes={customNodeTypes}
           />
         ))}
 

@@ -10,13 +10,22 @@ const useTerritoryStore = create((set, get) => ({
 
   /** Load territories for a campaign */
   loadTerritories: (campaignId) => {
-    const raw = localStorage.getItem(`flux_territories_${campaignId}`);
-    const territories = raw ? JSON.parse(raw) : [];
-    set({ territories });
+    try {
+      const raw = localStorage.getItem(`flux_territories_${campaignId}`);
+      const territories = raw ? JSON.parse(raw) : [];
+      set({ territories });
+    } catch (e) {
+      console.warn('loadTerritories failed:', e);
+      set({ territories: [] });
+    }
   },
 
   _persist: (campaignId) => {
-    localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(get().territories));
+    try {
+      localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(get().territories));
+    } catch (e) {
+      console.warn('Territory persist failed:', e);
+    }
   },
 
   /** Create a new territory */

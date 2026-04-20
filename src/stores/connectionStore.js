@@ -8,9 +8,14 @@ const useConnectionStore = create((set, get) => ({
   connections: [],
 
   loadConnections: (campaignId) => {
-    const raw = localStorage.getItem(`flux_connections_${campaignId}`);
-    const connections = raw ? JSON.parse(raw) : [];
-    set({ connections });
+    try {
+      const raw = localStorage.getItem(`flux_connections_${campaignId}`);
+      const connections = raw ? JSON.parse(raw) : [];
+      set({ connections });
+    } catch (e) {
+      console.warn('loadConnections failed:', e);
+      set({ connections: [] });
+    }
   },
 
   createConnection: (campaignId, nodeAId, nodeBId, options = {}) => {

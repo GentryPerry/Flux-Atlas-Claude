@@ -8,13 +8,22 @@ const useTagStore = create((set, get) => ({
   tags: [],
 
   loadTags: (campaignId) => {
-    const raw = localStorage.getItem(`flux_tags_${campaignId}`);
-    const tags = raw ? JSON.parse(raw) : [];
-    set({ tags });
+    try {
+      const raw = localStorage.getItem(`flux_tags_${campaignId}`);
+      const tags = raw ? JSON.parse(raw) : [];
+      set({ tags });
+    } catch (e) {
+      console.warn('loadTags failed:', e);
+      set({ tags: [] });
+    }
   },
 
   _persist: (campaignId) => {
-    localStorage.setItem(`flux_tags_${campaignId}`, JSON.stringify(get().tags));
+    try {
+      localStorage.setItem(`flux_tags_${campaignId}`, JSON.stringify(get().tags));
+    } catch (e) {
+      console.warn('Tag persist failed:', e);
+    }
   },
 
   /** Create a tag. nodeId = null for status-label tags. */

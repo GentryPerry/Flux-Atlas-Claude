@@ -1,356 +1,559 @@
 import { useState, useMemo, useCallback } from 'react';
-import {
-  UserCircle, MapPin, Shield, Cross, Lightning, Sword, Crown,
-  ArrowSquareIn, CaretDown, X,
-} from '@phosphor-icons/react';
+import { X, Plus, MagnifyingGlass, Rows, LinkSimple, Users } from '@phosphor-icons/react';
 import useNodeStore from '../../stores/nodeStore';
-import useTagStore from '../../stores/tagStore';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
-import { NODE_TYPES } from '../../utils/nodeSchemas';
-
-const ICON_MAP = { UserCircle, MapPin, Shield, Cross, Lightning, Sword, Crown };
-
-const TYPE_COLORS = {
-  character: 'var(--node-character)',
-  location: 'var(--node-location)',
-  faction: 'var(--node-faction)',
-  religion: 'var(--node-religion)',
-  event: 'var(--node-event)',
-  realm: 'var(--node-realm)',
-  thing: 'var(--node-thing)',
-};
+import useSettingsStore from '../../stores/settingsStore';
+import {
+  NODE_TYPES, NESTING_RULES, canNestType,
+  isAbstractType, getTagAssignmentField, getTagMembers,
+} from '../../utils/nodeSchemas';
+import { resolveIcon } from '../../utils/iconRegistry';
+import { getTypeColor, getTypeLabel, getTypeIcon } from '../../utils/typeColors';
 
 /**
- * Kanban-style relationship board.
- * Groups nodes into columns by faction/religion/realm/location membership.
- * Cards show all node types that can belong to the selected group type.
- * Drag cards between columns to ADD multi-membership (doesn't replace).
- * Click the X on a card to remove it from just that column.
+ * Board columns come in two flavours:
+ *
+ *  { kind: 'entity', nodeId: string }
+ *    Shows a specific node as the column header.
+ *    - SPATIAL entities: body = spatially nested children (parentNodeId === nodeId)
+ *      Dropping here → nestNode(child, nodeId)
+ *    - ABSTRACT entities (faction, religion, polity, …): body = nodes that reference
+ *      this entity via a tag field.
+ *      Dropping here → assign tag field on the dragged node
+ *
+ *  { kind: 'pool', nodeType: string }
+ *    Shows ALL nodes of that type as a draggable pool.
+ *    Dropping a card here → unnestNode (remove from parent) for spatial;
+ *    no-op for abstract pool targets (pools are drag-sources only).
  */
-export default function KanbanBoard({ groupBy = 'faction' }) {
-  const campaignId = useCampaignStore((s) => s.activeCampaignId);
-  const activeMapId = useMapStore((s) => s.activeMapId);
-  const allNodes = useNodeStore((s) => s.nodes);
-  const selectNode = useNodeStore((s) => s.selectNode);
-  const updateNodeFields = useNodeStore((s) => s.updateNodeFields);
-  const tags = useTagStore((s) => s.tags);
-  const createTag = useTagStore((s) => s.createTag);
-  const [dragNodeId, setDragNodeId] = useState(null);
-  const [groupMode, setGroupMode] = useState(groupBy);
 
-  // Get all nodes on this map
+/* ─── Relationship chip ──────────────────────────────────────────── */
+/**
+ * Compact chip showing a tag-reference to another node.
+ * Used on cards to show faction membership, religion, etc.
+ */
+function RelChip({ node, nodeTypeOverrides, customNodeTypes, onRemove }) {
+  const color    = getTypeColor(node.type, nodeTypeOverrides, customNodeTypes);
+  const iconName = getTypeIcon(node.type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+  const Icon     = resolveIcon(iconName);
+  return (
+    <span
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        padding: '2px 7px 2px 5px', borderRadius: 'var(--radius-pill)',
+        border: `1px solid ${color}40`, background: `${color}12`,
+        fontSize: 10, fontWeight: 600, color,
+        lineHeight: 1.3, flexShrink: 0,
+      }}
+    >
+      <Icon size={10} weight="fill" />
+      {node.fields?.name || '—'}
+      {onRemove && (
+        <span
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          style={{ opacity: 0.5, cursor: 'pointer', marginLeft: 1, lineHeight: 1 }}
+        >×</span>
+      )}
+    </span>
+  );
+}
+
+/* ─── Column picker overlay ──────────────────────────────────────── */
+function ColumnPicker({ mapNodes, boardColumns, onAdd, onClose, nodeTypeOverrides, customNodeTypes }) {
+  const [tab, setTab]       = useState('entity');
+  const [filter, setFilter] = useState('');
+
+  const alreadyEntityIds = new Set(boardColumns.filter((c) => c.kind === 'entity').map((c) => c.nodeId));
+  const alreadyPoolTypes = new Set(boardColumns.filter((c) => c.kind === 'pool').map((c) => c.nodeType));
+
+  const allTypes = [
+    ...Object.keys(NODE_TYPES),
+    ...customNodeTypes.map((c) => c.id),
+  ];
+
+  const entityNodes = useMemo(() => {
+    const q = filter.toLowerCase();
+    return mapNodes
+      .filter((n) => !alreadyEntityIds.has(n.id) && (!q || (n.fields?.name || '').toLowerCase().includes(q)))
+      .sort((a, b) => (a.fields?.name || '').localeCompare(b.fields?.name || ''));
+  }, [mapNodes, alreadyEntityIds, filter]);
+
+  const poolTypes = useMemo(() => {
+    const q = filter.toLowerCase();
+    return allTypes.filter((t) => {
+      if (alreadyPoolTypes.has(t)) return false;
+      const label = getTypeLabel(t, NODE_TYPES, nodeTypeOverrides, customNodeTypes).toLowerCase();
+      return !q || label.includes(q);
+    });
+  }, [allTypes, alreadyPoolTypes, filter, nodeTypeOverrides, customNodeTypes]);
+
+  const grouped = useMemo(() => {
+    const map = {};
+    for (const n of entityNodes) {
+      if (!map[n.type]) map[n.type] = [];
+      map[n.type].push(n);
+    }
+    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+  }, [entityNodes]);
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, animation: 'fadeIn 150ms var(--ease)' }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-xl)', width: 440, maxHeight: '72vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', animation: 'modalIn 200ms var(--ease)', overflow: 'hidden' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ padding: '18px 20px 12px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontFamily: "'Cal Sans', sans-serif", fontSize: 18, fontWeight: 400, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              Add Column
+            </span>
+            <button className="btn-icon" onClick={onClose}><X size={16} /></button>
+          </div>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+            {[['entity', 'Specific Node'], ['pool', 'Type Pool']].map(([t, label]) => (
+              <button
+                key={t}
+                onClick={() => { setTab(t); setFilter(''); }}
+                style={{ flex: 1, padding: '6px 0', borderRadius: 'var(--radius)', border: '1px solid', fontSize: 12, fontWeight: 600, cursor: 'pointer', borderColor: tab === t ? 'var(--accent)' : 'var(--border)', background: tab === t ? 'var(--accent-dim)' : 'transparent', color: tab === t ? 'var(--accent)' : 'var(--text-secondary)' }}
+              >{label}</button>
+            ))}
+          </div>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <MagnifyingGlass size={14} style={{ position: 'absolute', left: 10, color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search…" autoFocus style={{ paddingLeft: 32 }} />
+          </div>
+        </div>
+
+        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 8px' }}>
+          {tab === 'entity' && (
+            <>
+              {grouped.length === 0 && (
+                <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                  {filter ? 'No matches' : 'All nodes already added'}
+                </div>
+              )}
+              {grouped.map(([type, nodes]) => {
+                const iconName = getTypeIcon(type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+                const Icon     = resolveIcon(iconName);
+                const color    = getTypeColor(type, nodeTypeOverrides, customNodeTypes);
+                const label    = getTypeLabel(type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+                const isAbstract = isAbstractType(type, customNodeTypes);
+                return (
+                  <div key={type}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '8px 10px 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {label}
+                      {isAbstract && (
+                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-dim)', color: 'var(--accent)', fontWeight: 700 }}>
+                          tag-based
+                        </span>
+                      )}
+                    </div>
+                    {nodes.map((n) => (
+                      <button key={n.id} onClick={() => onAdd({ kind: 'entity', nodeId: n.id })}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 10px', borderRadius: 'var(--radius)', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <div style={{ width: 28, height: 28, borderRadius: 'var(--radius)', background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Icon size={15} weight="duotone" />
+                        </div>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.fields?.name || 'Unnamed'}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {tab === 'pool' && (
+            <>
+              {poolTypes.length === 0 && (
+                <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                  {filter ? 'No matches' : 'All type pools already added'}
+                </div>
+              )}
+              {poolTypes.map((type) => {
+                const iconName   = getTypeIcon(type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+                const Icon       = resolveIcon(iconName);
+                const color      = getTypeColor(type, nodeTypeOverrides, customNodeTypes);
+                const label      = getTypeLabel(type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+                const count      = mapNodes.filter((n) => n.type === type).length;
+                const isAbstract = isAbstractType(type, customNodeTypes);
+                return (
+                  <button key={type} onClick={() => onAdd({ kind: 'pool', nodeType: type })}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 10px', borderRadius: 'var(--radius)', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ width: 28, height: 28, borderRadius: 'var(--radius)', background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={15} weight="duotone" />
+                    </div>
+                    <span style={{ flex: 1 }}>All {label}s</span>
+                    {isAbstract && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-dim)', color: 'var(--accent)', fontWeight: 700 }}>tag</span>}
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--bg-inset)', padding: '2px 7px', borderRadius: 'var(--radius-pill)' }}>{count}</span>
+                  </button>
+                );
+              })}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── KanbanBoard ─────────────────────────────────────────────────── */
+export default function KanbanBoard() {
+  const campaignId  = useCampaignStore((s) => s.activeCampaignId);
+  const activeMapId = useMapStore((s) => s.activeMapId);
+  const allNodes    = useNodeStore((s) => s.nodes);
+  const selectNode  = useNodeStore((s) => s.selectNode);
+  const nestNode    = useNodeStore((s) => s.nestNode);
+  const unnestNode  = useNodeStore((s) => s.unnestNode);
+  const updateNodeFields = useNodeStore((s) => s.updateNodeFields);
+  const nodeTypeOverrides = useSettingsStore((s) => s.nodeTypeOverrides) || {};
+  const customNodeTypes   = useSettingsStore((s) => s.customNodeTypes)   || [];
+
+  const [boardColumns, setBoardColumns] = useState([]);
+  const [showPicker, setShowPicker]     = useState(false);
+  const [dragState, setDragState]       = useState(null);
+
   const mapNodes = useMemo(
     () => allNodes.filter((n) => n.mapId === activeMapId),
     [allNodes, activeMapId]
   );
 
-  // Group nodes are the column headers (factions, religions, realms, or locations)
-  const groupType = groupMode; // 'faction', 'religion', 'realm', or 'location'
-  const groupNodes = useMemo(
-    () => mapNodes.filter((n) => n.type === groupType),
-    [mapNodes, groupType]
-  );
+  const addColumn    = useCallback((colDef) => { setBoardColumns((prev) => [...prev, colDef]); setShowPicker(false); }, []);
+  const removeColumn = useCallback((idx)   => setBoardColumns((prev) => prev.filter((_, i) => i !== idx)), []);
 
-  // Determine which field keys to use for membership lookup based on groupType
-  const getMembershipInfo = useCallback((groupType) => {
-    switch (groupType) {
-      case 'faction':
-        return {
-          characterField: 'faction',
-          locationField: 'controllingFaction',
-        };
-      case 'religion':
-        return {
-          characterField: 'religion',
-          locationField: null, // religions only apply to characters
-        };
-      case 'realm':
-        return {
-          characterField: null, // realm field not yet on schema
-          locationField: null,
-        };
-      case 'location':
-        return {
-          characterField: null, // location membership tracked via location's notableNPCs
-          locationField: null,
-          inverseField: 'notableNPCs', // look at location.notableNPCs to find chars
-        };
-      default:
-        return {};
-    }
-  }, []);
+  /* ── Drag handlers ────────────────────────────────────────────────── */
+  const handleDragStart = (nodeId, sourceKind, sourceRef) => setDragState({ nodeId, sourceKind, sourceRef });
+  const handleDragEnd   = () => setDragState(null);
 
-  const membershipInfo = getMembershipInfo(groupType);
+  const handleDrop = useCallback((targetCol) => {
+    if (!dragState || !campaignId) return;
+    const { nodeId } = dragState;
+    const draggedNode = allNodes.find((n) => n.id === nodeId);
+    if (!draggedNode) return;
 
-  // Member nodes: determine which node types can belong to the current grouping
-  const memberNodes = useMemo(() => {
-    switch (groupType) {
-      case 'faction':
-        return mapNodes.filter((n) => n.type === 'character' || n.type === 'location');
-      case 'religion':
-        return mapNodes.filter((n) => n.type === 'character');
-      case 'realm':
-        return []; // realm grouping not yet supported; could be added later
-      case 'location':
-        return mapNodes.filter((n) => n.type === 'character');
-      default:
-        return [];
-    }
-  }, [mapNodes, groupType]);
+    if (targetCol.kind === 'entity') {
+      const parentNode = allNodes.find((n) => n.id === targetCol.nodeId);
+      if (!parentNode || parentNode.id === draggedNode.id) return;
 
-  // Build columns: each group node becomes a column
-  const columns = useMemo(() => {
-    const cols = groupNodes.map((gNode) => {
-      // Find tag for this group node
-      const gTag = tags.find(
-        (t) => t.name.toLowerCase() === (gNode.fields?.name || '').toLowerCase()
-      );
-      const gTagId = gTag?.id;
+      const parentIsAbstract = isAbstractType(parentNode.type, customNodeTypes);
 
-      let members = [];
-
-      if (groupType === 'location') {
-        // Special case: for location grouping, find NPCs in location's notableNPCs
-        members = memberNodes.filter((mn) => {
-          if (mn.type === 'character') {
-            const notableNPCIds = gNode.fields?.notableNPCs || [];
-            return notableNPCIds.includes(mn.id);
-          }
-          return false;
-        });
+      if (parentIsAbstract) {
+        // Tag assignment — find a tag field on the dragged node that accepts the parent's type
+        const draggedSchema = NODE_TYPES[draggedNode.type];
+        const field = getTagAssignmentField(draggedSchema, parentNode.type);
+        if (!field) return; // no compatible field
+        const current = draggedNode.fields?.[field.key] || [];
+        if (current.includes(parentNode.id)) return; // already assigned
+        updateNodeFields(campaignId, nodeId, { [field.key]: [...current, parentNode.id] });
       } else {
-        // Standard case: check character/location fields for the group tag
-        const characterField = membershipInfo.characterField;
-        const locationField = membershipInfo.locationField;
-
-        members = memberNodes.filter((mn) => {
-          if (mn.type === 'character' && characterField) {
-            const tagIds = mn.fields?.[characterField] || [];
-            return gTagId && tagIds.includes(gTagId);
-          }
-          if (mn.type === 'location' && locationField) {
-            const tagIds = mn.fields?.[locationField] || [];
-            return gTagId && tagIds.includes(gTagId);
-          }
-          return false;
-        });
+        // Spatial nesting — enforce rules
+        if (!canNestType(draggedNode.type, parentNode.type, customNodeTypes)) return;
+        if (draggedNode.parentNodeId === parentNode.id) return;
+        nestNode(campaignId, nodeId, parentNode.id);
       }
 
-      return {
-        id: gNode.id,
-        name: gNode.fields?.name || 'Unnamed',
-        color: TYPE_COLORS[groupType],
-        members,
-        tagId: gTagId,
-        nodeType: groupType, // the type of the group node
-      };
-    });
-
-    // Unassigned column: nodes not in ANY group of the current type
-    const assignedIds = new Set();
-    for (const col of cols) {
-      for (const m of col.members) assignedIds.add(m.id);
-    }
-    const unassigned = memberNodes.filter((mn) => !assignedIds.has(mn.id));
-
-    return [
-      ...cols,
-      {
-        id: '__unassigned__',
-        name: 'Unassigned',
-        color: 'var(--text-muted)',
-        members: unassigned,
-        tagId: null,
-      },
-    ];
-  }, [groupNodes, memberNodes, tags, groupType, membershipInfo]);
-
-  const handleDragStart = useCallback((nodeId) => {
-    setDragNodeId(nodeId);
-  }, []);
-
-  const handleDrop = useCallback((columnId, columnTagId) => {
-    if (!dragNodeId || !campaignId) return;
-    const node = allNodes.find((n) => n.id === dragNodeId);
-    if (!node) return;
-
-    if (columnId === '__unassigned__') {
-      // Remove from all groups: clear the relevant field
-      const characterField = membershipInfo.characterField;
-      const locationField = membershipInfo.locationField;
-
-      if (node.type === 'character' && characterField) {
-        updateNodeFields(campaignId, dragNodeId, { [characterField]: [] });
-      } else if (node.type === 'location' && locationField) {
-        updateNodeFields(campaignId, dragNodeId, { [locationField]: [] });
-      }
-    } else {
-      // Find or create tag for this column
-      const col = columns.find((c) => c.id === columnId);
-      let tagId = columnTagId;
-      if (!tagId && col) {
-        let tag = tags.find((t) => t.name.toLowerCase() === col.name.toLowerCase());
-        if (!tag) {
-          tag = createTag(campaignId, col.name);
-        }
-        tagId = tag.id;
-      }
-
-      if (tagId) {
-        const characterField = membershipInfo.characterField;
-        const locationField = membershipInfo.locationField;
-
-        // ADD to this group (don't replace): only add if not already there
-        if (node.type === 'character' && characterField) {
-          const currentTags = node.fields?.[characterField] || [];
-          if (!currentTags.includes(tagId)) {
-            updateNodeFields(campaignId, dragNodeId, {
-              [characterField]: [...currentTags, tagId],
-            });
-          }
-        } else if (node.type === 'location' && locationField) {
-          const currentTags = node.fields?.[locationField] || [];
-          if (!currentTags.includes(tagId)) {
-            updateNodeFields(campaignId, dragNodeId, {
-              [locationField]: [...currentTags, tagId],
-            });
-          }
-        }
+    } else if (targetCol.kind === 'pool') {
+      // Dropping into a pool = unnest (spatial only)
+      if (draggedNode.parentNodeId) {
+        unnestNode(campaignId, nodeId, draggedNode.x ?? 0, draggedNode.y ?? 0);
       }
     }
+    setDragState(null);
+  }, [dragState, allNodes, campaignId, nestNode, unnestNode, updateNodeFields, customNodeTypes]);
 
-    setDragNodeId(null);
-  }, [dragNodeId, campaignId, allNodes, groupType, columns, tags, createTag, updateNodeFields, membershipInfo]);
-
-  // Remove a card from a specific column (the X button)
-  const handleRemoveFromColumn = useCallback((nodeId, columnId, columnTagId) => {
-    if (!campaignId || !columnTagId) return;
+  /* ── Relationship chip removal ────────────────────────────────────── */
+  const handleRemoveTag = useCallback((nodeId, fieldKey, refId) => {
     const node = allNodes.find((n) => n.id === nodeId);
     if (!node) return;
+    const current = node.fields?.[fieldKey] || [];
+    updateNodeFields(campaignId, nodeId, { [fieldKey]: current.filter((id) => id !== refId) });
+  }, [allNodes, campaignId, updateNodeFields]);
 
-    const characterField = membershipInfo.characterField;
-    const locationField = membershipInfo.locationField;
+  /* ── Card rendering ───────────────────────────────────────────────── */
+  const renderCard = (memberNode, entityNodeId = null, fieldKey = null) => {
+    const mColor    = getTypeColor(memberNode.type, nodeTypeOverrides, customNodeTypes);
+    const mIconName = getTypeIcon(memberNode.type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+    const MIcon     = resolveIcon(mIconName);
 
-    if (node.type === 'character' && characterField) {
-      const currentTags = node.fields?.[characterField] || [];
-      const updated = currentTags.filter((id) => id !== columnTagId);
-      updateNodeFields(campaignId, nodeId, { [characterField]: updated });
-    } else if (node.type === 'location' && locationField) {
-      const currentTags = node.fields?.[locationField] || [];
-      const updated = currentTags.filter((id) => id !== columnTagId);
-      updateNodeFields(campaignId, nodeId, { [locationField]: updated });
+    // Relationship chips: fields with filterTypes on this node (excluding the hosting column's type)
+    const schema = NODE_TYPES[memberNode.type];
+    const relChips = [];
+    if (schema?.fields) {
+      for (const field of schema.fields) {
+        if (field.type !== 'tags' || !field.filterTypes?.length) continue;
+        const refs = memberNode.fields?.[field.key];
+        if (!Array.isArray(refs) || refs.length === 0) continue;
+        for (const refId of refs) {
+          const refNode = allNodes.find((n) => n.id === refId);
+          if (!refNode) continue;
+          // Don't show a chip for the column we're already in
+          if (entityNodeId && refId === entityNodeId) continue;
+          relChips.push({ refNode, fieldKey: field.key });
+        }
+      }
     }
-  }, [campaignId, allNodes, membershipInfo, updateNodeFields]);
+
+    return (
+      <div
+        key={memberNode.id}
+        className={`kanban-card ${dragState?.nodeId === memberNode.id ? 'dragging' : ''}`}
+        draggable
+        onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; handleDragStart(memberNode.id, 'entity', null); }}
+        onDragEnd={handleDragEnd}
+        onClick={() => selectNode(memberNode.id)}
+        title={memberNode.fields?.name || 'Unnamed'}
+        style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6 }}
+      >
+        {/* Card header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className="mini-icon" style={{ background: `${mColor}18`, color: mColor, flexShrink: 0 }}>
+            <MIcon size={14} weight="duotone" />
+          </div>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 500 }}>
+            {memberNode.fields?.name || 'Unnamed'}
+          </span>
+          {/* Remove from abstract column button */}
+          {entityNodeId && fieldKey && (
+            <button
+              className="kanban-card-remove"
+              title="Remove from this column"
+              onClick={(e) => { e.stopPropagation(); handleRemoveTag(memberNode.id, fieldKey, entityNodeId); }}
+              style={{ opacity: 0.5, flexShrink: 0 }}
+            >
+              <X size={11} weight="bold" />
+            </button>
+          )}
+        </div>
+        {/* Relationship chiplets */}
+        {relChips.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, paddingLeft: 2 }}>
+            {relChips.map(({ refNode, fieldKey: fk }) => (
+              <RelChip
+                key={`${fk}:${refNode.id}`}
+                node={refNode}
+                nodeTypeOverrides={nodeTypeOverrides}
+                customNodeTypes={customNodeTypes}
+                onRemove={() => handleRemoveTag(memberNode.id, fk, refNode.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  /* ── Empty state ──────────────────────────────────────────────────── */
+  if (boardColumns.length === 0 && !showPicker) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: 'var(--text-muted)', position: 'relative', zIndex: 1 }}>
+        <Rows size={40} opacity={0.3} />
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Board is empty</div>
+          <div style={{ fontSize: 13, maxWidth: 320, lineHeight: 1.5 }}>
+            Add a specific node (e.g. "The Iron Wolves faction") or a type pool (e.g. "All NPCs"). Drag nodes into spatial columns to nest them, or into abstract columns (faction, religion, polity) to assign the relationship.
+          </div>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowPicker(true)} style={{ gap: 6 }}>
+          <Plus size={16} /> Add column
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      {/* Mode selector */}
-      <div style={{
-        padding: '10px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg-secondary)',
-      }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          Group by:
-        </span>
-        {['faction', 'religion', 'realm', 'location'].map((mode) => (
-          <button
-            key={mode}
-            className={`card-filter-chip ${groupMode === mode ? 'active' : ''}`}
-            onClick={() => setGroupMode(mode)}
-            style={groupMode === mode ? { borderColor: TYPE_COLORS[mode], color: TYPE_COLORS[mode] } : {}}
-          >
-            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-          </button>
-        ))}
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+      <div className="kanban-view">
+        {boardColumns.map((col, colIdx) => {
+          if (col.kind === 'entity') {
+            const entityNode = mapNodes.find((n) => n.id === col.nodeId);
+            if (!entityNode) return null;
+            const color      = getTypeColor(entityNode.type, nodeTypeOverrides, customNodeTypes);
+            const iconName   = getTypeIcon(entityNode.type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+            const Icon       = resolveIcon(iconName);
+            const typeLabel  = getTypeLabel(entityNode.type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+            const isAbstract = isAbstractType(entityNode.type, customNodeTypes);
+
+            // Members: for abstract types, nodes that tag-reference this entity
+            // For spatial types, nodes that are spatially nested inside it
+            let members, memberFieldKey;
+            if (isAbstract) {
+              const tagMembers = getTagMembers(entityNode.id, entityNode.type, mapNodes, NODE_TYPES, customNodeTypes);
+              members = tagMembers.map((r) => r.node);
+              // All members will have the same fieldKey pattern, keep a default
+              memberFieldKey = tagMembers[0]?.fieldKey || null;
+            } else {
+              members = mapNodes.filter((n) => n.parentNodeId === entityNode.id);
+              memberFieldKey = null;
+            }
+
+            // Drop acceptance check
+            const canAcceptDrop = (dn) => {
+              if (!dn) return false;
+              if (isAbstract) {
+                const schema = NODE_TYPES[dn.type];
+                return !!getTagAssignmentField(schema, entityNode.type);
+              }
+              return canNestType(dn.type, entityNode.type, customNodeTypes);
+            };
+
+            // Valid-types hint
+            const validHint = isAbstract
+              ? Object.entries(NODE_TYPES)
+                  .filter(([, s]) => s.fields?.some((f) => f.type === 'tags' && f.filterTypes?.includes(entityNode.type)))
+                  .map(([k]) => k)
+              : NESTING_RULES[entityNode.type] || null;
+
+            return (
+              <div
+                key={`entity-${col.nodeId}-${colIdx}`}
+                className="kanban-column"
+                style={isAbstract ? { borderColor: `${color}40` } : undefined}
+                onDragOver={(e) => {
+                  if (!dragState) return;
+                  const dn = allNodes.find((n) => n.id === dragState.nodeId);
+                  if (canAcceptDrop(dn)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+                }}
+                onDrop={() => handleDrop(col)}
+              >
+                {/* Column header */}
+                <div className="kanban-column-header" style={{ justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <div className="mini-icon" style={{ background: `${color}18`, color, flexShrink: 0 }}>
+                      <Icon size={14} weight="duotone" />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {entityNode.fields?.name || 'Unnamed'}
+                      </div>
+                      <div style={{ fontSize: 10, color, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {typeLabel}
+                        {isAbstract && <LinkSimple size={9} weight="bold" />}
+                      </div>
+                    </div>
+                    <span className="count">{members.length}</span>
+                  </div>
+                  <button className="kanban-card-remove" onClick={() => removeColumn(colIdx)} title="Remove column" style={{ flexShrink: 0 }}>
+                    <X size={13} weight="bold" />
+                  </button>
+                </div>
+
+                {/* Drop hint */}
+                {validHint && validHint.length > 0 && (
+                  <div style={{ padding: '4px 12px 0', fontSize: 10, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+                    {isAbstract ? <LinkSimple size={9} /> : null}
+                    {isAbstract ? 'Assigns:' : 'Accepts:'}
+                    {validHint.map((t, i) => (
+                      <span key={t} style={{ color: `var(--node-${t}, var(--text-muted))`, fontWeight: 600 }}>
+                        {getTypeLabel(t, NODE_TYPES, nodeTypeOverrides, customNodeTypes)}{i < validHint.length - 1 ? ',' : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Cards */}
+                <div className="kanban-column-body">
+                  {members.length === 0 && (
+                    <div className="kanban-unassigned" style={{ padding: '12px 8px', fontSize: 12 }}>
+                      {isAbstract ? 'Drag nodes here to assign' : 'Drop here to nest'}
+                    </div>
+                  )}
+                  {members.map((m) => {
+                    // For abstract columns, find this specific member's fieldKey
+                    let fk = memberFieldKey;
+                    if (isAbstract) {
+                      const schema = NODE_TYPES[m.type];
+                      const field = getTagAssignmentField(schema, entityNode.type);
+                      fk = field?.key || null;
+                    }
+                    return renderCard(m, entityNode.id, fk);
+                  })}
+                </div>
+              </div>
+            );
+          }
+
+          if (col.kind === 'pool') {
+            const { nodeType } = col;
+            const color     = getTypeColor(nodeType, nodeTypeOverrides, customNodeTypes);
+            const iconName  = getTypeIcon(nodeType, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+            const Icon      = resolveIcon(iconName);
+            const typeLabel = getTypeLabel(nodeType, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+            const members   = mapNodes.filter((n) => n.type === nodeType);
+
+            return (
+              <div
+                key={`pool-${nodeType}-${colIdx}`}
+                className="kanban-column"
+                style={{ borderStyle: 'dashed' }}
+                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                onDrop={() => handleDrop(col)}
+              >
+                <div className="kanban-column-header" style={{ justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <div className="mini-icon" style={{ background: `${color}18`, color, flexShrink: 0 }}>
+                      <Icon size={14} weight="duotone" />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                        All {typeLabel}s
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>
+                        Source pool — drag into entity columns
+                      </div>
+                    </div>
+                    <span className="count">{members.length}</span>
+                  </div>
+                  <button className="kanban-card-remove" onClick={() => removeColumn(colIdx)} title="Remove column" style={{ flexShrink: 0 }}>
+                    <X size={13} weight="bold" />
+                  </button>
+                </div>
+                <div className="kanban-column-body">
+                  {members.length === 0 && (
+                    <div className="kanban-unassigned" style={{ padding: '12px 8px', fontSize: 12 }}>
+                      No {typeLabel}s on this map
+                    </div>
+                  )}
+                  {members.map((m) => renderCard(m))}
+                </div>
+              </div>
+            );
+          }
+
+          return null;
+        })}
+
+        {/* Add column */}
+        <div
+          onClick={() => setShowPicker(true)}
+          style={{ minWidth: 180, width: 180, border: '1px dashed var(--border-strong)', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', color: 'var(--text-muted)', fontSize: 13, fontWeight: 500, flexShrink: 0, transition: 'color var(--transition), border-color var(--transition)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
+        >
+          <Plus size={22} />
+          <span>Add column</span>
+        </div>
       </div>
 
-      {/* Board */}
-      <div className="kanban-view">
-        {columns.map((col) => (
-          <div
-            key={col.id}
-            className="kanban-column"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => handleDrop(col.id, col.tagId)}
-          >
-            <div className="kanban-column-header">
-              <div className="dot" style={{ background: col.color }} />
-              <span>{col.name}</span>
-              <span className="count">{col.members.length}</span>
-            </div>
-            <div className="kanban-column-body">
-              {col.members.map((node) => {
-                const schema = NODE_TYPES[node.type];
-                const Icon = ICON_MAP[schema?.icon] || UserCircle;
-                const color = TYPE_COLORS[node.type];
-                return (
-                  <div
-                    key={`${col.id}-${node.id}`}
-                    className={`kanban-card ${dragNodeId === node.id ? 'dragging' : ''}`}
-                    draggable
-                    onDragStart={() => handleDragStart(node.id)}
-                    onClick={() => selectNode(node.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
-                      <div className="mini-icon" style={{ background: `${color}18`, color }}>
-                        <Icon size={14} weight="duotone" />
-                      </div>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {node.fields?.name || 'Unnamed'}
-                      </span>
-                    </div>
-                    {col.id !== '__unassigned__' && (
-                      <button
-                        className="kanban-card-remove"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveFromColumn(node.id, col.id, col.tagId);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '2px 4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--text-muted)',
-                          transition: 'color 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = 'var(--text-primary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = 'var(--text-muted)';
-                        }}
-                        title="Remove from this column"
-                      >
-                        <X size={14} weight="bold" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-              {col.members.length === 0 && (
-                <div className="kanban-unassigned" style={{ padding: '12px 8px', fontSize: 12 }}>
-                  {col.id === '__unassigned__' ? 'No unassigned' : 'Drop here to add'}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      {showPicker && (
+        <ColumnPicker
+          mapNodes={mapNodes}
+          boardColumns={boardColumns}
+          onAdd={addColumn}
+          onClose={() => setShowPicker(false)}
+          nodeTypeOverrides={nodeTypeOverrides}
+          customNodeTypes={customNodeTypes}
+        />
+      )}
     </div>
   );
 }

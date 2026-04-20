@@ -1,45 +1,33 @@
-import {
-  UserCircle,
-  MapPin,
-  Shield,
-  Cross,
-  Lightning,
-  Sword,
-  Crown,
-  Cube,
-  Skull,
-  EyeSlash,
-} from '@phosphor-icons/react';
+import { Cube, Skull, EyeSlash } from '@phosphor-icons/react';
 import { NODE_TYPES } from '../../utils/nodeSchemas';
+import { resolveIcon } from '../../utils/iconRegistry';
+import useSettingsStore from '../../stores/settingsStore';
+import { getTypeIcon } from '../../utils/typeColors';
 
-const ICON_MAP = {
-  UserCircle,
-  MapPin,
-  Shield,
-  Cross,
-  Lightning,
-  Sword,
-  Crown,
-  Cube,
-};
-
-const TYPE_COLORS = {
+// Keep TYPE_COLORS export for legacy callers (CardPanel etc.)
+export const TYPE_COLORS = {
   character: 'var(--node-character)',
-  location: 'var(--node-location)',
-  faction: 'var(--node-faction)',
-  religion: 'var(--node-religion)',
-  event: 'var(--node-event)',
-  realm: 'var(--node-realm)',
-  thing: 'var(--node-thing)',
+  location:  'var(--node-location)',
+  faction:   'var(--node-faction)',
+  religion:  'var(--node-religion)',
+  event:     'var(--node-event)',
+  polity:    'var(--node-polity)',
+  thing:     'var(--node-thing)',
 };
 
 export default function NodeIcon({ node, size = 20, showOverlays = true }) {
-  const schema = NODE_TYPES[node.type];
-  const iconName = node.icon || schema?.icon || 'Cube';
-  const IconComponent = ICON_MAP[iconName] || Cube;
-  const color = TYPE_COLORS[node.type] || 'var(--text-secondary)';
+  const nodeTypeOverrides = useSettingsStore((s) => s.nodeTypeOverrides) || {};
+  const customNodeTypes   = useSettingsStore((s) => s.customNodeTypes)   || [];
 
-  // Check type-appropriate primary status flag (not hardcoded to 'alive')
+  // Resolve icon: per-node override → type-level settings override → schema default
+  const iconName = node.icon
+    || getTypeIcon(node.type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
+  const IconComponent = resolveIcon(iconName) || Cube;
+
+  // Color comes from CSS variable (set per type in WorkspaceView)
+  const color = `var(--node-${node.type}, var(--text-secondary))`;
+
+  const schema = NODE_TYPES[node.type];
   const primaryFlag = schema?.statusFlags
     ? Object.keys(schema.statusFlags).find((k) => k !== 'revealed')
     : null;
@@ -56,16 +44,6 @@ export default function NodeIcon({ node, size = 20, showOverlays = true }) {
           style={{ position: 'absolute', bottom: -2, right: -4 }}
         />
       )}
-      {showOverlays && node.statusFlags && !node.statusFlags.revealed && (
-        <EyeSlash
-          size={Math.round(size * 0.5)}
-          weight="fill"
-          color="var(--text-muted)"
-          style={{ position: 'absolute', top: -2, right: -4 }}
-        />
-      )}
     </span>
   );
 }
-
-export { ICON_MAP, TYPE_COLORS };
