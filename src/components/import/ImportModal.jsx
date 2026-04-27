@@ -20,8 +20,6 @@ const TYPE_COLORS = {
 };
 
 const TEMPLATE = `# NPC: Gareth Ironhand
-Faction: The Silver Order
-Religion: The Lightbringer
 Motivation: Protect the northern border
 Status: alive
 ---
@@ -29,8 +27,6 @@ A battle-scarred veteran who commands the garrison at Stormwatch Keep.
 He trusts few and speaks less, but his loyalty is unshakable.
 
 # NPC: Miriel Dawnweaver
-Faction: Circle of Whispers
-Religion: The Old Ways
 Motivation: Uncover the truth about the Sundering
 Status: alive
 ---
@@ -44,12 +40,14 @@ A massive stone fortress perched on the edge of the Windbreak Cliffs.
 
 # Faction: The Silver Order
 Alignment: Lawful Good
+Members: Gareth Ironhand
 ---
 A knightly order dedicated to defending the realm from darkness.
 Their ranks have thinned after the Battle of Ashen Fields.
 
 # Religion: The Lightbringer
 Deity: Solarius
+Members: Gareth Ironhand, Miriel Dawnweaver
 ---
 An ancient faith centered on the worship of the sun god Solarius.
 
@@ -65,12 +63,28 @@ An enchanted longsword passed down through Silver Order commanders.
 `;
 
 /**
+ * Org-type labels that can appear on character import lines for backward
+ * compatibility (e.g. "Faction: The Silver Order" on an NPC block).
+ * These no longer exist as character schema fields — instead they are resolved
+ * post-import by adding the character's ID to the org node's members array.
+ */
+const ORG_MEMBERSHIP_LABELS = new Set(['faction', 'religion', 'polity']);
+
+/**
  * Parse markdown import format into node objects.
+ *
  * Format:
  *   # TYPE: Name
  *   Field: Value
+ *   Members: Name One, Name Two      ← noderefs field (org nodes)
+ *   Faction: Org Name                ← legacy character membership (still supported)
  *   ---
  *   Description text (multiple lines)
+ *
+ * Internal sentinel fields written on parsed nodes (stripped before saving):
+ *   __tagNames_<key>    — comma-separated tag names to resolve to IDs
+ *   __noderefNames_<key>— comma-separated node names to resolve to node IDs
+ *   __pendingMembership — [{orgLabel, orgName}] for legacy character org lines
  */
 function parseImportMarkdown(text) {
   const nodes = [];
@@ -84,7 +98,7 @@ function parseImportMarkdown(text) {
     const headerMatch = headerLine.match(/^(\w+):\s*(.+)$/);
     if (!headerMatch) continue;
 
-    let typeLabel = headerMatch[1].trim().toLowerCase();
+    const typeLabel = headerMatch[1].trim().toLowerCase();
     const name = headerMatch[2].trim();
 
     // Map label to internal type key
@@ -97,55 +111,59 @@ function parseImportMarkdown(text) {
     const fields = buildDefaultFields(typeKey);
     fields.name = name;
 
-    // Parse field lines and description
     let descLines = [];
     let pastSeparator = false;
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
 
-      if (line.trim() === '---') {
-        pastSeparator = true;
-        continue;
-      }
+      if (line.trim() === '---') { pastSeparator = true; continue; }
 
       if (!pastSeparator) {
-        // Parse "Key: Value" lines
         const fieldMatch = line.match(/^([A-Za-z\s]+):\s*(.+)$/);
-        if (fieldMatch) {
-          const fieldLabel = fieldMatch[1].trim().toLowerCase();
-          const fieldValue = fieldMatch[2].trim();
+        if (!fieldMatch) continue;
 
-          // Find matching field in schema
-          const schema = NODE_TYPES[typeKey];
-          const fieldDef = schema?.fields.find(
-            (f) => f.label.toLowerCase() === fieldLabel || f.key.toLowerCase() === fieldLabel
+        const fieldLabel = fieldMatch[1].trim().toLowerCase();
+        const fieldValue = fieldMatch[2].trim();
+        const names      = fieldValue.split(',').map((s) => s.trim()).filter(Boolean);
+
+        // ── Legacy: "Faction: X" / "Religion: X" / "Polity: X" on a character ──
+        // These fields no longer live on the character schema. Store them so we
+        // can add the character to the org's members array after all nodes exist.
+        if (ORG_MEMBERSHIP_LABELS.has(fieldLabel)) {
+          if (!fields.__pendingMembership) fields.__pendingMembership = [];
+          names.forEach((orgName) =>
+            fields.__pendingMembership.push({ orgLabel: fieldLabel, orgName })
           );
-          if (fieldDef) {
-            if (fieldDef.type === 'tags') {
-              // Store raw tag names for resolution during import
-              fields[`__tagNames_${fieldDef.key}`] = fieldValue.split(',').map((s) => s.trim()).filter(Boolean);
-              // Keep field as empty array for now (resolved during import)
-              fields[fieldDef.key] = [];
-            } else {
-              fields[fieldDef.key] = fieldValue;
-            }
-          }
+          continue;
+        }
+
+        // ── Schema-driven field matching ──
+        const schema   = NODE_TYPES[typeKey];
+        const fieldDef = schema?.fields.find(
+          (f) => f.label.toLowerCase() === fieldLabel || f.key.toLowerCase() === fieldLabel
+        );
+        if (!fieldDef) continue;
+
+        if (fieldDef.type === 'tags') {
+          // Resolve tag names → tag IDs during import
+          fields[`__tagNames_${fieldDef.key}`] = names;
+          fields[fieldDef.key] = [];
+        } else if (fieldDef.type === 'noderefs') {
+          // Resolve node names → node IDs during import
+          fields[`__noderefNames_${fieldDef.key}`] = names;
+          fields[fieldDef.key] = [];
+        } else {
+          fields[fieldDef.key] = fieldValue;
         }
       } else {
         descLines.push(line);
       }
     }
 
-    if (descLines.length > 0) {
-      fields.description = descLines.join('\n').trim();
-    }
+    if (descLines.length > 0) fields.description = descLines.join('\n').trim();
 
-    nodes.push({
-      type: typeKey,
-      fields,
-      statusFlags: buildDefaultStatusFlags(typeKey),
-    });
+    nodes.push({ type: typeKey, fields, statusFlags: buildDefaultStatusFlags(typeKey) });
   }
 
   return nodes;
@@ -190,32 +208,84 @@ export default function ImportModal({ onClose }) {
   const handleImport = () => {
     if (preview.length === 0) return;
 
-    // Place nodes in a grid pattern on the map
-    const cols = Math.ceil(Math.sqrt(preview.length));
+    const cols    = Math.ceil(Math.sqrt(preview.length));
     const spacing = 120;
-    const startX = 200;
-    const startY = 200;
+    const startX  = 200;
+    const startY  = 200;
+
+    // ── Pass 1: create all nodes and collect ID map ───────────────────────
+    // nodeNameMap: lowercase name → array of created node objects
+    // (array because names are not guaranteed unique)
+    const nodeNameMap = {};   // name.toLowerCase() → [{ id, type }]
+    const created = [];
 
     for (let i = 0; i < preview.length; i++) {
       const node = preview[i];
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      const x = startX + col * spacing;
-      const y = startY + row * spacing;
+      const col  = i % cols;
+      const row  = Math.floor(i / cols);
+      const x    = startX + col * spacing;
+      const y    = startY + row * spacing;
 
-      // Resolve __tagNames_ fields into actual tag IDs
-      const resolvedFields = { ...node.fields };
-      for (const key of Object.keys(resolvedFields)) {
+      const newNode = createNode(campaignId, activeMapId, node.type, x, y);
+      created.push({ newNode, parsed: node });
+
+      const lowerName = (node.fields.name || '').toLowerCase();
+      if (!nodeNameMap[lowerName]) nodeNameMap[lowerName] = [];
+      nodeNameMap[lowerName].push({ id: newNode.id, type: node.type });
+    }
+
+    // ── Pass 2: resolve fields and memberships now that all IDs exist ─────
+    // pendingOrgMembers: orgNodeId → Set of character IDs to add
+    const pendingOrgMembers = {};
+
+    for (const { newNode, parsed } of created) {
+      const rawFields     = { ...parsed.fields };
+      const resolvedFields = {};
+
+      for (const [key, val] of Object.entries(rawFields)) {
         if (key.startsWith('__tagNames_')) {
+          // tags: name → tag ID (create if missing)
           const fieldKey = key.replace('__tagNames_', '');
-          const names = resolvedFields[key];
-          resolvedFields[fieldKey] = names.map((n) => resolveTag(n));
-          delete resolvedFields[key];
+          resolvedFields[fieldKey] = val.map((n) => resolveTag(n));
+
+        } else if (key.startsWith('__noderefNames_')) {
+          // noderefs: name → node ID (best-match from imported set)
+          const fieldKey = key.replace('__noderefNames_', '');
+          resolvedFields[fieldKey] = val
+            .flatMap((n) => (nodeNameMap[n.toLowerCase()] || []).map((e) => e.id));
+
+        } else if (key === '__pendingMembership') {
+          // Legacy "Faction: X" lines on characters — add this character to
+          // the org node's members array after all fields are resolved.
+          for (const { orgLabel, orgName } of val) {
+            const matches = nodeNameMap[orgName.toLowerCase()] || [];
+            const orgEntry = matches.find((e) => e.type === orgLabel) || matches[0];
+            if (orgEntry) {
+              if (!pendingOrgMembers[orgEntry.id]) pendingOrgMembers[orgEntry.id] = new Set();
+              pendingOrgMembers[orgEntry.id].add(newNode.id);
+            }
+          }
+
+        } else {
+          resolvedFields[key] = val;
         }
       }
 
-      const created = createNode(campaignId, activeMapId, node.type, x, y);
-      updateNodeFields(campaignId, created.id, resolvedFields);
+      updateNodeFields(campaignId, newNode.id, resolvedFields);
+    }
+
+    // ── Pass 3: apply pending org memberships ─────────────────────────────
+    for (const [orgId, memberSet] of Object.entries(pendingOrgMembers)) {
+      // Merge with any members already set on the org node via __noderefNames_members
+      const orgCreated = created.find((c) => c.newNode.id === orgId);
+      const existingMembers = orgCreated
+        ? (orgCreated.parsed.fields.__noderefNames_members
+            ? orgCreated.parsed.fields.__noderefNames_members
+                .flatMap((n) => (nodeNameMap[n.toLowerCase()] || []).map((e) => e.id))
+            : [])
+        : [];
+      const merged = [...new Set([...existingMembers, ...memberSet])];
+      updateNodeFields(campaignId, orgId, { members: merged });
     }
 
     setImported(true);
@@ -262,7 +332,7 @@ export default function ImportModal({ onClose }) {
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder={`Paste your markdown here...\n\n# NPC: Character Name\nFaction: Some Faction\n---\nDescription text here.`}
+                placeholder={`Paste your markdown here...\n\n# NPC: Character Name\nMotivation: Some goal\n---\nDescription text here.\n\n# Faction: Org Name\nMembers: Character Name, Another Name\n---\nOrg description here.`}
                 style={{ minHeight: 180, fontFamily: 'monospace', fontSize: 12, lineHeight: 1.6 }}
               />
 

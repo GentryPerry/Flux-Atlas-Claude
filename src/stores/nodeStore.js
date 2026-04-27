@@ -1,39 +1,38 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import { buildDefaultFields, buildDefaultStatusFlags } from '../utils/nodeSchemas';
+import { saveStore, loadCampaign } from '../utils/api';
 
 /**
- * Debounced localStorage writer — batches rapid updates into a single write.
- * This is critical for performance with 70+ nodes.
+ * Debounced API save — batches rapid updates (drag, typing) into one write.
+ * Critical for canvas drag performance with 70+ nodes.
+ * Node images are now R2 URLs (short strings), so payload size is no longer
+ * a concern and nodes can be saved as-is.
  */
-let _persistTimer = null;
-let _persistCampaignId = null;
+let _saveTimer = null;
 
-function debouncedPersist(campaignId, getNodes) {
-  _persistCampaignId = campaignId;
-  if (_persistTimer) clearTimeout(_persistTimer);
-  _persistTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(`flux_nodes_${_persistCampaignId}`, JSON.stringify(getNodes()));
-    } catch (e) {
-      console.warn('Node persist failed:', e);
-    }
-    _persistTimer = null;
-  }, 300);
+// Snapshot nodes at call-time so a rapid campaign switch can't save campaign B's
+// nodes under campaign A's ID while the debounce timer is still pending.
+function debouncedSave(campaignId, nodes) {
+  const snapshot = [...nodes];
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    saveStore(campaignId, 'nodes', snapshot).catch((e) =>
+      console.warn('Node save failed:', e)
+    );
+    _saveTimer = null;
+  }, 400);
 }
 
-/**
- * Node store — manages all nodes for the active campaign.
- */
 const useNodeStore = create((set, get) => ({
   nodes: [],
   selectedNodeId: null,
 
-  /** Load nodes for a campaign */
-  loadNodes: (campaignId) => {
+  /** Load nodes for a campaign from D1 */
+  loadNodes: async (campaignId) => {
     try {
-      const raw = localStorage.getItem(`flux_nodes_${campaignId}`);
-      const nodes = raw ? JSON.parse(raw) : [];
+      const data = await loadCampaign(campaignId);
+      const nodes = Array.isArray(data.nodes) ? data.nodes : [];
       set({ nodes, selectedNodeId: null });
     } catch (e) {
       console.warn('loadNodes failed:', e);
@@ -62,7 +61,7 @@ const useNodeStore = create((set, get) => ({
     };
     const nodes = [...get().nodes, node];
     set({ nodes, selectedNodeId: node.id });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
     return node;
   },
 
@@ -72,7 +71,7 @@ const useNodeStore = create((set, get) => ({
       n.id === nodeId ? { ...n, x, y } : n
     );
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
   },
 
   /** Update a node's fields */
@@ -81,7 +80,7 @@ const useNodeStore = create((set, get) => ({
       n.id === nodeId ? { ...n, fields: { ...n.fields, ...fieldUpdates } } : n
     );
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
   },
 
   /** Update any top-level node property */
@@ -90,7 +89,7 @@ const useNodeStore = create((set, get) => ({
       n.id === nodeId ? { ...n, ...updates } : n
     );
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
   },
 
   /** Select a node */
@@ -106,17 +105,15 @@ const useNodeStore = create((set, get) => ({
   },
 
   /** Get nodes for a specific map */
-  getNodesForMap: (mapId) => {
-    return get().nodes.filter((n) => n.mapId === mapId);
-  },
+  getNodesForMap: (mapId) => get().nodes.filter((n) => n.mapId === mapId),
 
-  /** Nest a node inside a parent — any type can go inside any type */
+  /** Nest a node inside a parent */
   nestNode: (campaignId, childId, parentId) => {
     const nodes = get().nodes.map((n) =>
       n.id === childId ? { ...n, parentNodeId: parentId } : n
     );
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
   },
 
   /** Unnest a node — restore to top level at given position */
@@ -125,40 +122,47 @@ const useNodeStore = create((set, get) => ({
       n.id === nodeId ? { ...n, parentNodeId: null, x: x ?? n.x, y: y ?? n.y } : n
     );
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
   },
 
-  /**
-   * Delete a node and ALL its descendants (recursive cascade).
-   * If a folder node is deleted, all nodes nested inside it are also deleted.
-   */
+  /** Delete a node and ALL its descendants (recursive cascade) */
   deleteNode: (campaignId, nodeId) => {
-    // Collect all descendant IDs via BFS
+    const allNodes = get().nodes;
     const toDelete = new Set([nodeId]);
     let changed = true;
     while (changed) {
       changed = false;
-      for (const n of get().nodes) {
+      for (const n of allNodes) {
         if (n.parentNodeId && toDelete.has(n.parentNodeId) && !toDelete.has(n.id)) {
           toDelete.add(n.id);
           changed = true;
         }
       }
     }
-    const nodes = get().nodes.filter((n) => !toDelete.has(n.id));
+    const nodes = allNodes.filter((n) => !toDelete.has(n.id));
     const selectedNodeId = toDelete.has(get().selectedNodeId) ? null : get().selectedNodeId;
     set({ nodes, selectedNodeId });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
+  },
+
+  /** Wipe all nodes for a campaign */
+  clearCampaign: (campaignId) => {
+    const nodes = get().nodes.filter((n) => n.campaignId !== campaignId);
+    set({ nodes, selectedNodeId: null });
+    saveStore(campaignId, 'nodes', []).catch(() => {});
   },
 
   /** Add an image to a node */
   addNodeImage: (campaignId, nodeId, imageDataUrl) => {
     const nodes = get().nodes.map((n) => {
       if (n.id !== nodeId) return n;
-      return { ...n, images: [...n.images, { id: uuid(), url: imageDataUrl, sortOrder: n.images.length }] };
+      return {
+        ...n,
+        images: [...n.images, { id: uuid(), url: imageDataUrl, sortOrder: n.images.length }],
+      };
     });
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
   },
 
   /** Remove an image from a node */
@@ -168,7 +172,15 @@ const useNodeStore = create((set, get) => ({
       return { ...n, images: n.images.filter((img) => img.id !== imageId) };
     });
     set({ nodes });
-    debouncedPersist(campaignId, () => get().nodes);
+    debouncedSave(campaignId, get().nodes);
+  },
+
+  /** Bulk-set nodes (used by import and snapshot restore) */
+  setNodes: (campaignId, nodes) => {
+    set({ nodes });
+    saveStore(campaignId, 'nodes', nodes).catch((e) =>
+      console.warn('setNodes save failed:', e)
+    );
   },
 }));
 

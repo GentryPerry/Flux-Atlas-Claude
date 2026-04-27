@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
 import { Stage, Layer, Image as KImage, Circle, Text, Group, Rect, Line } from 'react-konva';
+import Konva from 'konva';
 import useMapStore from '../../stores/mapStore';
 import useNodeStore from '../../stores/nodeStore';
 import useCampaignStore from '../../stores/campaignStore';
@@ -83,15 +84,15 @@ const MapNode = memo(({
   const resolvedIconName = iconName || 'UserCircle';
   const iconImg = useIconImage(resolvedIconName, 16);
 
-  // Mount pop animation — always animates to scale 1; opacity starts at 0 and
-  // settles to 1 so the dim effect below can immediately correct it if needed.
+  // Mount pop animation — ease-out so scale decelerates naturally into resting position.
+  // Opacity starts at 0 so the search-dim effect below can immediately correct it.
   useEffect(() => {
     const node = nodeRef.current;
     if (!node) return;
     node.scaleX(0.5);
     node.scaleY(0.5);
     node.opacity(0);
-    node.to({ scaleX: 1, scaleY: 1, opacity: 1, duration: 0.22 });
+    node.to({ scaleX: 1, scaleY: 1, opacity: 1, duration: 0.22, easing: Konva.Easings.EaseOut });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Search dim sync — authoritative source for opacity; also runs after mount.
@@ -181,7 +182,7 @@ const MapNode = memo(({
           listening={false}
           perfectDrawEnabled={false}
         />
-        {/* Color tint + border + glow — reduced shadowBlur for better perf */}
+        {/* Color tint + border — glow only when selected (shadowBlur=0 on idle = no canvas filter overhead) */}
         <Circle
           radius={isFolder ? NODE_RADIUS + 2 : NODE_RADIUS}
           fill={hexToRgba(color, 0.22)}
@@ -189,8 +190,9 @@ const MapNode = memo(({
           strokeWidth={isFolder ? 3 : 2}
           shadowForStrokeEnabled={false}
           shadowColor={color}
-          shadowBlur={isSelected ? 16 : 8}
-          shadowOpacity={isSelected ? 0.55 : 0.22}
+          shadowBlur={isSelected ? 16 : 0}
+          shadowOpacity={isSelected ? 0.55 : 0}
+          perfectDrawEnabled={false}
         />
 
         {/* Icon */}
@@ -247,17 +249,19 @@ const MapNode = memo(({
           </Group>
         )}
 
-        {/* Label */}
+        {/* Label — dark stroke halo for readability without Canvas shadowBlur overhead */}
         <Text
           text={name}
           fontSize={11}
           fontFamily="Lexend, sans-serif"
           fill="#ffffff"
+          stroke="rgba(0,0,0,0.88)"
+          strokeWidth={2.5}
+          fillAfterStrokeEnabled={true}
           y={NODE_RADIUS + 8}
           align="center"
           width={120}
           offsetX={60}
-          shadowColor="#000000" shadowBlur={6} shadowOpacity={0.95}
           fontStyle={isSelected ? 'bold' : 'normal'}
           listening={false}
           perfectDrawEnabled={false}
@@ -276,7 +280,8 @@ MapNode.displayName = 'MapNode';
 const FolderGrid = memo(({
   rootFolderId, drillPath, page,
   allMapNodes, selectedNodeId, nestCounts, nodeTypeOverrides, customNodeTypes,
-  onClose, onDrillInto, onDrillUp, onPageChange,
+  onClose, onCloseComplete, isClosing,
+  onDrillInto, onDrillUp, onPageChange,
   onChildSelect, onChildContextMenu, onChildUnnest, onChildNest, onFolderDragEnd,
   openFolderBounds, onCrossNest,
   isRejectTarget, isShaking,
@@ -293,7 +298,10 @@ const FolderGrid = memo(({
   if (!rootFolderNode) return null;
 
   const currentFolderId = drillPath[drillPath.length - 1];
-  const currentFolderNode = allMapNodes.find((n) => n.id === currentFolderId) || rootFolderNode;
+  const currentFolderNode = useMemo(
+    () => allMapNodes.find((n) => n.id === currentFolderId) || rootFolderNode,
+    [allMapNodes, currentFolderId, rootFolderNode]
+  );
 
   const allChildren = useMemo(() => {
     const kids = allMapNodes.filter((n) => n.parentNodeId === currentFolderId);
@@ -331,7 +339,7 @@ const FolderGrid = memo(({
     node.scaleX(0.88);
     node.scaleY(0.88);
     node.opacity(0);
-    node.to({ scaleX: 1, scaleY: 1, opacity: 1, duration: 0.18 });
+    node.to({ scaleX: 1, scaleY: 1, opacity: 1, duration: 0.18, easing: Konva.Easings.EaseOut });
   }, []);
 
   // Shake animation — animates inner content group's x only
@@ -348,6 +356,19 @@ const FolderGrid = memo(({
     }) }) }) });
   }, [isShaking]);
 
+  // Exit animation — scale down + fade out, then signal MapCanvas to remove from state
+  useEffect(() => {
+    if (!isClosing) return;
+    const node = groupRef.current;
+    if (!node) return;
+    node.to({
+      scaleX: 0.82, scaleY: 0.82, opacity: 0,
+      duration: 0.14,
+      easing: Konva.Easings.EaseIn,
+      onFinish: () => onCloseComplete?.(rootFolderId),
+    });
+  }, [isClosing]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <Group
       ref={groupRef}
@@ -363,7 +384,7 @@ const FolderGrid = memo(({
       {/* ── Inner shakeable content ──────────────────────────────────── */}
       <Group ref={shakeRef}>
 
-      {/* Folder box background — reduced shadowBlur for perf */}
+      {/* Folder box background */}
       <Rect
         x={-HW} y={-HH}
         width={FW} height={FH}
@@ -372,8 +393,8 @@ const FolderGrid = memo(({
         strokeWidth={1.5}
         cornerRadius={14}
         shadowColor="rgba(0,0,0,0.65)"
-        shadowBlur={18}
-        shadowOffsetY={6}
+        shadowBlur={10}
+        shadowOffsetY={4}
         listening={false}
         perfectDrawEnabled={false}
       />
@@ -561,7 +582,7 @@ const FolderGrid = memo(({
               listening={false}
               perfectDrawEnabled={false}
             />
-            {/* Reduced shadowBlur for perf */}
+            {/* Glow only when selected — shadowBlur=0 on idle prevents canvas filter overhead */}
             <Circle
               radius={FOLDER_CHILD_R}
               fill={hexToRgba(color, 0.22)}
@@ -569,8 +590,9 @@ const FolderGrid = memo(({
               strokeWidth={isSubfolder ? 3 : 2}
               shadowForStrokeEnabled={false}
               shadowColor={color}
-              shadowBlur={isSel ? 10 : 5}
-              shadowOpacity={isSel ? 0.5 : 0.2}
+              shadowBlur={isSel ? 10 : 0}
+              shadowOpacity={isSel ? 0.5 : 0}
+              perfectDrawEnabled={false}
             />
 
             <Circle radius={5} fill={color} opacity={isSel ? 0.9 : 0.5} />
@@ -592,13 +614,15 @@ const FolderGrid = memo(({
               fontSize={9}
               fontFamily="Lexend, sans-serif"
               fill="#ffffff"
+              stroke="rgba(0,0,0,0.88)"
+              strokeWidth={2}
+              fillAfterStrokeEnabled={true}
               y={FOLDER_CHILD_R + 5}
               align="center"
               width={FOLDER_CELL - 8}
               offsetX={(FOLDER_CELL - 8) / 2}
               wrap="none" ellipsis={true}
               listening={false} perfectDrawEnabled={false}
-              shadowColor="#000000" shadowBlur={4} shadowOpacity={0.9}
             />
           </Group>
         );
@@ -721,7 +745,13 @@ export default function MapCanvas({
   // ── Instant zoom: drive Konva imperatively; RAF-sync React state ──────
   // Eliminates the old lerp loop — zoom now responds on every wheel tick.
   const wheelRafRef       = useRef(null);
+  // ── Pinch-to-zoom touch refs ───────────────────────────────────────────────
+  const pinchLastDistRef   = useRef(0);
+  const pinchLastCenterRef = useRef(null);
   const pendingStageState = useRef(null);
+
+  // ── Drag RAF throttle — same pattern as wheel so WidgetLayer only re-renders once per frame
+  const dragRafRef = useRef(null);
 
   // Cleanup refs for shake-clear timeouts so they don't fire after unmount
   const shakeNodeTimerRef   = useRef(null);
@@ -779,6 +809,13 @@ export default function MapCanvas({
     () => allNodes.filter((n) => n.mapId === activeMapId),
     [allNodes, activeMapId]
   );
+
+  // O(1) node lookup used by isAncestorOf during drag events (avoids O(n²) finds)
+  const nodeById = useMemo(() => {
+    const map = {};
+    for (const n of mapNodes) map[n.id] = n;
+    return map;
+  }, [mapNodes]);
 
   const nestCounts = useMemo(() => {
     const counts = {};
@@ -855,7 +892,16 @@ export default function MapCanvas({
     setFolderState((prev) => ({ ...prev, [nodeId]: { drillPath: [nodeId], page: 0 } }));
   }, []);
 
+  // Mark as closing so FolderGrid can run its exit tween before unmounting.
   const closeFolder = useCallback((nodeId) => {
+    setFolderState((prev) => {
+      if (!prev[nodeId]) return prev;
+      return { ...prev, [nodeId]: { ...prev[nodeId], closing: true } };
+    });
+  }, []);
+
+  // Called by FolderGrid after its exit animation finishes.
+  const handleFolderCloseComplete = useCallback((nodeId) => {
     setFolderState((prev) => {
       const next = { ...prev };
       delete next[nodeId];
@@ -927,15 +973,15 @@ export default function MapCanvas({
   /* ── Nesting validation ───────────────────────────────────────────── */
   const isAncestorOf = useCallback((ancestorId, nodeId) => {
     const visited = new Set();
-    let curr = mapNodes.find((n) => n.id === nodeId);
+    let curr = nodeById[nodeId];
     while (curr?.parentNodeId) {
-      if (visited.has(curr.parentNodeId)) break;
+      if (visited.has(curr.parentNodeId)) break; // cycle guard
       if (curr.parentNodeId === ancestorId) return true;
-      visited.add(curr.parentNodeId);
-      curr = mapNodes.find((n) => n.id === curr.parentNodeId);
+      visited.add(curr.id);
+      curr = nodeById[curr.parentNodeId]; // O(1) lookup
     }
     return false;
-  }, [mapNodes]);
+  }, [nodeById]);
 
   const canNestInto = useCallback((childId, parentId) => {
     if (childId === parentId) return false;
@@ -952,6 +998,72 @@ export default function MapCanvas({
     }
     return true;
   }, [isAncestorOf, nestCounts, mapNodes, customNodeTypes]);
+
+  /* ── Pinch-to-zoom (mobile) — native listener, passive:false ───── */
+  useEffect(() => {
+    const container = stageRef.current?.container();
+    if (!container) return;
+
+    const onTouchMove = (e) => {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      const stage = stageRef.current;
+      if (!stage) return;
+      if (stage.isDragging()) stage.stopDrag();
+
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const p1 = { x: t1.clientX, y: t1.clientY };
+      const p2 = { x: t2.clientX, y: t2.clientY };
+
+      const dist   = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const center = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+
+      if (!pinchLastDistRef.current) {
+        pinchLastDistRef.current   = dist;
+        pinchLastCenterRef.current = center;
+        return;
+      }
+
+      const oldScale = stage.scaleX();
+      const newScale = Math.min(8, Math.max(0.05, oldScale * (dist / pinchLastDistRef.current)));
+      const lastC    = pinchLastCenterRef.current;
+      const pointTo  = {
+        x: (center.x - stage.x()) / oldScale,
+        y: (center.y - stage.y()) / oldScale,
+      };
+      const newPos = {
+        x: center.x - pointTo.x * newScale + (center.x - lastC.x),
+        y: center.y - pointTo.y * newScale + (center.y - lastC.y),
+      };
+
+      stage.scale({ x: newScale, y: newScale });
+      stage.position(newPos);
+      pinchLastDistRef.current   = dist;
+      pinchLastCenterRef.current = center;
+
+      if (!wheelRafRef.current) {
+        wheelRafRef.current = requestAnimationFrame(() => {
+          setStageScale(newScale);
+          setStagePos(newPos);
+          setViewport(newPos.x, newPos.y, newScale);
+          wheelRafRef.current = null;
+        });
+      }
+    };
+
+    const onTouchEnd = () => {
+      pinchLastDistRef.current   = 0;
+      pinchLastCenterRef.current = null;
+    };
+
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend',  onTouchEnd);
+    return () => {
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend',  onTouchEnd);
+    };
+  }, [setViewport]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Instant zoom ─────────────────────────────────────────────────── */
   const handleWheel = useCallback((e) => {
@@ -1069,7 +1181,8 @@ export default function MapCanvas({
     if (drawingMode === 'polygon') {
       setPolygonPoints((prev) => [...prev, { x, y }]);
     } else if (placingType) {
-      createNode(campaignId, activeMapId, placingType, x, y);
+      const placed = createNode(campaignId, activeMapId, placingType, x, y);
+      if (placed?.id) selectNode(placed.id);
       onPlacingDone();
     } else if (isTerritory) {
       const territoryId = targetName.replace('territory-', '');
@@ -1294,6 +1407,7 @@ export default function MapCanvas({
         isolation: 'isolate',
         cursor: placingType || drawingMode === 'polygon' ? 'crosshair' : 'default',
         borderRadius: 'var(--radius)',
+        willChange: 'transform', // promote canvas container to its own compositor layer
       }}
     >
       {!bgImage && (
@@ -1346,12 +1460,22 @@ export default function MapCanvas({
           pixelRatio={window.devicePixelRatio > 1 ? 1.5 : 1}
           draggable={!placingType && drawingMode !== 'polygon'}
           onDragMove={(e) => {
-            if (e.target === stageRef.current) {
-              setViewport(e.target.x(), e.target.y(), stageScale);
+            if (e.target !== stageRef.current) return;
+            const tx = e.target.x();
+            const ty = e.target.y();
+            if (!dragRafRef.current) {
+              dragRafRef.current = requestAnimationFrame(() => {
+                setViewport(tx, ty, stageScale);
+                dragRafRef.current = null;
+              });
             }
           }}
           onDragEnd={(e) => {
             if (e.target === stageRef.current) {
+              if (dragRafRef.current) {
+                cancelAnimationFrame(dragRafRef.current);
+                dragRafRef.current = null;
+              }
               const pos = { x: e.target.x(), y: e.target.y() };
               setStagePos(pos);
               setViewport(pos.x, pos.y, stageScale);
@@ -1554,6 +1678,8 @@ export default function MapCanvas({
                     nodeTypeOverrides={nodeTypeOverrides}
                     customNodeTypes={customNodeTypes}
                     onClose={closeFolder}
+                    onCloseComplete={handleFolderCloseComplete}
+                    isClosing={!!state.closing}
                     onDrillInto={drillIntoFolder}
                     onDrillUp={drillUpToIndex}
                     onPageChange={setFolderPage}
@@ -1564,16 +1690,4 @@ export default function MapCanvas({
                     onFolderDragEnd={handleFolderDragEnd}
                     openFolderBounds={openFolderBounds}
                     onCrossNest={handleCrossNest}
-                    isRejectTarget={rootId === rejectFolderGridId}
-                    isShaking={rootId === rejectShakeFolderGridId}
-                    stageRef={stageRef}
-                  />
-                );
-              })}
-            </Group>
-          </Layer>
-        </Stage>
-      )}
-    </div>
-  );
-}
+                    isRejectTarget={rootId =

@@ -1,21 +1,29 @@
 import { useState } from 'react';
-import { Plus } from '@phosphor-icons/react';
+import { Plus, SignOut } from '@phosphor-icons/react';
 import useCampaignStore from '../../stores/campaignStore';
+import { useAuth } from '../../context/AuthContext';
 import TopoBackground from '../common/TopoBackground';
 
 export default function CampaignSelect() {
   const { campaigns, createCampaign, setActiveCampaign } = useCampaignStore();
+  const { user, logout } = useAuth();
   const splashLogo = '/logo/splash.svg';
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [creating, setCreating] = useState(false);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim()) return;
-    const campaign = createCampaign(name.trim(), description.trim());
-    setName('');
-    setDescription('');
-    setShowModal(false);
+    setCreating(true);
+    try {
+      await createCampaign(name.trim(), description.trim());
+      setName('');
+      setDescription('');
+      setShowModal(false);
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -27,11 +35,25 @@ export default function CampaignSelect() {
 
   return (
     <div className="campaign-select" style={{ position: 'relative', isolation: 'isolate' }}>
-      {/* Animated topo background — sits at z-index 0 inside the isolate context */}
-      {/* Design-system topo — slate lines on dark teal, same settings as brand site */}
       <TopoBackground style={{ zIndex: 0 }} opacity={0.9} />
 
-      {/* All page content floats above the canvas at z-index 1 */}
+      {/* User info + logout — top right corner */}
+      <div style={{
+        position: 'fixed', top: 16, right: 20, zIndex: 10,
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{user?.email}</span>
+        <button
+          className="btn btn-ghost btn-sm"
+          onClick={logout}
+          title="Sign out"
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <SignOut size={14} />
+          Sign out
+        </button>
+      </div>
+
       <img src={splashLogo} alt="Flux Atlas" className="splash-logo" style={{ position: 'relative', zIndex: 1 }} />
       <p className="subtitle" style={{ position: 'relative', zIndex: 1 }}>Campaign World Manager</p>
 
@@ -77,7 +99,13 @@ export default function CampaignSelect() {
             </div>
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleCreate} disabled={!name.trim()}>Create</button>
+              <button
+                className="btn btn-primary"
+                onClick={handleCreate}
+                disabled={!name.trim() || creating}
+              >
+                {creating ? 'Creating…' : 'Create'}
+              </button>
             </div>
           </div>
         </div>

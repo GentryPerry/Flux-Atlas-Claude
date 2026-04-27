@@ -114,16 +114,17 @@ function EndCap({ label, linkedNodeId, allNodes, alignRight, onChangeLabel, onLi
           autoFocus
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => { setEditing(false); onChangeLabel(draft.trim() || (alignRight ? 'High' : 'Low')); }}
+          onBlur={() => { setEditing(false); onChangeLabel(draft.trim()); }}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); }}
         />
       ) : (
         <span
         className={`lt-end-label${!label ? ' lt-end-label-empty' : ''}`}
-        onDoubleClick={() => setEditing(true)}
-        title={label ? undefined : 'Double-click to add label'}
+        onClick={() => setEditing(true)}
+        title={label ? 'Click to edit' : 'Click to add label'}
       >
-        {label || (hovering ? '+ label' : '')}
+        {label || <span className="lt-end-label-placeholder">label</span>}
+        {hovering && label && <span className="lt-end-label-edit-hint">✎</span>}
       </span>
       )}
 

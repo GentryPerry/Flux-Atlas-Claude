@@ -1,21 +1,36 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
+import { saveStore, loadCampaign } from '../utils/api';
 
-/**
- * Connection store — manages connections between nodes.
- */
+let _connSaveTimer = null;
+
+function debouncedConnectionSave(campaignId, connections) {
+  const snapshot = [...connections];
+  if (_connSaveTimer) clearTimeout(_connSaveTimer);
+  _connSaveTimer = setTimeout(() => {
+    saveStore(campaignId, 'connections', snapshot).catch((e) =>
+      console.warn('Connection save failed:', e)
+    );
+    _connSaveTimer = null;
+  }, 400);
+}
+
 const useConnectionStore = create((set, get) => ({
   connections: [],
 
-  loadConnections: (campaignId) => {
+  loadConnections: async (campaignId) => {
     try {
-      const raw = localStorage.getItem(`flux_connections_${campaignId}`);
-      const connections = raw ? JSON.parse(raw) : [];
+      const data = await loadCampaign(campaignId);
+      const connections = Array.isArray(data.connections) ? data.connections : [];
       set({ connections });
     } catch (e) {
       console.warn('loadConnections failed:', e);
       set({ connections: [] });
     }
+  },
+
+  _persist: (campaignId) => {
+    debouncedConnectionSave(campaignId, get().connections);
   },
 
   createConnection: (campaignId, nodeAId, nodeBId, options = {}) => {
@@ -27,11 +42,11 @@ const useConnectionStore = create((set, get) => ({
       color: options.color || '#ffffff',
       label: options.label || '',
       directional: options.directional || false,
-      direction: options.direction || 'a-to-b', // 'a-to-b', 'b-to-a', 'both'
+      direction: options.direction || 'a-to-b',
     };
     const connections = [...get().connections, connection];
     set({ connections });
-    localStorage.setItem(`flux_connections_${campaignId}`, JSON.stringify(connections));
+    get()._persist(campaignId);
     return connection;
   },
 
@@ -40,23 +55,18 @@ const useConnectionStore = create((set, get) => ({
       c.id === connectionId ? { ...c, ...updates } : c
     );
     set({ connections });
-    localStorage.setItem(`flux_connections_${campaignId}`, JSON.stringify(connections));
+    get()._persist(campaignId);
   },
 
   deleteConnection: (campaignId, connectionId) => {
     const connections = get().connections.filter((c) => c.id !== connectionId);
     set({ connections });
-    localStorage.setItem(`flux_connections_${campaignId}`, JSON.stringify(connections));
+    get()._persist(campaignId);
   },
 
-  /** Get connections involving a specific node */
-  getConnectionsForNode: (nodeId) => {
-    return get().connections.filter(
-      (c) => c.nodeAId === nodeId || c.nodeBId === nodeId
-    );
-  },
+  getConnectionsForNode: (nodeId) =>
+    get().connections.filter((c) => c.nodeAId === nodeId || c.nodeBId === nodeId),
 
-  /** Get connections between nodes on a given map */
   getConnectionsForMap: (mapId, nodes) => {
     const nodeIds = new Set(nodes.map((n) => n.id));
     return get().connections.filter(

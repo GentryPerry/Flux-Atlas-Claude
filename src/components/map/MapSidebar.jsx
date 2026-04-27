@@ -1,8 +1,9 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { MapTrifold, Plus, Trash, CaretLeft, CaretRight, CaretDown, Check, Globe } from '@phosphor-icons/react';
+import { MapTrifold, Plus, Trash, CaretLeft, CaretRight, CaretDown, Check, Globe, PencilSimple } from '@phosphor-icons/react';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useNodeStore from '../../stores/nodeStore';
+import { uploadImage } from '../../utils/api';
 
 // ── Campaign Dropdown ─────────────────────────────────────────────────────────
 
@@ -135,8 +136,27 @@ function CampaignDropdown({ campaign, campaigns, onSelect, onCreate }) {
  * Sub-maps store `parentMapId = ownerNode.id` (the node ID, NOT a map ID).
  * So we receive pre-computed `childMaps` rather than filtering allMaps directly.
  */
-function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onDelete }) {
-  const [expanded, setExpanded] = useState(true);
+function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onDelete, onRename }) {
+  const [expanded, setExpanded]     = useState(true);
+  const [renaming, setRenaming]     = useState(false);
+  const [renameVal, setRenameVal]   = useState('');
+  const renameInputRef              = useRef(null);
+
+  useEffect(() => {
+    if (renaming && renameInputRef.current) renameInputRef.current.focus();
+  }, [renaming]);
+
+  const startRename = (e) => {
+    e.stopPropagation();
+    setRenameVal(map.name);
+    setRenaming(true);
+  };
+
+  const commitRename = () => {
+    const trimmed = renameVal.trim();
+    if (trimmed && trimmed !== map.name) onRename(map.id, trimmed);
+    setRenaming(false);
+  };
 
   // Find children of this map:
   // A sub-map M is a child of this map if the owner node (M.parentMapId == node.id)
@@ -157,7 +177,7 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
       <div
         className={`map-list-item ${isActive ? 'active' : ''}`}
         style={{ paddingLeft: 8 + depth * 16 }}
-        onClick={() => onSelect(map.id)}
+        onClick={() => !renaming && onSelect(map.id)}
       >
         {hasChildren ? (
           <button
@@ -177,17 +197,39 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
           <span style={{ width: 16, flexShrink: 0 }} />
         )}
         <MapTrifold size={14} style={{ flexShrink: 0, opacity: depth > 0 ? 0.7 : 1 }} />
-        <span style={{
-          flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          fontSize: depth > 0 ? 12 : 13,
-          color: isActive ? 'var(--accent)' : depth > 0 ? 'var(--text-secondary)' : 'var(--text-primary)',
-        }}>
-          {map.name}
-        </span>
-        {depth > 0 && (
+
+        {renaming ? (
+          <input
+            ref={renameInputRef}
+            value={renameVal}
+            onChange={(e) => setRenameVal(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitRename();
+              if (e.key === 'Escape') setRenaming(false);
+              e.stopPropagation();
+            }}
+            style={{ flex: 1, fontSize: depth > 0 ? 12 : 13, padding: '1px 4px', minWidth: 0 }}
+          />
+        ) : (
+          <span
+            style={{
+              flex: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontSize: depth > 0 ? 12 : 13,
+              color: isActive ? 'var(--accent)' : depth > 0 ? 'var(--text-secondary)' : 'var(--text-primary)',
+            }}
+            onDoubleClick={startRename}
+            title="Double-click to rename"
+          >
+            {map.name}
+          </span>
+        )}
+
+        {depth > 0 && !renaming && (
           <span style={{
             fontSize: 9,
             color: 'var(--text-muted)',
@@ -200,17 +242,29 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
             sub
           </span>
         )}
-        <button
-          className="btn-icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm(`Delete map "${map.name}"?`)) onDelete(map.id);
-          }}
-          style={{ opacity: 0.35, flexShrink: 0 }}
-          title="Delete map"
-        >
-          <Trash size={12} />
-        </button>
+        {!renaming && (
+          <>
+            <button
+              className="btn-icon"
+              onClick={startRename}
+              style={{ opacity: 0.35, flexShrink: 0 }}
+              title="Rename map"
+            >
+              <PencilSimple size={12} />
+            </button>
+            <button
+              className="btn-icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm(`Delete map "${map.name}"?`)) onDelete(map.id);
+              }}
+              style={{ opacity: 0.35, flexShrink: 0 }}
+              title="Delete map"
+            >
+              <Trash size={12} />
+            </button>
+          </>
+        )}
       </div>
 
       {hasChildren && expanded && (
@@ -225,6 +279,7 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
               depth={depth + 1}
               onSelect={onSelect}
               onDelete={onDelete}
+              onRename={onRename}
             />
           ))}
         </div>
@@ -246,6 +301,7 @@ export default function MapSidebar() {
   const setActiveMap = useMapStore((s) => s.setActiveMap);
   const createMap   = useMapStore((s) => s.createMap);
   const deleteMap   = useMapStore((s) => s.deleteMap);
+  const updateMap   = useMapStore((s) => s.updateMap);
 
   const allNodes = useNodeStore((s) => s.nodes);
 
@@ -272,16 +328,18 @@ export default function MapSidebar() {
   const [collapsed, setCollapsed]     = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setPendingImage(ev.target.result);
-      setShowNewMap(true);
-    };
-    reader.readAsDataURL(file);
     e.target.value = '';
+    try {
+      const url = await uploadImage(file);
+      setPendingImage(url);
+      setShowNewMap(true);
+    } catch (err) {
+      console.error('Map image upload failed:', err);
+      alert('Image upload failed. Please try again.');
+    }
   };
 
   const handleCreateMap = () => {
@@ -299,6 +357,10 @@ export default function MapSidebar() {
   const handleDelete = useCallback((mapId) => {
     deleteMap(campaignId, mapId);
   }, [campaignId, deleteMap]);
+
+  const handleRename = useCallback((mapId, newName) => {
+    updateMap(campaignId, mapId, { name: newName });
+  }, [campaignId, updateMap]);
 
   const handleCampaignSelect = useCallback((id) => {
     setActiveCampaign(id);
@@ -344,6 +406,7 @@ export default function MapSidebar() {
                 depth={0}
                 onSelect={handleSelect}
                 onDelete={handleDelete}
+                onRename={handleRename}
               />
             ))}
 
@@ -368,53 +431,4 @@ export default function MapSidebar() {
                 <button
                   className="btn btn-ghost btn-sm"
                   style={{ flexShrink: 0, padding: '4px 8px' }}
-                  onClick={() => { setPendingImage(null); setShowNewMap(true); }}
-                  title="Create a blank map (no image)"
-                >
-                  Blank
-                </button>
-              </div>
-            ) : (
-              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {pendingImage && (
-                  <img
-                    src={pendingImage}
-                    alt="preview"
-                    style={{ width: '100%', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
-                  />
-                )}
-                <input
-                  value={newMapName}
-                  onChange={(e) => setNewMapName(e.target.value)}
-                  placeholder="Map name..."
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleCreateMap();
-                    if (e.key === 'Escape') { setShowNewMap(false); setPendingImage(null); }
-                  }}
-                />
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={handleCreateMap}>
-                    Create
-                  </button>
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => { setShowNewMap(false); setPendingImage(null); }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {rootMaps.length === 0 && !showNewMap && (
-              <div style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: '20px 10px', lineHeight: 1.5 }}>
-                Click <strong>New Map</strong> to upload an image, or <strong>Blank</strong> for an empty canvas.
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+                  

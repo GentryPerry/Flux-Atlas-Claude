@@ -9,8 +9,8 @@ import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useSettingsStore from '../../stores/settingsStore';
 import {
-  NODE_TYPES, getFieldSchema, DEFAULT_CUSTOM_FIELDS, DEFAULT_CUSTOM_STATUS_FLAGS,
-  isAbstractType, MAP_MAX_DEPTH,
+  NODE_TYPES, getFieldSchema, DEFAULT_CUSTOM_FIELDS, DEFAULT_CUSTOM_ABSTRACT_FIELDS,
+  DEFAULT_CUSTOM_STATUS_FLAGS, isAbstractType, MAP_MAX_DEPTH,
 } from '../../utils/nodeSchemas';
 import { getTypeIcon, getTypeColor } from '../../utils/typeColors';
 import { resolveIcon } from '../../utils/iconRegistry';
@@ -19,9 +19,11 @@ import IconPickerModal from '../common/IconPickerModal';
 import CustomSelect from '../common/CustomSelect';
 import PinterestPickerModal from './PinterestPickerModal';
 import ImageGalleryModal from './ImageGalleryModal';
+import HierarchyView from './HierarchyView';
+import { uploadImage } from '../../utils/api';
 
 const RECIPROCAL_FIELD_MAP = {
-  character: { faction: 'faction', religion: 'religion', event: 'involvedParties' },
+  character: { event: 'involvedParties' },
   location: { character: 'notableNPCs', faction: 'controllingFaction', thing: 'location', event: 'involvedParties', location: 'subLocations' },
   faction: { character: 'leader', faction: 'allies', polity: 'allies', location: 'allies', event: 'involvedParties' },
   religion: { character: 'leadership', location: 'holySites', event: 'involvedParties' },
@@ -121,6 +123,13 @@ export default function DetailPanel() {
   const [tagInput, setTagInput] = useState({});
   const [tagFocused, setTagFocused] = useState(null);
   const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [noderefInput, setNoderefInput]         = useState({});
+  const [noderefFocused, setNoderefFocused]     = useState(null);
+  const [noderefHighlight, setNoderefHighlight] = useState(-1);
+  // Memberships section (character panel — add to org search)
+  const [membSearch,    setMembSearch]    = useState('');
+  const [membFocused,   setMembFocused]   = useState(false);
+  const [membHighlight, setMembHighlight] = useState(-1);
   const [pinterestOpen, setPinterestOpen] = useState(false);
   // Persist Pinterest board state across modal open/close
   const [pinterestBoard, setPinterestBoard]       = useState(null);
@@ -154,7 +163,9 @@ export default function DetailPanel() {
     statusFlags: DEFAULT_CUSTOM_STATUS_FLAGS,
   };
 
-  const baseSchema = builtinInfo ? getFieldSchema(node.type) : DEFAULT_CUSTOM_FIELDS;
+  const baseSchema = builtinInfo
+    ? getFieldSchema(node.type)
+    : (customInfo?.kind === 'abstract' ? DEFAULT_CUSTOM_ABSTRACT_FIELDS : DEFAULT_CUSTOM_FIELDS);
 
   const globalOverride = nodeFieldOverrides[node.type] || {};
   const removedGlobally = new Set(globalOverride.removed || []);
@@ -212,13 +223,17 @@ export default function DetailPanel() {
     });
   };
 
-  const handleImageUpload = (e) => {
-    Array.from(e.target.files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => addNodeImage(campaignId, node.id, ev.target.result);
-      reader.readAsDataURL(file);
-    });
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
     e.target.value = '';
+    for (const file of files) {
+      try {
+        const url = await uploadImage(file);
+        addNodeImage(campaignId, node.id, url);
+      } catch (err) {
+        console.error('Node image upload failed:', err);
+      }
+    }
   };
 
   const handleAddImageUrl = () => { setUrlInputOpen(true); setUrlDraft(''); };
@@ -232,17 +247,18 @@ export default function DetailPanel() {
     addNodeImage(campaignId, node.id, trimmed);
   };
 
-  const handleHeroDrop = (e) => {
+  const handleHeroDrop = async (e) => {
     e.preventDefault();
     setIsDragOver(false);
     if (isAdjustingHero) return;
-    Array.from(e.dataTransfer.files)
-      .filter((f) => f.type.startsWith('image/'))
-      .forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => addNodeImage(campaignId, node.id, ev.target.result);
-        reader.readAsDataURL(file);
-      });
+    for (const file of Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))) {
+      try {
+        const url = await uploadImage(file);
+        addNodeImage(campaignId, node.id, url);
+      } catch (err) {
+        console.error('Node image drop upload failed:', err);
+      }
+    }
   };
 
   const handleAddTag = (fieldKey, value, refNodeId = null) => {
@@ -309,6 +325,40 @@ export default function DetailPanel() {
         }
       }
     }
+  };
+
+  // ── noderefs field helpers (stores node IDs directly, no tag layer) ───────────
+  const getNoderefSuggestions = (fieldKey) => {
+    const query = (noderefInput[fieldKey] || '').trim().toLowerCase();
+    if (!query) return [];
+    const field = schema.find((f) => f.key === fieldKey);
+    const filterTypes = field?.filterTypes;
+    const currentIds = Array.isArray(node.fields?.[fieldKey]) ? node.fields[fieldKey] : [];
+    return allNodes
+      .filter((n) => {
+        if (n.id === selectedNodeId) return false;
+        if (n.campaignId !== campaignId) return false;
+        if (filterTypes?.length && !filterTypes.includes(n.type)) return false;
+        if (!n.fields?.name) return false;
+        if (currentIds.includes(n.id)) return false;
+        return n.fields.name.toLowerCase().includes(query);
+      })
+      .slice(0, 8)
+      .map((n) => ({ id: n.id, name: n.fields.name, type: n.type }));
+  };
+
+  const handleAddNoderef = (fieldKey, nodeId) => {
+    const current = Array.isArray(node.fields?.[fieldKey]) ? node.fields[fieldKey] : [];
+    if (!current.includes(nodeId)) {
+      handleFieldChange(fieldKey, [...current, nodeId]);
+    }
+    setNoderefInput((prev) => ({ ...prev, [fieldKey]: '' }));
+    setNoderefHighlight(-1);
+  };
+
+  const handleRemoveNoderef = (fieldKey, nodeId) => {
+    const current = Array.isArray(node.fields?.[fieldKey]) ? node.fields[fieldKey] : [];
+    handleFieldChange(fieldKey, current.filter((id) => id !== nodeId));
   };
 
   const handleSetHeroImage = (imageId) => {
@@ -587,6 +637,106 @@ export default function DetailPanel() {
       );
     }
 
+    if (field.type === 'noderefs') {
+      const nodeIds = Array.isArray(value) ? value : [];
+      const suggestions = noderefFocused === field.key ? getNoderefSuggestions(field.key) : [];
+
+      return (
+        <div key={field.key} className="field-group">
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {field.label}
+            {removable && (
+              <button
+                className="btn-icon field-remove-btn"
+                title="Remove this field"
+                onClick={() => handleRemoveFieldLocally(field.key)}
+                style={{ opacity: 0.45, fontSize: 11 }}
+              >
+                <Minus size={12} />
+              </button>
+            )}
+          </label>
+
+          <div className="tag-list">
+            {nodeIds.map((nId) => {
+              const refNode = nodeMap[nId];
+              if (!refNode) return null;
+              const refColor = `var(--node-${refNode.type}, var(--text-muted))`;
+              return (
+                <span
+                  key={nId}
+                  className="tag"
+                  style={{ borderColor: refColor, color: refColor, background: `${refColor}15`, cursor: 'pointer' }}
+                  onClick={() => selectNode(nId)}
+                  title="Open in detail panel"
+                >
+                  {refNode.fields?.name || '???'}
+                  <span
+                    className="remove"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveNoderef(field.key, nId); }}
+                  >&times;</span>
+                </span>
+              );
+            })}
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <input
+                value={noderefInput[field.key] || ''}
+                onChange={(e) => {
+                  setNoderefInput((prev) => ({ ...prev, [field.key]: e.target.value }));
+                  setNoderefHighlight(-1);
+                }}
+                onFocus={() => setNoderefFocused(field.key)}
+                onBlur={() => setTimeout(() => setNoderefFocused(null), 150)}
+                onKeyDown={(e) => {
+                  const sugg = getNoderefSuggestions(field.key);
+                  if (e.key === 'ArrowDown') { e.preventDefault(); setNoderefHighlight((p) => Math.min(p + 1, sugg.length - 1)); }
+                  else if (e.key === 'ArrowUp') { e.preventDefault(); setNoderefHighlight((p) => Math.max(p - 1, -1)); }
+                  else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (noderefHighlight >= 0 && sugg[noderefHighlight]) handleAddNoderef(field.key, sugg[noderefHighlight].id);
+                    setNoderefHighlight(-1);
+                  } else if (e.key === 'Escape') { setNoderefFocused(null); setNoderefHighlight(-1); }
+                }}
+                placeholder={field.filterTypes?.length ? `Search ${field.filterTypes.join(' / ')}…` : 'Search…'}
+                style={{ flex: 1 }}
+              />
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  const sugg = getNoderefSuggestions(field.key);
+                  if (noderefHighlight >= 0 && sugg[noderefHighlight]) handleAddNoderef(field.key, sugg[noderefHighlight].id);
+                  setNoderefHighlight(-1);
+                }}
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+
+            {noderefFocused === field.key && suggestions.length > 0 && (
+              <div className="tag-autocomplete">
+                {suggestions.map((s, idx) => (
+                  <div
+                    key={s.id}
+                    className={`tag-autocomplete-item ${idx === noderefHighlight ? 'highlighted' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); handleAddNoderef(field.key, s.id); setNoderefHighlight(-1); }}
+                    onMouseEnter={() => setNoderefHighlight(idx)}
+                  >
+                    <span className="tag-ac-name">{s.name}</span>
+                    <span className="tag-ac-type" style={{ color: `var(--node-${s.type})` }}>
+                      {NODE_TYPES[s.type]?.label || customNodeTypes.find((c) => c.id === s.type)?.label || s.type}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -824,6 +974,135 @@ export default function DetailPanel() {
             return rendered;
           })}
 
+          {/* ── Memberships (character only) — derived from org nodes' fields.members ── */}
+          {node.type === 'character' && (() => {
+            // Collect all abstract org types (built-in + custom)
+            const abstractTypes = [
+              ...Object.entries(NODE_TYPES)
+                .filter(([, v]) => v.kind === 'abstract')
+                .map(([typeId, v]) => ({ typeId, label: v.label })),
+              ...customNodeTypes
+                .filter((c) => c.kind === 'abstract')
+                .map((c) => ({ typeId: c.id, label: c.label })),
+            ];
+
+            const memberships = abstractTypes
+              .map(({ typeId, label }) => {
+                const orgs = allNodes.filter(
+                  (n) => n.campaignId === campaignId &&
+                         n.type === typeId &&
+                         Array.isArray(n.fields?.members) &&
+                         n.fields.members.includes(node.id)
+                );
+                return orgs.length > 0 ? { typeId, label, orgs } : null;
+              })
+              .filter(Boolean);
+
+            const orgCandidates = membFocused && membSearch.trim()
+              ? allNodes.filter((n) => {
+                  if (n.campaignId !== campaignId) return false;
+                  if (!abstractTypes.some((a) => a.typeId === n.type)) return false;
+                  if (!n.fields?.name) return false;
+                  // Already a member?
+                  if (Array.isArray(n.fields?.members) && n.fields.members.includes(node.id)) return false;
+                  return n.fields.name.toLowerCase().includes(membSearch.toLowerCase());
+                }).slice(0, 8)
+              : [];
+
+            const addToOrg = (orgNode) => {
+              const cur = Array.isArray(orgNode.fields?.members) ? orgNode.fields.members : [];
+              if (!cur.includes(node.id)) {
+                updateNodeFields(campaignId, orgNode.id, { members: [...cur, node.id] });
+              }
+              setMembSearch('');
+              setMembHighlight(-1);
+            };
+
+            const removeFromOrg = (orgNode) => {
+              const cur = Array.isArray(orgNode.fields?.members) ? orgNode.fields.members : [];
+              updateNodeFields(campaignId, orgNode.id, { members: cur.filter((id) => id !== node.id) });
+            };
+
+            return (
+              <div className="field-group">
+                <label>Memberships</label>
+
+                {memberships.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Not a member of any organization.
+                  </div>
+                )}
+
+                {memberships.map(({ typeId, label, orgs }) => (
+                  <div key={typeId} style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, color: `var(--node-${typeId}, var(--text-muted))`, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {label}
+                    </div>
+                    <div className="tag-list">
+                      {orgs.map((org) => {
+                        const orgColor = `var(--node-${org.type}, var(--text-muted))`;
+                        return (
+                          <span
+                            key={org.id}
+                            className="tag"
+                            style={{ borderColor: orgColor, color: orgColor, background: `${orgColor}15`, cursor: 'pointer' }}
+                            onClick={() => selectNode(org.id)}
+                            title={`Open ${org.fields?.name || org.type}`}
+                          >
+                            {org.fields?.name || '—'}
+                            <span
+                              className="remove"
+                              title="Remove from this organization"
+                              onClick={(e) => { e.stopPropagation(); removeFromOrg(org); }}
+                            >&times;</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add to an org */}
+                <div style={{ position: 'relative' }}>
+                  <input
+                    value={membSearch}
+                    onChange={(e) => { setMembSearch(e.target.value); setMembHighlight(-1); }}
+                    onFocus={() => setMembFocused(true)}
+                    onBlur={() => setTimeout(() => setMembFocused(false), 150)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowDown') { e.preventDefault(); setMembHighlight((p) => Math.min(p + 1, orgCandidates.length - 1)); }
+                      else if (e.key === 'ArrowUp') { e.preventDefault(); setMembHighlight((p) => Math.max(p - 1, -1)); }
+                      else if (e.key === 'Enter' && membHighlight >= 0 && orgCandidates[membHighlight]) {
+                        e.preventDefault();
+                        addToOrg(orgCandidates[membHighlight]);
+                      } else if (e.key === 'Escape') setMembFocused(false);
+                    }}
+                    placeholder="Add to faction, religion, polity…"
+                    style={{ width: '100%' }}
+                  />
+                  {membFocused && orgCandidates.length > 0 && (
+                    <div className="tag-autocomplete">
+                      {orgCandidates.map((n, idx) => {
+                        const typeLabel = NODE_TYPES[n.type]?.label || customNodeTypes.find((c) => c.id === n.type)?.label || n.type;
+                        return (
+                          <div
+                            key={n.id}
+                            className={`tag-autocomplete-item ${idx === membHighlight ? 'highlighted' : ''}`}
+                            onMouseDown={(e) => { e.preventDefault(); addToOrg(n); }}
+                            onMouseEnter={() => setMembHighlight(idx)}
+                          >
+                            <span className="tag-ac-name">{n.fields?.name}</span>
+                            <span className="tag-ac-type" style={{ color: `var(--node-${n.type})` }}>{typeLabel}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="field-group" style={{ marginTop: 4 }}>
             {addingField ? (
               <AddFieldRow onAdd={handleAddCustomField} onCancel={() => setAddingField(false)} />
@@ -862,17 +1141,31 @@ export default function DetailPanel() {
             type="file"
             accept="image/*"
             style={{ display: 'none' }}
-            onChange={(e) => {
+            onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              const reader = new FileReader();
-              reader.onload = (ev) => {
-                createMap(campaignId, `${node.fields?.name || 'Unnamed'} Map`, ev.target.result, node.id);
-              };
-              reader.readAsDataURL(file);
               e.target.value = '';
+              try {
+                const url = await uploadImage(file);
+                createMap(campaignId, `${node.fields?.name || 'Unnamed'} Map`, url, node.id);
+              } catch (err) {
+                console.error('Map upload failed:', err);
+              }
             }}
           />
+
+          {/* ── Hierarchy view (faction / religion / polity + custom hierarchy types) ── */}
+          {(NODE_TYPES[node.type]?.drillDown === 'hierarchy' ||
+            customNodeTypes.find((c) => c.id === node.type)?.drillDown === 'hierarchy') && (
+            <HierarchyView
+              node={node}
+              allNodes={allNodes}
+              onSelectNode={selectNode}
+              nodeTypeOverrides={nodeTypeOverrides}
+              customNodeTypes={customNodeTypes}
+              nodeFieldOverrides={nodeFieldOverrides}
+            />
+          )}
 
           {/* ── Relationship chiplets ── */}
           {(() => {

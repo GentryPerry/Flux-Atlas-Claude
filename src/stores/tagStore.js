@@ -1,16 +1,14 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
+import { saveStore, loadCampaign } from '../utils/api';
 
-/**
- * Tag store — manages tags (node-reference and status-label).
- */
 const useTagStore = create((set, get) => ({
   tags: [],
 
-  loadTags: (campaignId) => {
+  loadTags: async (campaignId) => {
     try {
-      const raw = localStorage.getItem(`flux_tags_${campaignId}`);
-      const tags = raw ? JSON.parse(raw) : [];
+      const data = await loadCampaign(campaignId);
+      const tags = Array.isArray(data.tags) ? data.tags : [];
       set({ tags });
     } catch (e) {
       console.warn('loadTags failed:', e);
@@ -19,54 +17,42 @@ const useTagStore = create((set, get) => ({
   },
 
   _persist: (campaignId) => {
-    try {
-      localStorage.setItem(`flux_tags_${campaignId}`, JSON.stringify(get().tags));
-    } catch (e) {
-      console.warn('Tag persist failed:', e);
-    }
+    saveStore(campaignId, 'tags', get().tags).catch((e) =>
+      console.warn('Tag save failed:', e)
+    );
   },
 
-  /** Create a tag. nodeId = null for status-label tags. */
   createTag: (campaignId, name, color = '#888888', nodeId = null) => {
-    const tag = {
-      id: uuid(),
-      campaignId,
-      name,
-      color,
-      nodeId, // if set, this tag resolves to a node (node-reference tag)
-    };
+    const tag = { id: uuid(), campaignId, name, color, nodeId };
     const tags = [...get().tags, tag];
     set({ tags });
-    localStorage.setItem(`flux_tags_${campaignId}`, JSON.stringify(tags));
+    get()._persist(campaignId);
     return tag;
   },
 
-  /** Update a tag */
   updateTag: (campaignId, tagId, updates) => {
-    const tags = get().tags.map((t) =>
-      t.id === tagId ? { ...t, ...updates } : t
-    );
+    const tags = get().tags.map((t) => (t.id === tagId ? { ...t, ...updates } : t));
     set({ tags });
-    localStorage.setItem(`flux_tags_${campaignId}`, JSON.stringify(tags));
+    get()._persist(campaignId);
   },
 
-  /** Delete a tag */
   deleteTag: (campaignId, tagId) => {
     const tags = get().tags.filter((t) => t.id !== tagId);
     set({ tags });
-    localStorage.setItem(`flux_tags_${campaignId}`, JSON.stringify(tags));
+    get()._persist(campaignId);
   },
 
-  /** Get tag by ID */
   getTag: (tagId) => get().tags.find((t) => t.id === tagId),
-
-  /** Get all tags for a campaign */
   getTagsForCampaign: (campaignId) => get().tags.filter((t) => t.campaignId === campaignId),
-
-  /** Search tags by name */
   searchTags: (query) => {
     const q = query.toLowerCase();
     return get().tags.filter((t) => t.name.toLowerCase().includes(q));
+  },
+
+  clearCampaign: (campaignId) => {
+    const tags = get().tags.filter((t) => t.campaignId !== campaignId);
+    set({ tags });
+    saveStore(campaignId, 'tags', []).catch(() => {});
   },
 }));
 

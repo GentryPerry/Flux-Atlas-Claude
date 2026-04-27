@@ -1,5 +1,19 @@
 name = "flux-atlas"
 compatibility_date = "2026-04-18"
 
+# Worker entry point — handles all /api/* routes
+main = "src/worker.js"
+
 [assets]
 directory = "./dist"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "flux_atlas_db"
+database_name = "flux-atlas-db"
+database_id = "65647556-91ab-4b8a-8757-f3ff1b1626f8"
+
+# R2 bucket — stores map backgrounds and node images
+[[r2_buckets]]
+binding = "flux_atlas_images"
+bucket_name = "flux-atlas-images"

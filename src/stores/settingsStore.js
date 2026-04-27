@@ -1,110 +1,91 @@
 import { create } from 'zustand';
+import { saveStore, loadCampaign } from '../utils/api';
 
-/**
- * Settings store — persistent user preferences per campaign.
- */
+let _saveTimer = null;
+function debouncedSave(campaignId, data) {
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    saveStore(campaignId, 'settings', data).catch((e) =>
+      console.warn('Settings save failed:', e)
+    );
+    _saveTimer = null;
+  }, 600);
+}
+
 const useSettingsStore = create((set, get) => ({
-  // View preferences
-  layout: 'split',          // 'full' | 'split'
-  mapSide: 'left',          // 'left' | 'right'
+  layout: 'split',
+  mapSide: 'left',
   showConnections: false,
   showNodeLabels: true,
   showStatusOverlays: true,
   canvasGridVisible: true,
-  theme: 'dark',            // 'dark' | 'light'
-
-  // Node type display overrides: { type: { label?, color?, icon? } }
+  theme: 'dark',
   nodeTypeOverrides: {},
-
-  // Custom node types: [{ id, label, icon, color }]
   customNodeTypes: [],
-
-  // Per-type field schema overrides: { type: { added: [...fields], removed: ['fieldKey', ...] } }
   nodeFieldOverrides: {},
-
-  // Legend entries: [{ id, color, meaning }]
   legendEntries: [],
-
-  // Campaign image pool — images available to any node [{ id, url, label? }]
   imagePool: [],
-
-  // Saved Pinterest boards: [{ id, url, label }]
   pinterestBoards: [],
-
-  // Pinterest session cookie — used to authenticate proxy requests.
-  // User pastes the value of their _pinterest_sess cookie from pinterest.com DevTools.
   pinterestSession: '',
-
-  // Settings panel state
   settingsOpen: false,
   settingsCategory: 'view',
 
-  /** Push the current Pinterest session into the Vite dev-server proxy.
-   *  The proxy reads from a shared in-memory variable, so this takes effect
-   *  immediately without a server restart. Safe to call in production (no-op). */
   _syncPinterestSession: (session) => {
     fetch('/api/set-pinterest-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ session: session || '' }),
-    }).catch(() => { /* no-op outside dev */ });
+    }).catch(() => {});
   },
 
-  /** Load settings for a campaign */
-  loadSettings: (campaignId) => {
-    const raw = localStorage.getItem(`flux_settings_${campaignId}`);
-    if (!raw) return;
+  loadSettings: async (campaignId) => {
     try {
-      const saved = JSON.parse(raw);
-      set(saved);
-      // Apply theme immediately on load
-      document.documentElement.setAttribute('data-theme', saved.theme || 'dark');
-      // Re-sync Pinterest session into the proxy on every page load so the
-      // user never has to restart the dev server after the first time setup.
-      if (saved.pinterestSession) get()._syncPinterestSession(saved.pinterestSession);
+      const data = await loadCampaign(campaignId);
+      if (data.settings) {
+        set(data.settings);
+        document.documentElement.setAttribute('data-theme', data.settings.theme || 'dark');
+        if (data.settings.pinterestSession) {
+          get()._syncPinterestSession(data.settings.pinterestSession);
+        }
+      }
     } catch (e) {
       console.warn('loadSettings failed:', e);
     }
   },
 
-  /** Persist current settings */
   _persist: (campaignId) => {
-    try {
-      const { settingsOpen, settingsCategory, ...rest } = get();
-      localStorage.setItem(`flux_settings_${campaignId}`, JSON.stringify(rest));
-    } catch (e) {
-      console.warn('Settings persist failed:', e);
-    }
+    // Explicit allowlist — new state keys are not persisted by default, preventing
+    // methods or UI flags from leaking into the server-side save payload.
+    const PERSISTED_KEYS = [
+      'layout', 'mapSide', 'showConnections', 'showNodeLabels',
+      'showStatusOverlays', 'canvasGridVisible', 'theme',
+      'nodeTypeOverrides', 'customNodeTypes', 'nodeFieldOverrides',
+      'legendEntries', 'imagePool', 'pinterestBoards', 'pinterestSession',
+    ];
+    const state = get();
+    const data = Object.fromEntries(PERSISTED_KEYS.map((k) => [k, state[k]]));
+    debouncedSave(campaignId, data);
   },
 
-  /** Update a single setting */
   setSetting: (campaignId, key, value) => {
     set({ [key]: value });
-    if (key === 'theme') {
-      document.documentElement.setAttribute('data-theme', value);
-    }
-    const { settingsOpen, settingsCategory, ...rest } = { ...get(), [key]: value };
-    localStorage.setItem(`flux_settings_${campaignId}`, JSON.stringify(rest));
+    if (key === 'theme') document.documentElement.setAttribute('data-theme', value);
+    get()._persist(campaignId);
   },
 
-  /** Open settings panel to a specific category */
   openSettings: (category = 'view') => set({ settingsOpen: true, settingsCategory: category }),
   closeSettings: () => set({ settingsOpen: false }),
   setSettingsCategory: (category) => set({ settingsCategory: category }),
 
-  /** Legend management */
   addLegendEntry: (campaignId, color, meaning) => {
-    const { legendEntries } = get();
-    const id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36);
-    const updated = [...legendEntries, { id, color, meaning }];
+    const id = crypto.randomUUID();
+    const updated = [...get().legendEntries, { id, color, meaning }];
     set({ legendEntries: updated });
     get()._persist(campaignId);
   },
 
   updateLegendEntry: (campaignId, entryId, updates) => {
-    const updated = get().legendEntries.map((e) =>
-      e.id === entryId ? { ...e, ...updates } : e
-    );
+    const updated = get().legendEntries.map((e) => (e.id === entryId ? { ...e, ...updates } : e));
     set({ legendEntries: updated });
     get()._persist(campaignId);
   },
@@ -115,7 +96,6 @@ const useSettingsStore = create((set, get) => ({
     get()._persist(campaignId);
   },
 
-  /** Custom node type management */
   addCustomNodeType: (campaignId, typeData) => {
     const id = typeData.id || `custom_${Date.now().toString(36)}`;
     const updated = [...get().customNodeTypes, { ...typeData, id }];
@@ -125,9 +105,7 @@ const useSettingsStore = create((set, get) => ({
   },
 
   updateCustomNodeType: (campaignId, typeId, updates) => {
-    const updated = get().customNodeTypes.map((t) =>
-      t.id === typeId ? { ...t, ...updates } : t
-    );
+    const updated = get().customNodeTypes.map((t) => (t.id === typeId ? { ...t, ...updates } : t));
     set({ customNodeTypes: updated });
     get()._persist(campaignId);
   },
@@ -138,48 +116,35 @@ const useSettingsStore = create((set, get) => ({
     get()._persist(campaignId);
   },
 
-  /** Add a field to a node type's global schema */
   addNodeTypeField: (campaignId, nodeType, field) => {
     const current = get().nodeFieldOverrides[nodeType] || { added: [], removed: [] };
     const newField = { ...field, key: field.key || `custom_${Date.now().toString(36)}` };
-    const updated = {
-      ...get().nodeFieldOverrides,
-      [nodeType]: { ...current, added: [...(current.added || []), newField] },
-    };
+    const updated = { ...get().nodeFieldOverrides, [nodeType]: { ...current, added: [...(current.added || []), newField] } };
     set({ nodeFieldOverrides: updated });
     get()._persist(campaignId);
   },
 
-  /** Remove a field from a node type's global schema */
   removeNodeTypeField: (campaignId, nodeType, fieldKey) => {
     const current = get().nodeFieldOverrides[nodeType] || { added: [], removed: [] };
-    const added = (current.added || []).filter((f) => f.key !== fieldKey);
+    const added   = (current.added   || []).filter((f) => f.key !== fieldKey);
     const removed = [...new Set([...(current.removed || []), fieldKey])];
-    const updated = {
-      ...get().nodeFieldOverrides,
-      [nodeType]: { ...current, added, removed },
-    };
+    const updated = { ...get().nodeFieldOverrides, [nodeType]: { ...current, added, removed } };
     set({ nodeFieldOverrides: updated });
     get()._persist(campaignId);
   },
 
-  /** Restore a removed field to a node type's global schema */
   restoreNodeTypeField: (campaignId, nodeType, fieldKey) => {
     const current = get().nodeFieldOverrides[nodeType] || { added: [], removed: [] };
     const removed = (current.removed || []).filter((k) => k !== fieldKey);
-    const updated = {
-      ...get().nodeFieldOverrides,
-      [nodeType]: { ...current, removed },
-    };
+    const updated = { ...get().nodeFieldOverrides, [nodeType]: { ...current, removed } };
     set({ nodeFieldOverrides: updated });
     get()._persist(campaignId);
   },
 
-  /** Image Pool management */
   addToImagePool: (campaignId, url, label = '') => {
     const pool = get().imagePool || [];
-    if (pool.some((p) => p.url === url)) return; // no duplicates
-    const id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36);
+    if (pool.some((p) => p.url === url)) return;
+    const id = crypto.randomUUID();
     const updated = [...pool, { id, url, label }];
     set({ imagePool: updated });
     get()._persist(campaignId);
@@ -202,20 +167,16 @@ const useSettingsStore = create((set, get) => ({
     get()._persist(campaignId);
   },
 
-  /** Pinterest session cookie */
   setPinterestSession: (campaignId, value) => {
     set({ pinterestSession: value });
     get()._persist(campaignId);
-    // Immediately update the Vite proxy — no restart needed
     get()._syncPinterestSession(value);
   },
 
-  /** Pinterest board management */
   addPinterestBoard: (campaignId, url, label) => {
     const boards = get().pinterestBoards || [];
-    // Don't duplicate
     if (boards.some((b) => b.url === url)) return;
-    const id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36);
+    const id = crypto.randomUUID();
     const updated = [...boards, { id, url, label }];
     set({ pinterestBoards: updated });
     get()._persist(campaignId);

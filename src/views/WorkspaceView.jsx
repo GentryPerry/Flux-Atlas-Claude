@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { SquareSplitHorizontal, Rows, Eye, EyeSlash } from '@phosphor-icons/react';
+import useViewportStore from '../stores/viewportStore';
 import useCampaignStore from '../stores/campaignStore';
 import useMapStore from '../stores/mapStore';
 import useNodeStore from '../stores/nodeStore';
@@ -15,32 +17,47 @@ import SettingsPanel from '../components/settings/SettingsPanel';
 import MapLegend from '../components/map/MapLegend';
 import NodeContextMenu from '../components/map/NodeContextMenu';
 import KanbanBoard from '../components/map/KanbanBoard';
-import ImportModal from '../components/import/ImportModal';
+import HierarchyTreeView from '../components/map/HierarchyTreeView';
 import TerritoryToolbar from '../components/map/TerritoryToolbar';
 import TerritoryDetailPanel from '../components/map/TerritoryDetailPanel';
 import SearchOverlay from '../components/map/SearchOverlay';
-import StagingPanel from '../components/map/StagingPanel';
 import TopoBackground from '../components/common/TopoBackground';
 import AdvanceTimeModal from '../components/time/AdvanceTimeModal';
+import TroubleEngineModal from '../components/time/TroubleEngineModal';
 import SnapshotSidebar from '../components/time/SnapshotSidebar';
 import WidgetLayer from '../components/widgets/WidgetLayer';
+import ResetModal from '../components/common/ResetModal';
 import useSnapshotStore from '../stores/snapshotStore';
 import useWidgetStore from '../stores/widgetStore';
+import useHierarchyStore from '../stores/hierarchyStore';
+import useMobile from '../hooks/useMobile';
+import ErrorBoundary from '../components/common/ErrorBoundary';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileBottomNav from '../components/mobile/MobileBottomNav';
+import MobileNodeSheet from '../components/mobile/MobileNodeSheet';
+import MobileCampaignSheet from '../components/mobile/MobileCampaignSheet';
+import MobileNodePlacer from '../components/mobile/MobileNodePlacer';
+import MobileBoardView from '../components/mobile/MobileBoardView';
+import MobileSettingsPanel from '../components/mobile/MobileSettingsPanel';
 
 export default function WorkspaceView() {
+  const isMobile = useMobile();
+
   const campaignId = useCampaignStore((s) => s.activeCampaignId);
   const selectedNodeId = useNodeStore((s) => s.selectedNodeId);
 
   const loadMaps = useMapStore((s) => s.loadMaps);
   const loadNodes = useNodeStore((s) => s.loadNodes);
-  const allNodes = useNodeStore((s) => s.nodes);
+  const allNodes   = useNodeStore((s) => s.nodes);
+  const updateNode = useNodeStore((s) => s.updateNode);
   const loadTags = useTagStore((s) => s.loadTags);
   const loadConnections = useConnectionStore((s) => s.loadConnections);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
   const loadTerritories = useTerritoryStore((s) => s.loadTerritories);
   const deselectNode = useNodeStore((s) => s.deselectNode);
-  const loadSnapshots = useSnapshotStore((s) => s.loadSnapshots);
-  const loadWidgets   = useWidgetStore((s) => s.loadWidgets);
+  const loadSnapshots    = useSnapshotStore((s) => s.loadSnapshots);
+  const loadWidgets      = useWidgetStore((s) => s.loadWidgets);
+  const loadHierarchies  = useHierarchyStore((s) => s.loadHierarchies);
 
   // Settings-driven layout
   const layout = useSettingsStore((s) => s.layout);
@@ -53,8 +70,8 @@ export default function WorkspaceView() {
   }, [layout, deselectNode]);
 
   const [placingType, setPlacingType] = useState(null);
-  const [kanbanMode, setKanbanMode] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+  const [activeView, setActiveView] = useState('map'); // 'map' | 'board' | 'hierarchy'
+  const [orgView, setOrgView] = useState(false); // overlay toggle
   const [drawingMode, setDrawingMode] = useState(null);
   const [polygonPoints, setPolygonPoints] = useState([]);
   const [territoryOwnerId, setTerritoryOwnerId] = useState(null);
@@ -63,10 +80,46 @@ export default function WorkspaceView() {
   const [editingTerritoryId, setEditingTerritoryId] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchHighlightIds, setSearchHighlightIds] = useState(null);
-  const [stagingOpen, setStagingOpen]             = useState(false);
-  const [advanceTimeOpen, setAdvanceTimeOpen]     = useState(false);
-  const [historyOpen, setHistoryOpen]             = useState(false);
-  const [orgView, setOrgView]                     = useState(false);
+  const [advanceTimeOpen,    setAdvanceTimeOpen]    = useState(false);
+  const [troubleEngineOpen,  setTroubleEngineOpen]  = useState(false);
+  const [historyOpen,        setHistoryOpen]         = useState(false);
+  const [resetOpen,          setResetOpen]           = useState(false);
+
+  // Mobile-specific state
+  const [mobileDetailOpen,    setMobileDetailOpen]    = useState(false);
+  const [mobileCampaignOpen,  setMobileCampaignOpen]  = useState(false);
+
+  // Panel exit animation
+  const [panelExiting, setPanelExiting] = useState(false);
+  const prevLayoutRef = useRef(layout);
+  useEffect(() => {
+    const prev = prevLayoutRef.current;
+    prevLayoutRef.current = layout;
+    if (prev === 'split' && layout === 'full') {
+      setPanelExiting(true);
+      const t = setTimeout(() => setPanelExiting(false), 160);
+      return () => clearTimeout(t);
+    }
+  }, [layout]);
+
+  // Hidden reset shortcut: Ctrl+Shift+Backspace
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'Backspace') {
+        e.preventDefault();
+        setResetOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Allow the TroubleEngineWidget on the canvas to open the modal
+  useEffect(() => {
+    const handler = () => setTroubleEngineOpen(true);
+    window.addEventListener('flux:openTroubleEngine', handler);
+    return () => window.removeEventListener('flux:openTroubleEngine', handler);
+  }, []);
 
   const activeMapId = useMapStore((s) => s.activeMapId);
   const createTerritory = useTerritoryStore((s) => s.createTerritory);
@@ -74,7 +127,7 @@ export default function WorkspaceView() {
   const updateTerritory = useTerritoryStore((s) => s.updateTerritory);
 
   // Context menu state
-  const [contextMenu, setContextMenu] = useState(null); // { nodeId, x, y }
+  const [contextMenu, setContextMenu] = useState(null);
 
   const handleSetDrawingMode = useCallback((mode) => {
     if (!mode) {
@@ -102,8 +155,6 @@ export default function WorkspaceView() {
     setTerritoryColor('#8890a0');
   }, [polygonPoints, territoryOwnerId, territoryColor, allNodes, campaignId, activeMapId, createTerritory]);
 
-  // Load campaign data — snapshots MUST be loaded here so the store is populated
-  // before AdvanceTimeModal runs handleCommit (avoids cold-store overwrite bug)
   useEffect(() => {
     if (!campaignId) return;
     loadMaps(campaignId);
@@ -114,7 +165,8 @@ export default function WorkspaceView() {
     loadTerritories(campaignId);
     loadSnapshots(campaignId);
     loadWidgets(campaignId);
-  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories, loadSnapshots, loadWidgets]);
+    loadHierarchies(campaignId);
+  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies]);
 
   const handlePlacingDone = useCallback(() => {
     setPlacingType(null);
@@ -125,44 +177,245 @@ export default function WorkspaceView() {
   }, []);
 
   const mapCanvas = (
-    <MapCanvas
-      placingType={placingType}
-      onPlacingDone={handlePlacingDone}
-      onNodeContextMenu={handleNodeContextMenu}
-      drawingMode={drawingMode}
-      setDrawingMode={handleSetDrawingMode}
-      polygonPoints={polygonPoints}
-      setPolygonPoints={setPolygonPoints}
-      selectedTerritoryId={selectedTerritoryId}
-      setSelectedTerritoryId={setSelectedTerritoryId}
-      editingTerritoryId={editingTerritoryId}
-      searchHighlightIds={searchHighlightIds}
-      orgView={orgView}
-    />
+    <ErrorBoundary fallback={
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flex: 1, color: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14 }}>
+        Canvas error — try reloading the page.
+      </div>
+    }>
+      <MapCanvas
+        placingType={placingType}
+        onPlacingDone={handlePlacingDone}
+        onNodeContextMenu={handleNodeContextMenu}
+        drawingMode={drawingMode}
+        setDrawingMode={handleSetDrawingMode}
+        polygonPoints={polygonPoints}
+        setPolygonPoints={setPolygonPoints}
+        selectedTerritoryId={selectedTerritoryId}
+        setSelectedTerritoryId={setSelectedTerritoryId}
+        editingTerritoryId={editingTerritoryId}
+        searchHighlightIds={searchHighlightIds}
+        orgView={orgView}
+      />
+    </ErrorBoundary>
   );
 
-  const rightPanel = selectedNodeId ? <DetailPanel /> : <CardPanel />;
+  const rightPanel = (
+    <ErrorBoundary fallback={
+      <div style={{ padding: 24, color: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14 }}>
+        Panel error — select another node to recover.
+      </div>
+    }>
+      {selectedNodeId ? <DetailPanel /> : <CardPanel />}
+    </ErrorBoundary>
+  );
 
-  // Apply node type color overrides + custom type colors as CSS variables
+  const setSetting    = useSettingsStore((s) => s.setSetting);
+
+  // Split/Full toggle
+  const splitToggle = (
+    <button
+      className="split-toggle-btn"
+      onClick={() => setSetting(campaignId, 'layout', layout === 'split' ? 'full' : 'split')}
+      title={layout === 'split' ? 'Switch to full canvas' : 'Switch to split view'}
+    >
+      {layout === 'split'
+        ? <SquareSplitHorizontal size={14} />
+        : <Rows size={14} />
+      }
+      <span>{layout === 'split' ? 'Split' : 'Full'}</span>
+    </button>
+  );
+
+  // Drag-from-staging drop zone
+  const mapContainerRef = useRef(null);
+
+  const handleDragOver = useCallback((e) => {
+    if (!e.dataTransfer.types.includes('staging-node-id')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    const nodeId = e.dataTransfer.getData('staging-node-id');
+    if (!nodeId) return;
+    e.preventDefault();
+    const rect = mapContainerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const { x: vpX, y: vpY, scale } = useViewportStore.getState();
+    const canvasX = (e.clientX - rect.left - vpX) / scale;
+    const canvasY = (e.clientY - rect.top  - vpY) / scale;
+    updateNode(campaignId, nodeId, { mapId: activeMapId, x: canvasX, y: canvasY });
+  }, [campaignId, activeMapId, updateNode]);
+
+  // Org View floating toggle — pinned top-right of the map canvas column.
+  // Lives inside mapColumn so it tracks the map's right edge when the
+  // detail panel slides in and shrinks the map area.
+  const orgViewToggle = activeView === 'map' && (
+    <button
+      className={`org-view-toggle-btn${orgView ? ' active' : ''}`}
+      onClick={() => setOrgView((v) => !v)}
+      title={orgView ? 'Hide Org View overlay' : 'Show Org View overlay'}
+    >
+      {orgView ? <EyeSlash size={14} /> : <Eye size={14} />}
+      <span>Org View</span>
+    </button>
+  );
+
+  // Shared map column
+  const mapColumn = (
+    <div
+      ref={mapContainerRef}
+      style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {mapCanvas}
+      {orgViewToggle}
+      <div className="map-corner-stack">
+        <TerritoryToolbar
+          drawingMode={drawingMode}
+          setDrawingMode={handleSetDrawingMode}
+          territoryOwnerId={territoryOwnerId}
+          setTerritoryOwnerId={setTerritoryOwnerId}
+          territoryColor={territoryColor}
+          setTerritoryColor={setTerritoryColor}
+          polygonPointCount={polygonPoints.length}
+          onFinishDrawing={handleFinishDrawing}
+        />
+        <MapLegend />
+      </div>
+      {splitToggle}
+    </div>
+  );
+
   const nodeTypeOverrides = useSettingsStore((s) => s.nodeTypeOverrides) || {};
   const customNodeTypes   = useSettingsStore((s) => s.customNodeTypes)   || [];
   const colorOverrideStyle = useMemo(() => {
     const style = {};
-    // Built-in type overrides
     for (const [type, overrides] of Object.entries(nodeTypeOverrides)) {
-      if (overrides.color) {
-        style[`--node-${type}`] = overrides.color;
-      }
+      if (overrides.color) style[`--node-${type}`] = overrides.color;
     }
-    // Custom type colors
     for (const ct of customNodeTypes) {
-      if (ct.color) {
-        style[`--node-${ct.id}`] = ct.color;
-      }
+      if (ct.color) style[`--node-${ct.id}`] = ct.color;
     }
     return style;
   }, [nodeTypeOverrides, customNodeTypes]);
 
+  // ── Mobile layout ────────────────────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="app-layout-mobile" style={colorOverrideStyle}>
+        <MobileHeader
+          onOpenSearch={() => setSearchOpen(true)}
+          onOpenCampaignSheet={() => setMobileCampaignOpen(true)}
+        />
+
+        {/* Main content area */}
+        <div className="mobile-content">
+          <TopoBackground style={{ position: 'absolute', inset: 0, zIndex: 0 }} opacity={0.35} />
+
+          {activeView === 'board' ? (
+            <MobileBoardView />
+          ) : activeView === 'hierarchy' ? (
+            <HierarchyTreeView />
+          ) : activeView === 'settings' ? null : (
+            <>
+              <ErrorBoundary fallback={
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flex: 1, color: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14 }}>
+                  Canvas error — try reloading.
+                </div>
+              }>
+                <MapCanvas
+                  placingType={placingType}
+                  onPlacingDone={handlePlacingDone}
+                  onNodeContextMenu={handleNodeContextMenu}
+                  drawingMode={drawingMode}
+                  setDrawingMode={handleSetDrawingMode}
+                  polygonPoints={polygonPoints}
+                  setPolygonPoints={setPolygonPoints}
+                  selectedTerritoryId={selectedTerritoryId}
+                  setSelectedTerritoryId={setSelectedTerritoryId}
+                  editingTerritoryId={editingTerritoryId}
+                  searchHighlightIds={searchHighlightIds}
+                  orgView={orgView}
+                />
+              </ErrorBoundary>
+              {/* Widgets render but are non-interactive on mobile (CSS: pointer-events:none) */}
+              <WidgetLayer />
+              {/* FAB for placing node types */}
+              <MobileNodePlacer placingType={placingType} setPlacingType={setPlacingType} />
+            </>
+          )}
+        </div>
+
+        {/* Bottom nav */}
+        <MobileBottomNav activeView={activeView} setActiveView={setActiveView} />
+
+        {/* Node bottom sheet — only when not in full-screen detail */}
+        {selectedNodeId && !mobileDetailOpen && (
+          <MobileNodeSheet
+            key={selectedNodeId}
+            nodeId={selectedNodeId}
+            onClose={deselectNode}
+            onOpenDetail={() => setMobileDetailOpen(true)}
+          />
+        )}
+
+        {/* Full-screen detail overlay */}
+        {selectedNodeId && mobileDetailOpen && (
+          <div className="mobile-detail-overlay">
+            <div className="mobile-detail-back-bar">
+              <button
+                className="mobile-back-btn"
+                onClick={() => setMobileDetailOpen(false)}
+              >
+                ← Back
+              </button>
+            </div>
+            <div className="mobile-detail-scroll">
+              <ErrorBoundary fallback={
+                <div style={{ padding: 24, color: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14 }}>
+                  Panel error — go back and select another node.
+                </div>
+              }>
+                <DetailPanel />
+              </ErrorBoundary>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign / map sheet */}
+        {mobileCampaignOpen && (
+          <MobileCampaignSheet onClose={() => setMobileCampaignOpen(false)} />
+        )}
+
+        {/* Context menu */}
+        {contextMenu && (
+          <NodeContextMenu
+            nodeId={contextMenu.nodeId}
+            position={{ x: contextMenu.x, y: contextMenu.y }}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
+
+        {activeView === 'settings' && (
+          <MobileSettingsPanel onBack={() => setActiveView('map')} />
+        )}
+
+        {searchOpen && (
+          <SearchOverlay
+            onClose={() => { setSearchOpen(false); setSearchHighlightIds(null); }}
+          />
+        )}
+
+        {resetOpen && <ResetModal onClose={() => setResetOpen(false)} />}
+      </div>
+    );
+  }
+
+  // ── Desktop layout ──────────────────────────────────────────────────────────
   return (
     <div className="app-layout" style={colorOverrideStyle}>
       <MapSidebar />
@@ -170,59 +423,56 @@ export default function WorkspaceView() {
         <MapToolbar
           placingType={placingType}
           setPlacingType={setPlacingType}
-          kanbanMode={kanbanMode}
-          setKanbanMode={setKanbanMode}
-          onOpenImport={() => setImportOpen(true)}
+          activeView={activeView}
+          setActiveView={setActiveView}
           drawingMode={drawingMode}
           setDrawingMode={handleSetDrawingMode}
           onOpenSearch={() => setSearchOpen(true)}
-          onToggleStaging={() => setStagingOpen(!stagingOpen)}
-          stagingOpen={stagingOpen}
-          onOpenAdvanceTime={() => setAdvanceTimeOpen(true)}
+          onOpenFluxSystem={() => setAdvanceTimeOpen(true)}
+          onOpenTroubleEngine={() => setTroubleEngineOpen(true)}
           onToggleHistory={() => setHistoryOpen((v) => !v)}
           historyOpen={historyOpen}
-          onToggleOrgView={() => setOrgView((v) => !v)}
-          orgView={orgView}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-          {/* Topo background fills the workspace area behind map and panels */}
           <TopoBackground style={{ position: 'absolute', inset: 0, zIndex: 0 }} opacity={0.35} />
-          {/* Widget layer must live here so its coordinate space starts at the same
-              origin as the Konva canvas (after sidebar). position: fixed would be
-              offset by the sidebar width and toolbar height. */}
-          {!kanbanMode && <WidgetLayer />}
-          {kanbanMode ? (
+          {activeView === 'map' && <WidgetLayer />}
+          {activeView === 'board' ? (
             <div className="view-enter" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
               <KanbanBoard />
+              {selectedNodeId && (
+                <>
+                  <div className="split-divider" />
+                  <DetailPanel />
+                </>
+              )}
             </div>
-          ) : layout === 'full' ? (
+          ) : activeView === 'hierarchy' ? (
+            <div className="view-enter" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              <HierarchyTreeView />
+            </div>
+          ) : layout === 'full' && !panelExiting ? (
             <>
-              <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                {mapCanvas}
-                <MapLegend />
-              </div>
+              {mapColumn}
               {selectedNodeId && <DetailPanel />}
             </>
           ) : (
             <>
               {mapSide === 'left' ? (
                 <>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-                    {mapCanvas}
-                    <MapLegend />
+                  {mapColumn}
+                  <div className="split-divider" style={panelExiting ? { opacity: 0 } : {}} />
+                  <div style={panelExiting ? { animation: 'slideOut 150ms var(--ease) both', pointerEvents: 'none', display: 'flex' } : { display: 'flex' }}>
+                    {rightPanel}
                   </div>
-                  <div className="split-divider" />
-                  {rightPanel}
                 </>
               ) : (
                 <>
-                  {rightPanel}
-                  <div className="split-divider" />
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-                    {mapCanvas}
-                    <MapLegend />
+                  <div style={panelExiting ? { animation: 'slideOut 150ms var(--ease) both', pointerEvents: 'none', display: 'flex' } : { display: 'flex' }}>
+                    {rightPanel}
                   </div>
+                  <div className="split-divider" style={panelExiting ? { opacity: 0 } : {}} />
+                  {mapColumn}
                 </>
               )}
             </>
@@ -230,19 +480,6 @@ export default function WorkspaceView() {
         </div>
       </div>
 
-      {/* Territory drawing toolbar */}
-      <TerritoryToolbar
-        drawingMode={drawingMode}
-        setDrawingMode={handleSetDrawingMode}
-        territoryOwnerId={territoryOwnerId}
-        setTerritoryOwnerId={setTerritoryOwnerId}
-        territoryColor={territoryColor}
-        setTerritoryColor={setTerritoryColor}
-        polygonPointCount={polygonPoints.length}
-        onFinishDrawing={handleFinishDrawing}
-      />
-
-      {/* Territory detail panel (when a territory is selected) */}
       {selectedTerritoryId && !drawingMode && (
         <TerritoryDetailPanel
           territoryId={selectedTerritoryId}
@@ -254,7 +491,6 @@ export default function WorkspaceView() {
         />
       )}
 
-      {/* Right-click context menu */}
       {contextMenu && (
         <NodeContextMenu
           nodeId={contextMenu.nodeId}
@@ -263,10 +499,6 @@ export default function WorkspaceView() {
         />
       )}
 
-      {/* Import modal */}
-      {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
-
-      {/* Advance Time modal */}
       {advanceTimeOpen && (
         <AdvanceTimeModal
           campaignId={campaignId}
@@ -274,7 +506,10 @@ export default function WorkspaceView() {
         />
       )}
 
-      {/* Snapshot / history sidebar */}
+      {troubleEngineOpen && (
+        <TroubleEngineModal onClose={() => setTroubleEngineOpen(false)} />
+      )}
+
       {historyOpen && (
         <SnapshotSidebar
           campaignId={campaignId}
@@ -282,20 +517,9 @@ export default function WorkspaceView() {
         />
       )}
 
-      {/* Settings panel */}
       {settingsOpen && <SettingsPanel />}
 
-      {/* Staging panel */}
-      {stagingOpen && <StagingPanel onClose={() => setStagingOpen(false)} />}
+      {resetOpen && <ResetModal onClose={() => setResetOpen(false)} />}
 
-      {/* Search overlay */}
       {searchOpen && (
-        <SearchOverlay
-          onClose={() => { setSearchOpen(false); setSearchHighlightIds(null); }}
-          onHighlight={setSearchHighlightIds}
-        />
-      )}
-
-    </div>
-  );
-}
+        <Sea

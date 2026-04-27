@@ -7,6 +7,7 @@ import StickyNoteWidget, { NOTE_COLORS, COLOR_KEYS, normalizeStickyData } from '
 import LinearTrackerWidget from './LinearTrackerWidget';
 import ThreadTrackerWidget from './ThreadTrackerWidget';
 import ClockWidget from './ClockWidget';
+import TroubleEngineWidget from './TroubleEngineWidget';
 
 // ── Context Menu ──────────────────────────────────────────────────────────────
 
@@ -122,16 +123,29 @@ export default function WidgetLayer() {
   //   { mode: 'drag',   id, startCanvasX, startCanvasY, startMouseX, startMouseY }
   //   { mode: 'resize', id, startW, startH, startMouseX, startMouseY }
   const interactionRef = useRef(null);
+  const layerRef       = useRef(null);
 
-  const handleMouseMove = useCallback((e) => {
+  // Works for both MouseEvent and TouchEvent
+  const getClientXY = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  };
+
+  // Shared move logic used by both mouse and touch handlers
+  const handlePointerMove = useCallback((clientX, clientY) => {
     const ia = interactionRef.current;
     if (!ia) return;
 
     const scale = useViewportStore.getState().scale;
     if (ia.mode === 'drag') {
-      // Convert mouse delta from screen space to canvas space
-      const dx = (e.clientX - ia.startMouseX) / scale;
-      const dy = (e.clientY - ia.startMouseY) / scale;
+      // Convert delta from screen space to canvas space
+      const dx = (clientX - ia.startMouseX) / scale;
+      const dy = (clientY - ia.startMouseY) / scale;
       updateWidget(ia.id, {
         position: {
           x: ia.startCanvasX + dx,
@@ -139,28 +153,100 @@ export default function WidgetLayer() {
         },
       });
     } else if (ia.mode === 'resize') {
-      // Resize delta also needs to be in canvas space (note scales with zoom)
+      // Resize delta also in canvas space
       updateWidgetData(ia.id, {
-        width:  Math.round(Math.max(180, ia.startW + (e.clientX - ia.startMouseX) / scale)),
-        height: Math.round(Math.max(80,  ia.startH + (e.clientY - ia.startMouseY) / scale)),
+        width:  Math.round(Math.max(180, ia.startW + (clientX - ia.startMouseX) / scale)),
+        height: Math.round(Math.max(80,  ia.startH + (clientY - ia.startMouseY) / scale)),
       });
     }
   }, [updateWidget, updateWidgetData]);
 
-  const handleMouseUp = useCallback(() => { interactionRef.current = null; }, []);
+  const handleMouseMove = useCallback((e) => {
+    handlePointerMove(e.clientX, e.clientY);
+  }, [handlePointerMove]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!interactionRef.current) return;
+    e.preventDefault(); // prevent page scroll / Konva pan while dragging a widget
+    const t = e.touches[0];
+    handlePointerMove(t.clientX, t.clientY);
+  }, [handlePointerMove]);
+
+  const handleEnd = useCallback(() => { interactionRef.current = null; }, []);
 
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup',   handleMouseUp);
+    document.addEventListener('mouseup',   handleEnd);
+    // passive: false is required so we can call preventDefault in handleTouchMove
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend',  handleEnd);
+    document.addEventListener('touchcancel', handleEnd);
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup',   handleMouseUp);
+      document.removeEventListener('mouseup',   handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend',  handleEnd);
+      document.removeEventListener('touchcancel', handleEnd);
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleTouchMove, handleEnd]);
+
+  // ── Native (non-passive) touch-start handler on the layer ────────────────
+  // React's synthetic onTouchStart is passive — e.preventDefault() is a no-op,
+  // so the Konva stage can steal the gesture and pan the map.
+  // Attaching directly to the DOM with { passive: false } lets us call both
+  // preventDefault() (stops browser scroll / Konva pan) and stopPropagation().
+  useEffect(() => {
+    const el = layerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e) => {
+      const isDragHandle   = e.target.closest('[data-drag-handle]');
+      const isResizeHandle = e.target.closest('[data-resize-handle]');
+      if (!isDragHandle && !isResizeHandle) return;
+
+      // Find which widget this touch belongs to via the data-widget-id wrapper
+      const wrapperEl = e.target.closest('[data-widget-id]');
+      if (!wrapperEl) return;
+
+      e.preventDefault();    // stop browser pan / Konva stage drag
+      e.stopPropagation();   // don't let it bubble to the canvas container
+
+      const widgetId = wrapperEl.dataset.widgetId;
+      const widget   = useWidgetStore.getState().widgets.find((w) => w.id === widgetId);
+      if (!widget) return;
+
+      const touch = e.touches[0];
+
+      if (isDragHandle && !e.target.closest('button,input,textarea')) {
+        interactionRef.current = {
+          mode:         'drag',
+          id:           widget.id,
+          startCanvasX: widget.position.x,
+          startCanvasY: widget.position.y,
+          startMouseX:  touch.clientX,
+          startMouseY:  touch.clientY,
+        };
+      } else if (isResizeHandle) {
+        const d = widget.type === 'sticky-note' ? normalizeStickyData(widget.data) : widget.data;
+        interactionRef.current = {
+          mode:       'resize',
+          id:          widget.id,
+          startMouseX: touch.clientX,
+          startMouseY: touch.clientY,
+          startW:      d.width  ?? 260,
+          startH:      d.height ?? 160,
+        };
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    return () => el.removeEventListener('touchstart', onTouchStart);
+  }, []); // stable — only refs, no reactive deps
 
   const startDrag = useCallback((e, widget) => {
+    // Mouse-only path (touch is handled by the native listener above)
+    if (e.type === 'touchstart') return;
     if (e.target.closest('button,input,textarea')) return;
-    e.preventDefault();
     interactionRef.current = {
       mode: 'drag',
       id:   widget.id,
@@ -172,7 +258,8 @@ export default function WidgetLayer() {
   }, []);
 
   const startResize = useCallback((e, widget) => {
-    e.preventDefault();
+    // Mouse-only path (touch is handled by the native listener above)
+    if (e.type === 'touchstart') return;
     e.stopPropagation();
     const d = widget.type === 'sticky-note' ? normalizeStickyData(widget.data) : widget.data;
     interactionRef.current = {
@@ -188,7 +275,7 @@ export default function WidgetLayer() {
   // Helper to render any widget type
   const renderWidget = (widget) => {
     const wrapperStyle = { position: 'absolute', left: widget.position.x, top: widget.position.y };
-    const onMouseDown  = (e) => {
+    const onPointerDown = (e) => {
       if (e.target.closest('[data-drag-handle]'))   startDrag(e, widget);
       if (e.target.closest('[data-resize-handle]')) startResize(e, widget);
     };
@@ -208,11 +295,13 @@ export default function WidgetLayer() {
       case 'thread-tracker':
         inner = <ThreadTrackerWidget {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
       case 'clock-widget':
-        inner = <ClockWidget         {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
+        inner = <ClockWidget            {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
+      case 'trouble-engine':
+        inner = <TroubleEngineWidget    {...shared} />; break;
       default: return null;
     }
     return (
-      <div key={widget.id} style={wrapperStyle} onMouseDown={onMouseDown}>
+      <div key={widget.id} data-widget-id={widget.id} style={wrapperStyle} onMouseDown={onPointerDown}>
         {inner}
       </div>
     );
@@ -223,6 +312,7 @@ export default function WidgetLayer() {
       {/* Mirror the Konva stage transform exactly: translate then scale from origin.
           Children use raw canvas coords for left/top — no double-scaling. */}
       <div
+        ref={layerRef}
         className="widget-layer"
         style={{
           transform:       `translate(${vpX}px, ${vpY}px) scale(${vpScale})`,

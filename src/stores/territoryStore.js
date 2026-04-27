@@ -1,18 +1,14 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
+import { saveStore, loadCampaign } from '../utils/api';
 
-/**
- * Territory store — manages territory shapes (polygons, rectangles, circles)
- * for the active campaign. Each territory can be linked to a node.
- */
 const useTerritoryStore = create((set, get) => ({
   territories: [],
 
-  /** Load territories for a campaign */
-  loadTerritories: (campaignId) => {
+  loadTerritories: async (campaignId) => {
     try {
-      const raw = localStorage.getItem(`flux_territories_${campaignId}`);
-      const territories = raw ? JSON.parse(raw) : [];
+      const data = await loadCampaign(campaignId);
+      const territories = Array.isArray(data.territories) ? data.territories : [];
       set({ territories });
     } catch (e) {
       console.warn('loadTerritories failed:', e);
@@ -21,14 +17,17 @@ const useTerritoryStore = create((set, get) => ({
   },
 
   _persist: (campaignId) => {
-    try {
-      localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(get().territories));
-    } catch (e) {
-      console.warn('Territory persist failed:', e);
-    }
+    saveStore(campaignId, 'territories', get().territories).catch((e) =>
+      console.warn('Territory save failed:', e)
+    );
   },
 
-  /** Create a new territory */
+  clearCampaign: (campaignId) => {
+    const territories = get().territories.filter((t) => t.campaignId !== campaignId);
+    set({ territories });
+    saveStore(campaignId, 'territories', []).catch(() => {});
+  },
+
   createTerritory: (campaignId, mapId, shapeType, data = {}) => {
     const territory = {
       id: uuid(),
@@ -36,63 +35,56 @@ const useTerritoryStore = create((set, get) => ({
       mapId,
       nodeId: data.nodeId || null,
       name: data.name || `Territory ${new Date().toLocaleTimeString()}`,
-      shapeType, // 'polygon' | 'rectangle' | 'circle'
-
-      // For polygons: array of { x, y }
-      points: data.points || [],
-
-      // For circles: { cx, cy, radius }
-      center: data.center || null,
-      radius: data.radius || 0,
-
-      // For rectangles: { x, y, width, height }
-      x: data.x !== undefined ? data.x : 0,
-      y: data.y !== undefined ? data.y : 0,
-      width: data.width !== undefined ? data.width : 0,
-      height: data.height !== undefined ? data.height : 0,
-
-      // Styling
-      color: data.color || '#8890a0',
-      opacity: data.opacity !== undefined ? data.opacity : 0.15,
+      shapeType,
+      points:      data.points      || [],
+      center:      data.center      || null,
+      radius:      data.radius      || 0,
+      x:           data.x           !== undefined ? data.x      : 0,
+      y:           data.y           !== undefined ? data.y      : 0,
+      width:       data.width       !== undefined ? data.width  : 0,
+      height:      data.height      !== undefined ? data.height : 0,
+      color:       data.color       || '#8890a0',
+      opacity:     data.opacity     !== undefined ? data.opacity      : 0.15,
       strokeColor: data.strokeColor || '#8890a0',
-      strokeWidth: data.strokeWidth !== undefined ? data.strokeWidth : 2,
-
-      createdAt: new Date().toISOString(),
+      strokeWidth: data.strokeWidth !== undefined ? data.strokeWidth  : 2,
+      createdAt:   new Date().toISOString(),
     };
     const territories = [...get().territories, territory];
     set({ territories });
-    localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(territories));
+    get()._persist(campaignId);
     return territory;
   },
 
-  /** Update a territory */
   updateTerritory: (campaignId, territoryId, updates) => {
     const territories = get().territories.map((t) =>
       t.id === territoryId ? { ...t, ...updates } : t
     );
     set({ territories });
-    localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(territories));
+    get()._persist(campaignId);
   },
 
-  /** Delete a territory */
   deleteTerritory: (campaignId, territoryId) => {
     const territories = get().territories.filter((t) => t.id !== territoryId);
     set({ territories });
-    localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(territories));
+    get()._persist(campaignId);
   },
 
-  /** Link a territory to a node */
   linkToNode: (campaignId, territoryId, nodeId) => {
     const territories = get().territories.map((t) =>
       t.id === territoryId ? { ...t, nodeId } : t
     );
     set({ territories });
-    localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(territories));
+    get()._persist(campaignId);
   },
 
-  /** Get territories for a specific map */
-  getTerritoriesForMap: (mapId) => {
-    return get().territories.filter((t) => t.mapId === mapId);
+  getTerritoriesForMap: (mapId) => get().territories.filter((t) => t.mapId === mapId),
+
+  /** Bulk-set territories (used by snapshot restore) */
+  setTerritories: (campaignId, territories) => {
+    set({ territories });
+    saveStore(campaignId, 'territories', territories).catch((e) =>
+      console.warn('setTerritories save failed:', e)
+    );
   },
 }));
 

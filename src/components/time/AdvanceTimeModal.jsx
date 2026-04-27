@@ -5,6 +5,7 @@ import useTerritoryStore from '../../stores/territoryStore';
 import useSettingsStore from '../../stores/settingsStore';
 import useSnapshotStore from '../../stores/snapshotStore';
 import { generateScenarios, applyChangesToWorldState, TIMEFRAME_LABELS } from '../../engine/timeEngine';
+import { saveStore } from '../../utils/api';
 import ScenarioCard from './ScenarioCard';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -177,10 +178,12 @@ export default function AdvanceTimeModal({ campaignId, onClose }) {
       scenario.summary,
     );
 
-    // Write to localStorage and reload live stores
+    // Write resulting world state to D1 and reload live stores
     try {
-      localStorage.setItem(`flux_nodes_${campaignId}`,       JSON.stringify(resultingWorldState.nodes));
-      localStorage.setItem(`flux_territories_${campaignId}`, JSON.stringify(resultingWorldState.territories));
+      await Promise.all([
+        saveStore(campaignId, 'nodes',       resultingWorldState.nodes),
+        saveStore(campaignId, 'territories', resultingWorldState.territories),
+      ]);
     } catch (e) {
       console.warn('Failed to write resulting world state:', e);
     }

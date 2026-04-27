@@ -83,8 +83,17 @@ export function getTagAssignmentField(draggedSchema, targetType) {
 /**
  * Reverse-lookup: find all nodes that reference targetNodeId in any tag field
  * that accepts targetNodeType. Returns list of { node, fieldKey, fieldLabel }.
+ *
+ * Handles two storage formats that coexist in the app:
+ *  1. Kanban board drag  → stores the target node's ID directly in the field array
+ *  2. DetailPanel input  → creates a tag with (nodeId = targetNodeId) and stores tag.id
+ * Pass allTags (from tagStore) to enable format-2 lookup; omit for format-1 only.
  */
-export function getTagMembers(targetNodeId, targetNodeType, allNodes, nodeSchemas, customNodeTypes = []) {
+export function getTagMembers(targetNodeId, targetNodeType, allNodes, nodeSchemas, customNodeTypes = [], allTags = []) {
+  // Find the tag (if any) whose nodeId points to this org node — used by DetailPanel path
+  const refTag = allTags.find((t) => t.nodeId === targetNodeId);
+  const refTagId = refTag?.id;
+
   const results = [];
   const seen = new Set();
   for (const node of allNodes) {
@@ -94,7 +103,10 @@ export function getTagMembers(targetNodeId, targetNodeType, allNodes, nodeSchema
     for (const field of fields) {
       if (field.type !== 'tags' || !field.filterTypes?.includes(targetNodeType)) continue;
       const refs = node.fields?.[field.key];
-      if (Array.isArray(refs) && refs.includes(targetNodeId)) {
+      if (!Array.isArray(refs)) continue;
+      // Format 1: node ID stored directly (Kanban board)
+      // Format 2: tag ID stored (DetailPanel)
+      if (refs.includes(targetNodeId) || (refTagId && refs.includes(refTagId))) {
         results.push({ node, fieldKey: field.key, fieldLabel: field.label });
         seen.add(node.id);
         break;
@@ -115,12 +127,11 @@ export const NODE_TYPES = {
       revealed: { label: 'Revealed', offLabel: 'Hidden', default: true },
     },
     fields: [
-      { key: 'name', label: 'Name', type: 'text', default: '' },
-      { key: 'description', label: 'Description', type: 'textarea', default: '' },
-      { key: 'faction', label: 'Faction', type: 'tags', default: [], filterTypes: ['faction'] },
-      { key: 'religion', label: 'Religion', type: 'tags', default: [], filterTypes: ['religion'] },
-      { key: 'motivation', label: 'Motivation', type: 'text', default: '' },
-      { key: 'notes', label: 'Notes', type: 'textarea', default: '' },
+      { key: 'name',        label: 'Name',         type: 'text',     default: '' },
+      { key: 'title',       label: 'Title / Rank',  type: 'text',     default: '' },
+      { key: 'description', label: 'Description',  type: 'textarea', default: '' },
+      { key: 'motivation',  label: 'Motivation',    type: 'text',     default: '' },
+      { key: 'notes',       label: 'Notes',         type: 'textarea', default: '' },
     ],
   },
   location: {
@@ -152,14 +163,16 @@ export const NODE_TYPES = {
       revealed: { label: 'Revealed', offLabel: 'Hidden', default: true },
     },
     fields: [
-      { key: 'name', label: 'Name', type: 'text', default: '' },
-      { key: 'description', label: 'Description', type: 'textarea', default: '' },
-      { key: 'alignment', label: 'Alignment', type: 'text', default: '' },
-      { key: 'leader', label: 'Leader', type: 'tags', default: [], filterTypes: ['character'] },
-      { key: 'goals', label: 'Goals', type: 'textarea', default: '' },
-      { key: 'enemies', label: 'Enemies', type: 'tags', default: [], filterTypes: ['faction', 'polity'] },
-      { key: 'allies', label: 'Allies', type: 'tags', default: [], filterTypes: ['faction', 'polity', 'location'] },
-      { key: 'notes', label: 'Notes', type: 'textarea', default: '' },
+      { key: 'name',          label: 'Name',           type: 'text',     default: '' },
+      { key: 'description',   label: 'Description',    type: 'textarea', default: '' },
+      { key: 'parentFaction', label: 'Parent Faction', type: 'tags',     default: [], filterTypes: ['faction'], singular: true },
+      { key: 'alignment',     label: 'Alignment',      type: 'text',     default: '' },
+      { key: 'leader',        label: 'Leader',         type: 'tags',     default: [], filterTypes: ['character'] },
+      { key: 'members',       label: 'Members',        type: 'noderefs', default: [], filterTypes: ['character'] },
+      { key: 'goals',         label: 'Goals',          type: 'textarea', default: '' },
+      { key: 'enemies',       label: 'Enemies',        type: 'tags',     default: [], filterTypes: ['faction', 'polity'] },
+      { key: 'allies',        label: 'Allies',         type: 'tags',     default: [], filterTypes: ['faction', 'polity', 'location'] },
+      { key: 'notes',         label: 'Notes',          type: 'textarea', default: '' },
     ],
   },
   religion: {
@@ -172,12 +185,14 @@ export const NODE_TYPES = {
       revealed: { label: 'Revealed', offLabel: 'Hidden', default: true },
     },
     fields: [
-      { key: 'name', label: 'Name', type: 'text', default: '' },
-      { key: 'deity', label: 'Deity / Pantheon', type: 'text', default: '' },
-      { key: 'dogma', label: 'Dogma', type: 'textarea', default: '' },
-      { key: 'leadership', label: 'Leadership', type: 'tags', default: [], filterTypes: ['character'] },
-      { key: 'holySites', label: 'Holy Sites', type: 'tags', default: [], filterTypes: ['location'] },
-      { key: 'notes', label: 'Notes', type: 'textarea', default: '' },
+      { key: 'name',           label: 'Name',                  type: 'text',     default: '' },
+      { key: 'deity',          label: 'Deity / Pantheon',       type: 'text',     default: '' },
+      { key: 'parentReligion', label: 'Parent / Denomination',  type: 'tags',     default: [], filterTypes: ['religion'], singular: true },
+      { key: 'dogma',          label: 'Dogma',                  type: 'textarea', default: '' },
+      { key: 'leadership',     label: 'Leadership',             type: 'tags',     default: [], filterTypes: ['character'] },
+      { key: 'members',        label: 'Members',                type: 'noderefs', default: [], filterTypes: ['character'] },
+      { key: 'holySites',      label: 'Holy Sites',             type: 'tags',     default: [], filterTypes: ['location'] },
+      { key: 'notes',          label: 'Notes',                  type: 'textarea', default: '' },
     ],
   },
   event: {
@@ -209,13 +224,15 @@ export const NODE_TYPES = {
       revealed: { label: 'Revealed', offLabel: 'Hidden', default: true },
     },
     fields: [
-      { key: 'name', label: 'Name', type: 'text', default: '' },
-      { key: 'description', label: 'Description', type: 'textarea', default: '' },
-      { key: 'ruler', label: 'Leader', type: 'tags', default: [], filterTypes: ['character'] },
-      { key: 'territory', label: 'Territory', type: 'textarea', default: '' },
-      { key: 'allies', label: 'Allies', type: 'tags', default: [], filterTypes: ['polity', 'faction'] },
-      { key: 'enemies', label: 'Enemies', type: 'tags', default: [], filterTypes: ['polity', 'faction'] },
-      { key: 'notes', label: 'Notes', type: 'textarea', default: '' },
+      { key: 'name',         label: 'Name',          type: 'text',     default: '' },
+      { key: 'description',  label: 'Description',   type: 'textarea', default: '' },
+      { key: 'parentPolity', label: 'Parent Polity',  type: 'tags',     default: [], filterTypes: ['polity'], singular: true },
+      { key: 'ruler',        label: 'Leader',         type: 'tags',     default: [], filterTypes: ['character'] },
+      { key: 'members',      label: 'Members',        type: 'noderefs', default: [], filterTypes: ['character'] },
+      { key: 'territory',    label: 'Territory',      type: 'textarea', default: '' },
+      { key: 'allies',       label: 'Allies',         type: 'tags',     default: [], filterTypes: ['polity', 'faction'] },
+      { key: 'enemies',      label: 'Enemies',        type: 'tags',     default: [], filterTypes: ['polity', 'faction'] },
+      { key: 'notes',        label: 'Notes',          type: 'textarea', default: '' },
     ],
   },
   thing: {
@@ -266,11 +283,22 @@ export function getFieldSchema(nodeType) {
   return NODE_TYPES[nodeType]?.fields || [];
 }
 
-/** Default fields for custom node types that have no schema */
+/** Default fields for custom spatial node types */
 export const DEFAULT_CUSTOM_FIELDS = [
   { key: 'name', label: 'Name', type: 'text', default: '' },
   { key: 'description', label: 'Description', type: 'textarea', default: '' },
   { key: 'notes', label: 'Notes', type: 'textarea', default: '' },
+];
+
+/**
+ * Default fields for custom ABSTRACT node types (faction/religion/polity equivalents).
+ * Includes a members field so any custom abstract type automatically supports membership.
+ */
+export const DEFAULT_CUSTOM_ABSTRACT_FIELDS = [
+  { key: 'name',        label: 'Name',        type: 'text',     default: '' },
+  { key: 'description', label: 'Description', type: 'textarea', default: '' },
+  { key: 'members',     label: 'Members',     type: 'noderefs', default: [], filterTypes: ['character'] },
+  { key: 'notes',       label: 'Notes',       type: 'textarea', default: '' },
 ];
 
 /** Default status flags for custom node types */

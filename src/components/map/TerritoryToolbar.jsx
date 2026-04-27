@@ -1,15 +1,10 @@
 import { useMemo, useRef } from 'react';
-import { Shield, Cross, Crown, X, Check, Polygon } from '@phosphor-icons/react';
+import { Polygon, X, Check } from '@phosphor-icons/react';
 import CustomSelect from '../common/CustomSelect';
 import useNodeStore from '../../stores/nodeStore';
-import useMapStore from '../../stores/mapStore';
 
 const OWNER_TYPES = ['faction', 'religion', 'polity'];
-const TYPE_COLORS = {
-  faction: '#fb923c',
-  religion: '#fbbf24',
-  polity: '#e879a8',
-};
+const TYPE_COLORS  = { faction: '#fb923c', religion: '#fbbf24', polity: '#e879a8' };
 
 const PRESET_COLORS = [
   '#fb923c', '#fbbf24', '#e879a8', '#60a5fa', '#4ade80',
@@ -17,9 +12,9 @@ const PRESET_COLORS = [
 ];
 
 /**
- * Floating toolbar shown during territory drawing mode.
- * Lets user pick which entity (faction/religion/polity) to assign,
- * choose a custom color, and has Finish / Cancel buttons.
+ * Always-visible floating pill pinned above the MapLegend.
+ * Collapsed: a single "Draw Territory" trigger button.
+ * Expanded (drawingMode === 'polygon'): full drawing controls.
  */
 export default function TerritoryToolbar({
   drawingMode,
@@ -31,19 +26,16 @@ export default function TerritoryToolbar({
   polygonPointCount,
   onFinishDrawing,
 }) {
-  if (drawingMode !== 'polygon') return null;
-
   const colorInputRef = useRef(null);
-  const allNodes = useNodeStore((s) => s.nodes);
+  const allNodes      = useNodeStore((s) => s.nodes);
 
-  // Get available faction/religion/polity nodes for assignment
   const ownerOptions = useMemo(() => {
     return allNodes
       .filter((n) => OWNER_TYPES.includes(n.type) && n.fields?.name)
       .map((n) => ({
-        id: n.id,
-        name: n.fields.name,
-        type: n.type,
+        id:    n.id,
+        name:  n.fields.name,
+        type:  n.type,
         color: TYPE_COLORS[n.type] || '#8890a0',
       }))
       .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
@@ -51,18 +43,35 @@ export default function TerritoryToolbar({
 
   const handleOwnerChange = (newOwnerId) => {
     setTerritoryOwnerId(newOwnerId || null);
-    // Suggest the owner's type color, but don't force it
     if (newOwnerId) {
       const owner = ownerOptions.find((o) => o.id === newOwnerId);
       if (owner) setTerritoryColor(owner.color);
     }
   };
 
+  // ── Collapsed trigger ────────────────────────────────────────────────────────
+  if (drawingMode !== 'polygon') {
+    return (
+      <button
+        className="territory-trigger-btn"
+        onClick={() => setDrawingMode('polygon')}
+        title="Draw a territory polygon"
+      >
+        <Polygon size={13} weight="fill" />
+        <span>Draw Territory</span>
+      </button>
+    );
+  }
+
+  // ── Active drawing controls ──────────────────────────────────────────────────
   return (
     <div className="territory-toolbar">
       <div className="territory-toolbar-header">
-        <Polygon size={16} weight="fill" />
-        <span>Draw Territory</span>
+        <Polygon size={15} weight="fill" />
+        <span>Drawing Territory</span>
+        {polygonPointCount > 0 && (
+          <span className="territory-point-count">{polygonPointCount} pts</span>
+        )}
       </div>
 
       <div className="territory-toolbar-section">
@@ -71,7 +80,7 @@ export default function TerritoryToolbar({
           value={territoryOwnerId || ''}
           onChange={handleOwnerChange}
           placeholder="Unassigned"
-          style={{ minWidth: 160 }}
+          style={{ minWidth: 150 }}
           options={[
             { value: '', label: 'Unassigned' },
             ...ownerOptions.map((o) => ({ value: o.id, label: `${o.name} (${o.type})` })),
@@ -85,7 +94,7 @@ export default function TerritoryToolbar({
           {PRESET_COLORS.map((c) => (
             <button
               key={c}
-              className={`territory-swatch ${territoryColor === c ? 'active' : ''}`}
+              className={`territory-swatch${territoryColor === c ? ' active' : ''}`}
               style={{ background: c }}
               onClick={() => setTerritoryColor(c)}
               title={c}
@@ -114,18 +123,16 @@ export default function TerritoryToolbar({
           className="btn-territory-finish"
           disabled={polygonPointCount < 3}
           onClick={onFinishDrawing}
-          title={polygonPointCount < 3 ? 'Need at least 3 points' : 'Finish drawing territory'}
+          title={polygonPointCount < 3 ? 'Need at least 3 points' : 'Finish drawing'}
         >
-          <Check size={14} weight="bold" />
-          Finish
+          <Check size={13} weight="bold" /> Finish
         </button>
         <button
           className="btn-territory-cancel"
           onClick={() => setDrawingMode(null)}
           title="Cancel drawing"
         >
-          <X size={14} weight="bold" />
-          Cancel
+          <X size={13} weight="bold" /> Cancel
         </button>
       </div>
     </div>

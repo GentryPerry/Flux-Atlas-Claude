@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import {
-  CaretLeft, CaretRight,
-  SquareSplitHorizontal, Rows, GearSix,
-  Kanban, DownloadSimple, Polygon, MagnifyingGlass, Tray, Plus,
-  ClockCounterClockwise, Clock, Eye, DotsNine,
+  CaretLeft, CaretRight, CaretDown,
+  Rows, GearSix,
+  Kanban, MagnifyingGlass, Plus,
+  ClockCounterClockwise, DotsNine, Tree,
   Note, ChartBar, ArrowsLeftRight, Circle,
+  Hourglass, Lightning, Wrench,
 } from '@phosphor-icons/react';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
@@ -44,28 +45,42 @@ function TrayTile({ onClick, isActive, icon: Icon, label, color }) {
 
 // ── Main toolbar ──────────────────────────────────────────────────────────────
 
+// ── View definitions ─────────────────────────────────────────────────────────
+const VIEWS = [
+  { id: 'map',       label: 'Map',       icon: Rows   },
+  { id: 'board',     label: 'Board',     icon: Kanban },
+  { id: 'hierarchy', label: 'Hierarchy', icon: Tree   },
+];
+
 export default function MapToolbar({
   placingType, setPlacingType,
-  kanbanMode, setKanbanMode,
-  onOpenImport,
+  activeView, setActiveView,
   drawingMode, setDrawingMode,
   onOpenSearch,
-  onToggleStaging, stagingOpen,
-  onOpenAdvanceTime,
+  onOpenFluxSystem,
+  onOpenTroubleEngine,
   onToggleHistory, historyOpen,
-  onToggleOrgView, orgView,
 }) {
   const toolbarRef  = useRef(null);
   const trayRef     = useRef(null);
   const trayBtnRef      = useRef(null);
   const widgetBtnRef    = useRef(null);
   const widgetPickerRef = useRef(null);
+  const viewDropdownRef    = useRef(null);
+  const viewDropdownBtnRef = useRef(null);
+
+  const gameToolsRef    = useRef(null);
+  const gameToolsBtnRef = useRef(null);
 
   const [condensed, setCondensed]         = useState(false);
   const [overflow, setOverflow]           = useState(false);
   const [trayOpen, setTrayOpen]           = useState(false);
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [palettePage, setPalettePage]     = useState(0);
+  const [viewDropdownOpen, setViewDropdownOpen]     = useState(false);
+  const [gameToolsOpen,    setGameToolsOpen]         = useState(false);
+
+  const isMapLike = activeView === 'map' || activeView === 'org';
 
   // Watch toolbar width — two breakpoints
   useEffect(() => {
@@ -109,6 +124,36 @@ export default function MapToolbar({
     return () => document.removeEventListener('mousedown', handler);
   }, [widgetPickerOpen]);
 
+  // Close view dropdown on outside click
+  useEffect(() => {
+    if (!viewDropdownOpen) return;
+    const handler = (e) => {
+      if (
+        viewDropdownRef.current    && !viewDropdownRef.current.contains(e.target) &&
+        viewDropdownBtnRef.current && !viewDropdownBtnRef.current.contains(e.target)
+      ) {
+        setViewDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [viewDropdownOpen]);
+
+  // Close game tools dropdown on outside click
+  useEffect(() => {
+    if (!gameToolsOpen) return;
+    const handler = (e) => {
+      if (
+        gameToolsRef.current    && !gameToolsRef.current.contains(e.target) &&
+        gameToolsBtnRef.current && !gameToolsBtnRef.current.contains(e.target)
+      ) {
+        setGameToolsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [gameToolsOpen]);
+
   const allMaps     = useMapStore((s) => s.maps);
   const mapStack    = useMapStore((s) => s.mapStack);
   const jumpTo      = useMapStore((s) => s.jumpTo);
@@ -124,9 +169,7 @@ export default function MapToolbar({
   const addWidget          = useWidgetStore((s) => s.addWidget);
   // Read viewport imperatively at click time — no subscription, no re-render loop
   const setActiveCampaign  = useCampaignStore((s) => s.setActiveCampaign);
-  const layout             = useSettingsStore((s) => s.layout);
   const campaignId         = useCampaignStore((s) => s.activeCampaignId);
-  const setSetting         = useSettingsStore((s) => s.setSetting);
   const openSettings       = useSettingsStore((s) => s.openSettings);
   const nodeTypeOverrides  = useSettingsStore((s) => s.nodeTypeOverrides) || {};
   const customNodeTypes    = useSettingsStore((s) => s.customNodeTypes)   || [];
@@ -167,7 +210,7 @@ export default function MapToolbar({
   }, []);
 
   // Whether any overflow item is "active" (to show a dot on the tray button)
-  const overflowHasActive = drawingMode === 'polygon' || stagingOpen || historyOpen || orgView || kanbanMode;
+  const overflowHasActive = drawingMode === 'polygon' || historyOpen || activeView !== 'map';
 
   // Helper: simple labelled button for the inline toolbar
   const ToolBtn = ({ onClick, isActive, icon: Icon, label, title, className = '' }) => (
@@ -205,11 +248,11 @@ export default function MapToolbar({
         ))}
       </div>
 
-      <div className="toolbar-spacer" />
-
-      {/* ── Node palette ─────────────────────────────────────── */}
-      {!kanbanMode && (
+      {/* ── Node palette (map views only) — left-aligned next to breadcrumb ── */}
+      {isMapLike && (
         <>
+          <div className="toolbar-divider" />
+
           {totalPages > 1 && (
             <button
               className="btn-icon"
@@ -255,60 +298,99 @@ export default function MapToolbar({
           <button className="btn-icon" onClick={() => openSettings('nodeTypes')} title="Add node type">
             <Plus size={14} />
           </button>
-
-          <div className="toolbar-divider" />
         </>
       )}
 
-      {/* ── Inline right-side tools (shown when wide enough) ── */}
-      {!overflow && !kanbanMode && (
+      <div className="toolbar-spacer" />
+
+
+      {!overflow && isMapLike && (
         <>
-          <ToolBtn
-            onClick={() => setDrawingMode(drawingMode === 'polygon' ? null : 'polygon')}
-            isActive={drawingMode === 'polygon'}
-            icon={Polygon}
-            label="Territory"
-            title="Draw a territory polygon"
-          />
+          {/* Game Tools dropdown */}
+          <div className="game-tools-dropdown" style={{ position: 'relative' }}>
+            <button
+              ref={gameToolsBtnRef}
+              className={`toolbar-tool-btn${gameToolsOpen ? ' active' : ''}`}
+              onClick={() => setGameToolsOpen((v) => !v)}
+              title="Game Tools"
+            >
+              <Wrench size={16} />
+              <span className="toolbar-tool-label">Game Tools</span>
+              <CaretDown size={11} style={{ opacity: 0.6, marginLeft: 1 }} />
+            </button>
+            {gameToolsOpen && (
+              <div ref={gameToolsRef} className="game-tools-menu">
+                <button
+                  className="game-tools-item"
+                  onClick={() => { onOpenFluxSystem(); setGameToolsOpen(false); }}
+                >
+                  <Hourglass size={14} />
+                  <div className="gti-text">
+                    <span className="gti-label">Flux System</span>
+                    <span className="gti-desc">Generate time-skip proposals</span>
+                  </div>
+                </button>
+                <button
+                  className="game-tools-item"
+                  onClick={() => { onOpenTroubleEngine(); setGameToolsOpen(false); }}
+                >
+                  <Lightning size={14} />
+                  <div className="gti-text">
+                    <span className="gti-label">Trouble Engine</span>
+                    <span className="gti-desc">Run downtime trouble procedure</span>
+                  </div>
+                </button>
+                <div className="game-tools-divider" />
+                <button
+                  className={`game-tools-item${historyOpen ? ' active' : ''}`}
+                  onClick={() => { onToggleHistory(); setGameToolsOpen(false); }}
+                >
+                  <ClockCounterClockwise size={14} />
+                  <div className="gti-text">
+                    <span className="gti-label">History</span>
+                    <span className="gti-desc">View timeline snapshots</span>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="toolbar-divider" />
         </>
       )}
 
-      {!overflow && (
-        <>
-          {kanbanMode ? (
-            <ToolBtn onClick={() => setKanbanMode?.(false)} isActive={false} icon={Rows} label="Map" title="Back to map view" />
-          ) : (
-            <ToolBtn onClick={() => setKanbanMode?.(true)} isActive={false} icon={Kanban} label="Board" title="Relationship board view" />
-          )}
-        </>
-      )}
-
-      {!overflow && !kanbanMode && (
-        <>
-          <ToolBtn onClick={onOpenImport} isActive={false} icon={DownloadSimple} label="Import" title="Import nodes from markdown" />
-          <ToolBtn onClick={onToggleStaging} isActive={stagingOpen} icon={Tray} label="Staging" title="Off-map staging area" />
-          <div className="toolbar-divider" />
-          <ToolBtn
-            onClick={() => setSetting(campaignId, 'layout', layout === 'split' ? 'full' : 'split')}
-            isActive={layout === 'split'}
-            icon={layout === 'split' ? SquareSplitHorizontal : Rows}
-            label={layout === 'split' ? 'Split' : 'Full'}
-            title={layout === 'split' ? 'Switch to full canvas' : 'Switch to split view'}
-          />
-          <div className="toolbar-divider" />
-          <ToolBtn onClick={onOpenAdvanceTime} isActive={false} icon={Clock} label="Advance Time" title="Generate scenario proposals" />
-          <button
-            className={`btn-icon${historyOpen ? ' active' : ''}`}
-            onClick={onToggleHistory}
-            title="Timeline history"
-          >
-            <ClockCounterClockwise size={18} />
-          </button>
-          <div className="toolbar-divider" />
-          <ToolBtn onClick={onToggleOrgView} isActive={orgView} icon={Eye} label="Org View" title="Organizational view" />
-        </>
-      )}
+      {/* ── View dropdown ──────────────────────────────────── */}
+      {!overflow && (() => {
+        const currentView = VIEWS.find((v) => v.id === activeView) || VIEWS[0];
+        const ViewIcon = currentView.icon;
+        return (
+          <div className="view-dropdown" style={{ position: 'relative' }}>
+            <button
+              ref={viewDropdownBtnRef}
+              className={`toolbar-tool-btn${viewDropdownOpen ? ' active' : ''}`}
+              onClick={() => setViewDropdownOpen((v) => !v)}
+              title="Switch view"
+            >
+              <ViewIcon size={16} />
+              <span className="toolbar-tool-label">{currentView.label}</span>
+              <CaretDown size={11} style={{ opacity: 0.6, marginLeft: 1 }} />
+            </button>
+            {viewDropdownOpen && (
+              <div ref={viewDropdownRef} className="view-dropdown-menu">
+                {VIEWS.map(({ id, label, icon: VIcon }) => (
+                  <button
+                    key={id}
+                    className={`view-dropdown-item${activeView === id ? ' active' : ''}`}
+                    onClick={() => { setActiveView(id); setViewDropdownOpen(false); }}
+                  >
+                    <VIcon size={14} />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Overflow tray trigger (shown when narrow) ── */}
       {overflow && (
@@ -326,60 +408,29 @@ export default function MapToolbar({
           {trayOpen && (
             <div ref={trayRef} className="overflow-tray">
               {/* Map tools group */}
-              {!kanbanMode && (
-                <>
-                  <div className="overflow-tray-group-label">Map Tools</div>
-                  <div className="overflow-tray-grid">
-                    <TrayTile
-                      onClick={wrap(() => setDrawingMode(drawingMode === 'polygon' ? null : 'polygon'))}
-                      isActive={drawingMode === 'polygon'}
-                      icon={Polygon}
-                      label="Territory"
-                    />
-                    <TrayTile
-                      onClick={wrap(onOpenImport)}
-                      isActive={false}
-                      icon={DownloadSimple}
-                      label="Import"
-                    />
-                    <TrayTile
-                      onClick={wrap(onToggleStaging)}
-                      isActive={stagingOpen}
-                      icon={Tray}
-                      label="Staging"
-                    />
-                  </div>
-                </>
-              )}
 
               {/* View group */}
               <div className="overflow-tray-group-label">View</div>
               <div className="overflow-tray-grid">
-                {kanbanMode ? (
-                  <TrayTile onClick={wrap(() => setKanbanMode?.(false))} isActive={false} icon={Rows} label="Map" />
-                ) : (
-                  <TrayTile onClick={wrap(() => setKanbanMode?.(true))} isActive={false} icon={Kanban} label="Board" />
-                )}
-                {!kanbanMode && (
+                {VIEWS.map(({ id, label, icon: VIcon }) => (
                   <TrayTile
-                    onClick={wrap(() => setSetting(campaignId, 'layout', layout === 'split' ? 'full' : 'split'))}
-                    isActive={layout === 'split'}
-                    icon={layout === 'split' ? SquareSplitHorizontal : Rows}
-                    label={layout === 'split' ? 'Split' : 'Full'}
+                    key={id}
+                    onClick={wrap(() => setActiveView(id))}
+                    isActive={activeView === id}
+                    icon={VIcon}
+                    label={label}
                   />
-                )}
-                {!kanbanMode && (
-                  <TrayTile onClick={wrap(onToggleOrgView)} isActive={orgView} icon={Eye} label="Org View" />
-                )}
+                ))}
               </div>
 
-              {/* Time group */}
-              {!kanbanMode && (
+              {/* Game Tools group */}
+              {isMapLike && (
                 <>
-                  <div className="overflow-tray-group-label">Time</div>
+                  <div className="overflow-tray-group-label">Game Tools</div>
                   <div className="overflow-tray-grid">
-                    <TrayTile onClick={wrap(onOpenAdvanceTime)} isActive={false} icon={Clock} label="Advance" />
-                    <TrayTile onClick={wrap(onToggleHistory)} isActive={historyOpen} icon={ClockCounterClockwise} label="History" />
+                    <TrayTile onClick={wrap(onOpenFluxSystem)}     isActive={false}       icon={Hourglass}             label="Flux System" />
+                    <TrayTile onClick={wrap(onOpenTroubleEngine)}  isActive={false}       icon={Lightning}             label="Trouble" />
+                    <TrayTile onClick={wrap(onToggleHistory)}      isActive={historyOpen} icon={ClockCounterClockwise} label="History" />
                   </div>
                 </>
               )}
@@ -429,6 +480,13 @@ export default function MapToolbar({
             >
               <Circle size={15} />
               <span>Clocks</span>
+            </button>
+            <button
+              className="widget-picker-item"
+              onClick={() => { addWidget(campaignId, 'trouble-engine', useViewportStore.getState()); setWidgetPickerOpen(false); }}
+            >
+              <Lightning size={15} />
+              <span>Trouble Tracker</span>
             </button>
           </div>
         )}
