@@ -44,8 +44,6 @@ const useCampaignStore = create((set, get) => ({
       name,
       description,
       createdAt: new Date().toISOString(),
-      legendEntries: [],
-      customTypes: {},
     };
     const campaigns = [...get().campaigns, campaign];
     set({ campaigns, activeCampaignId: campaign.id });

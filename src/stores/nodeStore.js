@@ -76,7 +76,6 @@ const useNodeStore = create((set, get) => ({
       icon: null,
       customIcon: null,
       images: [],
-      tagIds: [],
       parentNodeId: null,
       createdAt: new Date().toISOString(),
     };

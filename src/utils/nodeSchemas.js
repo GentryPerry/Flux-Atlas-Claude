@@ -15,7 +15,7 @@
  *
  * Custom node types default to 'spatial' unless the user sets kind:'abstract'.
  */
-export const NODE_TYPE_KINDS = {
+const NODE_TYPE_KINDS = {
   character: 'spatial',
   location:  'spatial',
   faction:   'abstract',

@@ -4,7 +4,7 @@ import {
   SquareSplitHorizontal, Rows,
   Plus, Trash, Sun, Moon, ListDashes, ArrowCounterClockwise, Key,
   Images, Link, DownloadSimple, Upload, FileText, Check, Question,
-  Copy, LockKey, Warning,
+  Copy, LockKey, Warning, Tag, PencilSimple,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 import { adminListKeys, adminCreateKeys, adminRevokeKey } from '../../utils/api';
@@ -25,6 +25,7 @@ const CATEGORIES = [
   { id: 'view',      label: 'View',       icon: Eye,            description: 'Layout, canvas, and display preferences' },
   { id: 'nodeTypes', label: 'Node Types', icon: Cube,           description: 'Customize and add node type schemas' },
   { id: 'fields',    label: 'Fields',     icon: ListDashes,     description: 'Global field schemas for each node type' },
+  { id: 'tags',      label: 'Tags',       icon: Tag,            description: 'Manage, rename, and delete campaign tags' },
   { id: 'images',    label: 'Images',     icon: Images,         description: 'Campaign image pool — available to all nodes' },
   { id: 'import',    label: 'Import',     icon: DownloadSimple, description: 'Bulk import nodes from markdown' },
   // { id: 'pinterest', label: 'Pinterest', icon: Key, description: 'Session token for board access' },
@@ -319,6 +320,7 @@ export default function SettingsPanel({ mobileEmbed = false }) {
         )}
         {settingsCategory === 'nodeTypes' && <NodeTypesPane campaignId={campaignId} />}
         {settingsCategory === 'fields' && <FieldsPane campaignId={campaignId} />}
+        {settingsCategory === 'tags' && <TagsPane campaignId={campaignId} />}
         {settingsCategory === 'images' && <ImagePoolPane campaignId={campaignId} />}
         {settingsCategory === 'import' && <ImportPane campaignId={campaignId} />}
         {settingsCategory === 'campaign' && (
@@ -576,6 +578,164 @@ function ColorPicker({ value, onChange }) {
         title="Custom color"
         style={{ width: 22, height: 22, padding: 0, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 4 }}
       />
+    </div>
+  );
+}
+
+/* ── Tags Pane ── */
+function TagsPane({ campaignId }) {
+  const tags       = useTagStore((s) => s.tags).filter((t) => t.campaignId === campaignId);
+  const updateTag  = useTagStore((s) => s.updateTag);
+  const deleteTag  = useTagStore((s) => s.deleteTag);
+  const updateNodeFields = useNodeStore((s) => s.updateNodeFields);
+  const allNodes   = useNodeStore((s) => s.nodes);
+
+  const [editingId, setEditingId]   = useState(null);
+  const [editName, setEditName]     = useState('');
+  const [editColor, setEditColor]   = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  const startEdit = (tag) => {
+    setEditingId(tag.id);
+    setEditName(tag.name);
+    setEditColor(tag.color || '#888888');
+    setConfirmDeleteId(null);
+  };
+
+  const commitEdit = () => {
+    if (!editName.trim()) return;
+    updateTag(campaignId, editingId, { name: editName.trim(), color: editColor });
+    setEditingId(null);
+  };
+
+  const handleDelete = (tagId) => {
+    // Sweep tag ID out of every node's tag fields in this campaign
+    const affected = allNodes.filter(
+      (n) => n.campaignId === campaignId &&
+        Object.values(n.fields || {}).some(
+          (v) => Array.isArray(v) && v.includes(tagId)
+        )
+    );
+    for (const node of affected) {
+      const cleaned = {};
+      for (const [k, v] of Object.entries(node.fields || {})) {
+        cleaned[k] = Array.isArray(v) ? v.filter((id) => id !== tagId) : v;
+      }
+      updateNodeFields(campaignId, node.id, cleaned);
+    }
+    deleteTag(campaignId, tagId);
+    setConfirmDeleteId(null);
+  };
+
+  const sortedTags = [...tags].sort((a, b) => a.name.localeCompare(b.name));
+
+  return (
+    <div className="settings-pane">
+      <div className="settings-pane-header">
+        <Tag size={28} weight="duotone" />
+        <div><h3>Tags</h3><p>Rename or delete tags across this campaign</p></div>
+      </div>
+
+      {sortedTags.length === 0 ? (
+        <div className="settings-section">
+          <div className="settings-card">
+            <div className="settings-card-body" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+              No tags yet — they're created automatically when you type in a tag field on a node.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="settings-section">
+          <div className="settings-section-title">
+            Campaign Tags ({sortedTags.length})
+          </div>
+          <div className="settings-card">
+            <div className="settings-card-body" style={{ padding: 0 }}>
+              {sortedTags.map((tag, i) => {
+                const isEditing = editingId === tag.id;
+                const isConfirming = confirmDeleteId === tag.id;
+                const usageCount = allNodes.filter(
+                  (n) => n.campaignId === campaignId &&
+                    Object.values(n.fields || {}).some(
+                      (v) => Array.isArray(v) && v.includes(tag.id)
+                    )
+                ).length;
+
+                return (
+                  <div
+                    key={tag.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '8px 12px',
+                      borderBottom: i < sortedTags.length - 1 ? '1px solid var(--border)' : 'none',
+                    }}
+                  >
+                    {/* Color swatch / picker */}
+                    {isEditing ? (
+                      <input
+                        type="color"
+                        value={editColor}
+                        onChange={(e) => setEditColor(e.target.value)}
+                        style={{ width: 28, height: 28, border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+                        title="Tag color"
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          width: 12, height: 12, borderRadius: '50%',
+                          background: tag.color || '#888888',
+                          flexShrink: 0, display: 'inline-block',
+                        }}
+                      />
+                    )}
+
+                    {/* Name */}
+                    {isEditing ? (
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditingId(null); }}
+                        autoFocus
+                        style={{ flex: 1, fontSize: 13, background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', color: 'var(--text)' }}
+                      />
+                    ) : (
+                      <span style={{ flex: 1, fontSize: 13 }}>{tag.name}</span>
+                    )}
+
+                    {/* Usage count */}
+                    {!isEditing && (
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>
+                        {usageCount} {usageCount === 1 ? 'node' : 'nodes'}
+                      </span>
+                    )}
+
+                    {/* Actions */}
+                    {isEditing ? (
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button className="btn-icon" onClick={commitEdit} title="Save" style={{ color: 'var(--accent)' }}><Check size={14} /></button>
+                        <button className="btn-icon" onClick={() => setEditingId(null)} title="Cancel"><X size={14} /></button>
+                      </div>
+                    ) : isConfirming ? (
+                      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Delete?</span>
+                        <button className="btn-icon" onClick={() => handleDelete(tag.id)} title="Confirm delete" style={{ color: '#f87171' }}><Check size={14} /></button>
+                        <button className="btn-icon" onClick={() => setConfirmDeleteId(null)} title="Cancel"><X size={14} /></button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button className="btn-icon" onClick={() => startEdit(tag)} title="Rename tag"><PencilSimple size={14} /></button>
+                        <button className="btn-icon" onClick={() => setConfirmDeleteId(tag.id)} title="Delete tag" style={{ color: '#f87171' }}><Trash size={14} /></button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

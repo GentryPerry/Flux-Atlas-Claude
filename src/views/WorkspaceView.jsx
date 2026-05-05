@@ -6,7 +6,6 @@ import useCampaignStore from '../stores/campaignStore';
 import useMapStore from '../stores/mapStore';
 import useNodeStore from '../stores/nodeStore';
 import useTagStore from '../stores/tagStore';
-import useConnectionStore from '../stores/connectionStore';
 import useSettingsStore from '../stores/settingsStore';
 import useTerritoryStore from '../stores/territoryStore';
 import useMapOverlayStore from '../stores/mapOverlayStore';
@@ -57,7 +56,6 @@ export default function WorkspaceView() {
   const allNodes   = useNodeStore((s) => s.nodes);
   const updateNode = useNodeStore((s) => s.updateNode);
   const loadTags = useTagStore((s) => s.loadTags);
-  const loadConnections = useConnectionStore((s) => s.loadConnections);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
   const loadTerritories  = useTerritoryStore((s) => s.loadTerritories);
   const allTerritories   = useTerritoryStore((s) => s.territories);
@@ -277,14 +275,13 @@ export default function WorkspaceView() {
     loadMaps(campaignId);
     loadNodes(campaignId);
     loadTags(campaignId);
-    loadConnections(campaignId);
     loadSettings(campaignId);
     loadTerritories(campaignId);
     loadSnapshots(campaignId);
     loadWidgets(campaignId);
     loadHierarchies(campaignId);
     loadOverlays(campaignId);
-  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies, loadOverlays]);
+  }, [campaignId, loadMaps, loadNodes, loadTags, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies, loadOverlays]);
 
   const handlePlacingDone = useCallback(() => {
     setPlacingType(null);

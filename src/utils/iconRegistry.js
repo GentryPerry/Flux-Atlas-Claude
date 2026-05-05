@@ -23,12 +23,6 @@ export const ICON_REGISTRY = Object.fromEntries(
 /** Sorted list of all icon names — used by the icon picker */
 export const ALL_ICON_NAMES = Object.keys(ICON_REGISTRY).sort();
 
-/** All icons as [{name, Component}] — kept for legacy callers */
-export const ICON_OPTIONS = ALL_ICON_NAMES.map((name) => ({
-  name,
-  Component: ICON_REGISTRY[name],
-}));
-
 /**
  * Resolve an icon component by string name.
  * Falls back to UserCircle for unknown names.

@@ -1,15 +1,19 @@
 import { create } from 'zustand';
 import { saveStore, loadCampaign } from '../utils/api';
 
-let _saveTimer = null;
+// Per-campaign timers — prevents a rapid campaign switch from cancelling a
+// pending settings save for the previous campaign (same pattern as nodeStore).
+const _saveTimers = new Map(); // campaignId → timerId
+
 function debouncedSave(campaignId, data) {
-  if (_saveTimer) clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => {
+  if (_saveTimers.has(campaignId)) clearTimeout(_saveTimers.get(campaignId));
+  const id = setTimeout(() => {
+    _saveTimers.delete(campaignId);
     saveStore(campaignId, 'settings', data).catch((e) =>
       console.warn('Settings save failed:', e)
     );
-    _saveTimer = null;
   }, 600);
+  _saveTimers.set(campaignId, id);
 }
 
 const useSettingsStore = create((set, get) => ({
