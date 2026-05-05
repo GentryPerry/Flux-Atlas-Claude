@@ -1,10 +1,13 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   X, Eye, Cube, MapTrifold,
   SquareSplitHorizontal, Rows,
   Plus, Trash, Sun, Moon, ListDashes, ArrowCounterClockwise, Key,
-  Images, Link, DownloadSimple, Upload, FileText, Check,
+  Images, Link, DownloadSimple, Upload, FileText, Check, Question,
+  Copy, LockKey, Warning,
 } from '@phosphor-icons/react';
+import { useAuth } from '../../context/AuthContext';
+import { adminListKeys, adminCreateKeys, adminRevokeKey } from '../../utils/api';
 import useNodeStore from '../../stores/nodeStore';
 import useMapStore from '../../stores/mapStore';
 import useTagStore from '../../stores/tagStore';
@@ -15,6 +18,8 @@ import { DEFAULT_TYPE_COLORS } from '../../utils/typeColors';
 import { resolveIcon } from '../../utils/iconRegistry';
 import IconPickerModal from '../common/IconPickerModal';
 import { exportToMarkdown, exportToJSON, downloadFile, safeFilename } from '../../utils/exportUtils';
+import AccountUsagePanel from '../account/AccountUsagePanel';
+import UpgradePage from '../account/UpgradePage';
 
 const CATEGORIES = [
   { id: 'view',      label: 'View',       icon: Eye,            description: 'Layout, canvas, and display preferences' },
@@ -24,6 +29,7 @@ const CATEGORIES = [
   { id: 'import',    label: 'Import',     icon: DownloadSimple, description: 'Bulk import nodes from markdown' },
   // { id: 'pinterest', label: 'Pinterest', icon: Key, description: 'Session token for board access' },
   { id: 'campaign',  label: 'Campaign',   icon: MapTrifold,     description: 'Campaign details and export options' },
+  { id: 'account',   label: 'Account',    icon: Key,            description: 'Plan, usage, and upgrade options'       },
 ];
 
 const PRESET_COLORS = [
@@ -32,7 +38,184 @@ const PRESET_COLORS = [
   '#fda4af', '#86efac', '#67e8f9', '#fcd34d', '#e2e8f0',
 ];
 
+// ── Beta Key Manager (admin only) ─────────────────────────────────────────────
+
+function BetaKeysPanel() {
+  const [keys,       setKeys]       = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [genCount,   setGenCount]   = useState(5);
+  const [genNote,    setGenNote]    = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [copied,     setCopied]     = useState(null); // key string that was just copied
+  const [revoking,   setRevoking]   = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { keys: k } = await adminListKeys();
+      setKeys(k || []);
+    } catch { /* not admin or error */ }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function generate() {
+    setGenerating(true);
+    try {
+      await adminCreateKeys(genCount, genNote);
+      setGenNote('');
+      await load();
+    } catch (e) { alert(e.message); }
+    finally { setGenerating(false); }
+  }
+
+  async function revoke(key) {
+    if (!confirm(`Revoke key ${key}? This cannot be undone.`)) return;
+    setRevoking(key);
+    try { await adminRevokeKey(key); await load(); }
+    catch (e) { alert(e.message); }
+    finally { setRevoking(null); }
+  }
+
+  function copyKey(key) {
+    navigator.clipboard.writeText(key).catch(() => {});
+    setCopied(key);
+    setTimeout(() => setCopied(null), 1800);
+  }
+
+  function copyAll() {
+    const unused = keys.filter((k) => !k.used_by).map((k) => k.key).join('\n');
+    navigator.clipboard.writeText(unused).catch(() => {});
+    setCopied('__all__');
+    setTimeout(() => setCopied(null), 1800);
+  }
+
+  const unused = keys.filter((k) => !k.used_by);
+  const used   = keys.filter((k) =>  k.used_by);
+
+  if (loading) return <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '12px 0' }}>Loading keys…</div>;
+
+  return (
+    <div style={{ marginTop: 20, padding: '16px 4px 0', borderTop: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <LockKey size={14} style={{ color: 'var(--accent)' }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>Beta Access Keys</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+          {unused.length} unused · {used.length} used
+        </span>
+      </div>
+
+      {/* Generator */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
+        <input
+          type="number"
+          min={1}
+          max={50}
+          value={genCount}
+          onChange={(e) => setGenCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+          style={{ width: 52, fontSize: 12, padding: '4px 6px', borderRadius: 6,
+                   border: '1px solid var(--border)', background: 'var(--bg-inset)',
+                   color: 'var(--text-primary)', textAlign: 'center' }}
+        />
+        <input
+          type="text"
+          placeholder="Label (e.g. Discord batch)"
+          value={genNote}
+          onChange={(e) => setGenNote(e.target.value)}
+          style={{ flex: 1, fontSize: 12, padding: '4px 8px', borderRadius: 6,
+                   border: '1px solid var(--border)', background: 'var(--bg-inset)',
+                   color: 'var(--text-primary)' }}
+        />
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={generate}
+          disabled={generating}
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          <Plus size={12} />
+          {generating ? 'Generating…' : 'Generate'}
+        </button>
+      </div>
+
+      {/* Copy all unused */}
+      {unused.length > 0 && (
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={copyAll}
+          style={{ marginBottom: 10, fontSize: 11 }}
+        >
+          {copied === '__all__' ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy all unused</>}
+        </button>
+      )}
+
+      {/* Key list */}
+      {keys.length === 0 && (
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '8px 0' }}>
+          No keys yet — generate some above.
+        </div>
+      )}
+
+      {unused.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Unused</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {unused.map((k) => (
+              <div key={k.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <code style={{ flex: 1, fontSize: 11, fontFamily: 'monospace', color: 'var(--text-primary)',
+                               background: 'var(--bg-inset)', padding: '3px 8px', borderRadius: 5,
+                               letterSpacing: '0.04em' }}>
+                  {k.key}
+                </code>
+                {k.note && (
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', maxWidth: 80, overflow: 'hidden',
+                                 textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={k.note}>
+                    {k.note}
+                  </span>
+                )}
+                <button className="btn-icon" title="Copy" style={{ width: 24, height: 24 }}
+                  onClick={() => copyKey(k.key)}>
+                  {copied === k.key ? <Check size={11} style={{ color: 'var(--success)' }} /> : <Copy size={11} />}
+                </button>
+                <button className="btn-icon" title="Revoke" style={{ width: 24, height: 24, opacity: revoking === k.key ? 0.4 : 1 }}
+                  onClick={() => revoke(k.key)} disabled={revoking === k.key}>
+                  <Trash size={11} style={{ color: 'var(--error, #f87171)' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {used.length > 0 && (
+        <div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Used</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {used.map((k) => (
+              <div key={k.key} style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0.55 }}>
+                <code style={{ flex: 1, fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)',
+                               background: 'var(--bg-inset)', padding: '3px 8px', borderRadius: 5,
+                               letterSpacing: '0.04em', textDecoration: 'line-through' }}>
+                  {k.key}
+                </code>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', maxWidth: 130,
+                               overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      title={k.used_by_email}>
+                  {k.used_by_email || 'unknown'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SettingsPanel({ mobileEmbed = false }) {
+  const { user } = useAuth();
+  const isAdmin  = user?.plan_key === 'admin_unlimited';
+
   const campaignId = useCampaignStore((s) => s.activeCampaignId);
   const allCampaigns = useCampaignStore((s) => s.campaigns);
   const campaign = useMemo(
@@ -195,6 +378,30 @@ export default function SettingsPanel({ mobileEmbed = false }) {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        {settingsCategory === 'account' && (
+          <div className="settings-pane">
+            <div className="settings-pane-header">
+              <Key size={28} weight="duotone" />
+              <div><h3>Account</h3><p>Plan, usage limits, and upgrade options</p></div>
+            </div>
+            <AccountUsagePanel />
+            <div style={{ marginTop: 16, padding: '0 4px' }}>
+              <UpgradePage onClose={null} />
+            </div>
+            {isAdmin && <BetaKeysPanel />}
+
+            <div style={{ marginTop: 20, padding: '16px 4px 0', borderTop: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--text-secondary)' }}>Help</div>
+              <button
+                className="btn btn-secondary btn-sm tour-launch-btn"
+                onClick={() => { window.dispatchEvent(new CustomEvent('flux:startTour')); }}
+              >
+                <Question size={14} />
+                Show Tutorial
+              </button>
             </div>
           </div>
         )}

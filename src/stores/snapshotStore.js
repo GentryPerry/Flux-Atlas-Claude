@@ -5,15 +5,18 @@ import { saveStore, loadCampaign } from '../utils/api';
 const useSnapshotStore = create((set, get) => ({
   snapshots: [],
   currentSnapshotId: null,
+  autoSnapshots: [],       // rolling auto-saves (max 3, loaded per campaign)
+  autoSnapsLoaded: null,   // campaignId whose auto-snaps are loaded
 
   loadSnapshots: async (campaignId) => {
     try {
       const data = await loadCampaign(campaignId);
       const snapshots = Array.isArray(data.snapshots) ? data.snapshots : [];
       const currentSnapshotId = data.snapshot_current || null;
-      set({ snapshots, currentSnapshotId });
+      const autoSnapshots = Array.isArray(data.auto_snapshots) ? data.auto_snapshots : [];
+      set({ snapshots, currentSnapshotId, autoSnapshots, autoSnapsLoaded: campaignId });
     } catch {
-      set({ snapshots: [], currentSnapshotId: null });
+      set({ snapshots: [], currentSnapshotId: null, autoSnapshots: [], autoSnapsLoaded: null });
     }
   },
 
@@ -62,10 +65,6 @@ const useSnapshotStore = create((set, get) => ({
     await get()._persist(campaignId);
   },
 
-  /**
-   * Restore a snapshot — writes its world state to D1 for nodes and territories,
-   * then sets currentSnapshotId so the next snapshot branches from here.
-   */
   writeSnapshotToLiveStorage: async (snapshotId) => {
     const snapshot = get().snapshots.find((s) => s.id === snapshotId);
     if (!snapshot) return false;
@@ -80,6 +79,23 @@ const useSnapshotStore = create((set, get) => ({
       return true;
     } catch (e) {
       console.warn('Snapshot restore failed:', e);
+      return false;
+    }
+  },
+
+  /** Restore an auto-snapshot by index (0 = oldest of the 3, 2 = newest) */
+  restoreAutoSnapshot: async (campaignId, snapIndex) => {
+    const snaps = get().autoSnapshots;
+    const snap  = snaps[snapIndex];
+    if (!snap) return false;
+    try {
+      await Promise.all([
+        saveStore(campaignId, 'nodes',       snap.nodes       || []),
+        saveStore(campaignId, 'territories', snap.territories || []),
+      ]);
+      return true;
+    } catch (e) {
+      console.warn('Auto-snapshot restore failed:', e);
       return false;
     }
   },

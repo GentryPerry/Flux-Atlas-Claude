@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, memo } from 'react';
 import {
   MagnifyingGlass, Funnel, X, ArrowSquareIn,
-  Eye, Skull,
+  Eye, Skull, Tray,
 } from '@phosphor-icons/react';
 import useNodeStore from '../../stores/nodeStore';
 import useTagStore from '../../stores/tagStore';
@@ -117,6 +117,11 @@ const NodeCard = memo(({ node, isSelected, tagMap, nodeMap, childMapId, onSelect
             <span className="node-card-type" style={{ color }}>{typeLabel}</span>
           </div>
           <div className="node-card-status">
+            {node.mapId === '__staging__' && (
+              <span className="status-badge status-staged">
+                <Tray size={11} /> Staged
+              </span>
+            )}
             {schema?.statusFlags &&
               Object.entries(schema.statusFlags).map(([flagKey, flagDef]) => {
                 if (flagKey === 'revealed') return null;
@@ -203,7 +208,15 @@ const NodeCard = memo(({ node, isSelected, tagMap, nodeMap, childMapId, onSelect
 
 NodeCard.displayName = 'NodeCard';
 
+// Staging filter options
+const STAGING_FILTERS = [
+  { id: 'not_staged', label: 'On Map' },
+  { id: 'staged',     label: 'Staged' },
+  { id: 'all',        label: 'All' },
+];
+
 export default function CardPanel() {
+  const activeCampaignId = useCampaignStore((s) => s.activeCampaignId);
   const activeMapId = useMapStore((s) => s.activeMapId);
   const allNodes = useNodeStore((s) => s.nodes);
   const selectedNodeId = useNodeStore((s) => s.selectedNodeId);
@@ -237,17 +250,30 @@ export default function CardPanel() {
     return m;
   }, [maps]);
 
-  const nodes = useMemo(
-    () => allNodes.filter((n) => n.mapId === activeMapId),
-    [allNodes, activeMapId]
+  // All campaign nodes — includes placed AND staged
+  const campaignNodes = useMemo(
+    () => allNodes.filter((n) => n.campaignId === activeCampaignId),
+    [allNodes, activeCampaignId]
   );
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState(null);
+  const [stagingFilter, setStagingFilter] = useState('not_staged');
   const [displayLimit, setDisplayLimit] = useState(CARDS_PER_PAGE);
 
+  // Reset display limit when filters change
+  const handleStagingFilter = useCallback((id) => {
+    setStagingFilter(id);
+    setDisplayLimit(CARDS_PER_PAGE);
+  }, []);
+
   const filtered = useMemo(() => {
-    let result = nodes;
+    let result = campaignNodes;
+
+    // Staging filter
+    if (stagingFilter === 'not_staged') result = result.filter((n) => n.mapId !== '__staging__');
+    else if (stagingFilter === 'staged') result = result.filter((n) => n.mapId === '__staging__');
+
     if (filterType) result = result.filter((n) => n.type === filterType);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -258,22 +284,33 @@ export default function CardPanel() {
       });
     }
     return result.sort((a, b) => (a.fields?.name || '').localeCompare(b.fields?.name || ''));
-  }, [nodes, filterType, search]);
+  }, [campaignNodes, stagingFilter, filterType, search]);
 
   const visibleCards = useMemo(() => filtered.slice(0, displayLimit), [filtered, displayLimit]);
 
-  // Type counts for filter chips
+  // Type counts scoped to current staging filter pass
   const typeFilterCounts = useMemo(() => {
+    const base = stagingFilter === 'not_staged'
+      ? campaignNodes.filter((n) => n.mapId !== '__staging__')
+      : stagingFilter === 'staged'
+        ? campaignNodes.filter((n) => n.mapId === '__staging__')
+        : campaignNodes;
     const counts = {};
-    for (const n of nodes) counts[n.type] = (counts[n.type] || 0) + 1;
+    for (const n of base) counts[n.type] = (counts[n.type] || 0) + 1;
     return counts;
-  }, [nodes]);
+  }, [campaignNodes, stagingFilter]);
 
   const handleSelectNode = useCallback((nodeId) => selectNode(nodeId), [selectNode]);
   const handleDrill = useCallback((mapId) => drillDown(mapId), [drillDown]);
 
+  const baseTotalCount = useMemo(() => {
+    if (stagingFilter === 'not_staged') return campaignNodes.filter((n) => n.mapId !== '__staging__').length;
+    if (stagingFilter === 'staged')     return campaignNodes.filter((n) => n.mapId === '__staging__').length;
+    return campaignNodes.length;
+  }, [campaignNodes, stagingFilter]);
+
   return (
-    <div className="card-panel">
+    <div className="card-panel" data-tour="card-panel">
       <div className="card-panel-header">
         <div className="card-panel-search">
           <MagnifyingGlass size={14} />
@@ -288,12 +325,29 @@ export default function CardPanel() {
             </button>
           )}
         </div>
+
+        {/* Staging filter */}
+        <div className="card-panel-filters" style={{ borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4 }}>
+          {STAGING_FILTERS.map(({ id, label }) => (
+            <button
+              key={id}
+              className={`card-filter-chip ${stagingFilter === id ? 'active' : ''}`}
+              onClick={() => handleStagingFilter(id)}
+              style={stagingFilter === id && id === 'staged' ? { borderColor: 'var(--text-muted)', color: 'var(--text-muted)' } : {}}
+            >
+              {id === 'staged' && <Tray size={10} style={{ marginRight: 3 }} />}
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Type filter */}
         <div className="card-panel-filters">
           <button
             className={`card-filter-chip ${!filterType ? 'active' : ''}`}
             onClick={() => setFilterType(null)}
           >
-            All ({nodes.length})
+            All ({baseTotalCount})
           </button>
           {Object.entries(NODE_TYPES).map(([key, schema]) => {
             const count = typeFilterCounts[key] || 0;

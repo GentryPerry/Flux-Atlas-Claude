@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react';
-import { Polygon, X, Check } from '@phosphor-icons/react';
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
+import { Polygon, X, Check, DotsSixVertical } from '@phosphor-icons/react';
 import CustomSelect from '../common/CustomSelect';
 import useNodeStore from '../../stores/nodeStore';
 
@@ -29,6 +29,40 @@ export default function TerritoryToolbar({
   const colorInputRef = useRef(null);
   const allNodes      = useNodeStore((s) => s.nodes);
 
+  // ── Drag state ───────────────────────────────────────────────────────────────
+  const [pos,       setPos]       = useState(null); // null = default corner; {x,y} = free-floating
+  const dragOrigin  = useRef(null); // { mouseX, mouseY, boxX, boxY }
+
+  const startDrag = useCallback((e) => {
+    e.preventDefault();
+    const el = e.currentTarget.closest('.territory-toolbar, .territory-trigger-btn');
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    dragOrigin.current = {
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      boxX:   rect.left,
+      boxY:   rect.top,
+    };
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!dragOrigin.current) return;
+      const { mouseX, mouseY, boxX, boxY } = dragOrigin.current;
+      const dx = e.clientX - mouseX;
+      const dy = e.clientY - mouseY;
+      setPos({ x: boxX + dx, y: boxY + dy });
+    };
+    const onUp = () => { dragOrigin.current = null; };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    };
+  }, []);
+
   const ownerOptions = useMemo(() => {
     return allNodes
       .filter((n) => OWNER_TYPES.includes(n.type) && n.fields?.name)
@@ -49,14 +83,27 @@ export default function TerritoryToolbar({
     }
   };
 
+  // Shared floating-position style (applied when user has dragged)
+  const floatStyle = pos
+    ? { position: 'fixed', left: pos.x, top: pos.y, bottom: 'auto', right: 'auto', zIndex: 120 }
+    : {};
+
   // ── Collapsed trigger ────────────────────────────────────────────────────────
   if (drawingMode !== 'polygon') {
     return (
       <button
         className="territory-trigger-btn"
+        style={floatStyle}
         onClick={() => setDrawingMode('polygon')}
         title="Draw a territory polygon"
       >
+        <DotsSixVertical
+          size={13}
+          className="territory-drag-grip"
+          onMouseDown={startDrag}
+          title="Drag to reposition"
+          onClick={(e) => e.stopPropagation()}
+        />
         <Polygon size={13} weight="fill" />
         <span>Draw Territory</span>
       </button>
@@ -65,8 +112,14 @@ export default function TerritoryToolbar({
 
   // ── Active drawing controls ──────────────────────────────────────────────────
   return (
-    <div className="territory-toolbar">
+    <div className="territory-toolbar" style={floatStyle}>
       <div className="territory-toolbar-header">
+        <DotsSixVertical
+          size={14}
+          className="territory-drag-grip"
+          onMouseDown={startDrag}
+          title="Drag to reposition"
+        />
         <Polygon size={15} weight="fill" />
         <span>Drawing Territory</span>
         {polygonPointCount > 0 && (

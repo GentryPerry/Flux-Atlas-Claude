@@ -1,4 +1,9 @@
 import { useState, useRef, useMemo } from 'react';
+
+const NODE_PRESET_COLORS = [
+  '#fb923c', '#fbbf24', '#e879a8', '#60a5fa', '#4ade80',
+  '#f87171', '#c084fc', '#38bdf8', '#a3e635', '#fb7185',
+];
 import {
   X, Trash, Plus, ArrowSquareIn, MapTrifold,
   Upload, PencilSimple, Check, Minus, Eye,
@@ -188,6 +193,8 @@ export default function DetailPanel() {
   const heroImage = images.find((img) => img.id === heroImageId) || images[0] || null;
   const childMap = maps.find((m) => m.parentMapId === node.id);
   const typeColor = `var(--node-${node.type})`;
+  // Resolved display color — custom overrides type default
+  const resolvedTypeColor = getTypeColor(node.type, nodeTypeOverrides, customNodeTypes);
 
   const getTagSuggestions = (fieldKey) => {
     const query = (tagInput[fieldKey] || '').trim().toLowerCase();
@@ -830,12 +837,59 @@ export default function DetailPanel() {
               {node.fields?.name || 'Unnamed'}
             </div>
 
-            <span
-              className={`type-badge type-${node.type}`}
-              style={{ background: `${typeColor}18`, color: typeColor }}
-            >
-              {typeInfo?.label || node.type}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span
+                className={`type-badge type-${node.type}`}
+                style={{ background: `${typeColor}18`, color: typeColor }}
+              >
+                {typeInfo?.label || node.type}
+              </span>
+            </div>
+
+            {/* ── Color swatches (preset + custom) ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+              {NODE_PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => updateNode(campaignId, node.id, { color: c })}
+                  title={c}
+                  style={{
+                    width: 16, height: 16, borderRadius: '50%', background: c, padding: 0,
+                    border: node.color === c ? '2px solid #fff' : '2px solid transparent',
+                    boxShadow: node.color === c ? `0 0 0 1px ${c}` : 'none',
+                    cursor: 'pointer', flexShrink: 0, transition: 'transform 0.1s',
+                  }}
+                />
+              ))}
+              {/* Custom color */}
+              <label style={{ position: 'relative', cursor: 'pointer' }} title="Custom color">
+                <span style={{
+                  width: 16, height: 16, borderRadius: '50%', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  background: node.color && !NODE_PRESET_COLORS.includes(node.color) ? node.color : 'var(--bg-inset)',
+                  border: '1.5px dashed var(--border-strong)',
+                  fontSize: 11, color: 'var(--text-muted)',
+                }}>+</span>
+                <input
+                  type="color"
+                  value={node.color || resolvedTypeColor}
+                  onChange={(e) => updateNode(campaignId, node.id, { color: e.target.value })}
+                  style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                />
+              </label>
+              {node.color && (
+                <button
+                  title="Reset to type color"
+                  onClick={() => updateNode(campaignId, node.id, { color: null })}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '0 3px',
+                    fontSize: 10, color: 'var(--text-muted)', borderRadius: 'var(--radius)', lineHeight: 1.4,
+                  }}
+                >
+                  reset
+                </button>
+              )}
+            </div>
           </div>
 
           <button className="btn-icon" onClick={deselectNode}>

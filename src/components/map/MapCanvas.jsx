@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
-import { Stage, Layer, Image as KImage, Circle, Text, Group, Rect, Line } from 'react-konva';
+import { Stage, Layer, Image as KImage, Circle, Text, Group, Rect, Line, Transformer } from 'react-konva';
 import Konva from 'konva';
 import useMapStore from '../../stores/mapStore';
 import useNodeStore from '../../stores/nodeStore';
@@ -284,7 +284,7 @@ const FolderGrid = memo(({
   onDrillInto, onDrillUp, onPageChange,
   onChildSelect, onChildContextMenu, onChildUnnest, onChildNest, onFolderDragEnd,
   openFolderBounds, onCrossNest,
-  isRejectTarget, isShaking,
+  isRejectTarget, isNestTarget, isShaking,
   stageRef,
 }) => {
   const groupRef = useRef(null);
@@ -409,6 +409,21 @@ const FolderGrid = memo(({
           strokeWidth={2.5}
           cornerRadius={14}
           opacity={0.8}
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+      )}
+
+      {/* Accept glow overlay — green border when folder can accept the dragged node */}
+      {isNestTarget && (
+        <Rect
+          x={-HW} y={-HH}
+          width={FW} height={FH}
+          fill="#4ade8010"
+          stroke="#4ade80"
+          strokeWidth={2.5}
+          cornerRadius={14}
+          opacity={0.85}
           listening={false}
           perfectDrawEnabled={false}
         />
@@ -738,6 +753,9 @@ export default function MapCanvas({
   editingTerritoryId,
   searchHighlightIds,
   orgView,          // dims nodes, boosts territory opacity for org/territory overview
+  mapOverlays,      // array of overlay objects from mapOverlayStore
+  onUpdateOverlay,  // (campaignId, overlayId, updates) => void
+  onDeleteOverlay,  // (campaignId, overlayId) => void
 }) {
   const stageRef     = useRef(null);
   const containerRef = useRef(null);
@@ -773,12 +791,18 @@ export default function MapCanvas({
     setViewport(stagePos.x, stagePos.y, stageScale);
   }, [stagePos, stageScale, setViewport]);
 
+  const [selectedOverlayId, setSelectedOverlayId] = useState(null);
+  const [overlayImages, setOverlayImages] = useState({});
+  const overlayNodeRefs = useRef({});
+  const overlayTransformerRef = useRef(null);
+
   const [folderState, setFolderState]     = useState({});
   const [nestTargetId,         setNestTargetId]         = useState(null);
   const [rejectTargetId,       setRejectTargetId]       = useState(null); // red glow on hovered node
   const [rejectShakeId,        setRejectShakeId]        = useState(null); // shake on failed node drop
   const [rejectFolderGridId,   setRejectFolderGridId]   = useState(null); // red glow on hovered folder grid
   const [rejectShakeFolderGridId, setRejectShakeFolderGridId] = useState(null); // shake folder grid
+  const [nestFolderGridId,     setNestFolderGridId]     = useState(null); // green accept glow on hovered folder grid
 
   const activeMapId  = useMapStore((s) => s.activeMapId);
   const allMaps      = useMapStore((s) => s.maps);
@@ -874,6 +898,44 @@ export default function MapCanvas({
     img.onload = () => setBgImage(img);
     img.src = activeMap.image;
   }, [activeMap?.image]);
+  // Load overlay images whenever the overlay list changes
+  useEffect(() => {
+    if (!mapOverlays?.length) return;
+    const toLoad = mapOverlays.filter((o) => o.url && overlayImages[o.url] === undefined);
+    if (!toLoad.length) return;
+    console.log('[MapOverlay] Loading', toLoad.length, 'overlay image(s):', toLoad.map((o) => o.url));
+    toLoad.forEach((o) => {
+      const img = new window.Image();
+      img.onload  = () => {
+        console.log('[MapOverlay] Image loaded:', o.url);
+        setOverlayImages((prev) => ({ ...prev, [o.url]: img }));
+      };
+      img.onerror = (e) => {
+        console.warn('[MapOverlay] Image FAILED to load:', o.url, e);
+        setOverlayImages((prev) => ({ ...prev, [o.url]: null }));
+      };
+      img.src = o.url;
+    });
+  }, [mapOverlays]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Attach Konva Transformer to the selected overlay node
+  useEffect(() => {
+    const tf = overlayTransformerRef.current;
+    if (!tf) return;
+    const node = selectedOverlayId ? overlayNodeRefs.current[selectedOverlayId] : null;
+    tf.nodes(node ? [node] : []);
+    tf.getLayer()?.batchDraw();
+  }, [selectedOverlayId, overlayImages]);
+
+  // Listen for sidebar pencil → enter edit mode for an overlay
+  useEffect(() => {
+    const handler = (e) => {
+      const overlayId = e.detail?.overlayId;
+      if (overlayId) setSelectedOverlayId(overlayId);
+    };
+    window.addEventListener('flux:editOverlay', handler);
+    return () => window.removeEventListener('flux:editOverlay', handler);
+  }, []);
 
   // Resize observer
   useEffect(() => {
@@ -1187,25 +1249,37 @@ export default function MapCanvas({
     } else if (isTerritory) {
       const territoryId = targetName.replace('territory-', '');
       setSelectedTerritoryId?.(territoryId);
+      // Close all open folders when clicking a territory
+      Object.keys(folderState).forEach((id) => { if (!folderState[id]?.closing) closeFolder(id); });
     } else {
       setSelectedTerritoryId?.(null);
+      setSelectedOverlayId(null);
       deselectNode();
+      // Close all open folders when clicking the map background
+      Object.keys(folderState).forEach((id) => { if (!folderState[id]?.closing) closeFolder(id); });
     }
-  }, [placingType, drawingMode, campaignId, activeMapId, createNode, onPlacingDone, deselectNode, setPolygonPoints, setSelectedTerritoryId]);
+  }, [placingType, drawingMode, campaignId, activeMapId, createNode, onPlacingDone, deselectNode, setPolygonPoints, setSelectedTerritoryId, folderState, closeFolder]);
 
   /* ── Node click ──────────────────────────────────────────────────── */
   const handleNodeClick = useCallback((nodeId, e) => {
     e.cancelBubble = true;
     const hasChildren = (nestCounts[nodeId] || 0) > 0;
     if (hasChildren) {
+      // Toggle this folder; keep all other folders open — user may be navigating between them
       if (openFolderIds.has(nodeId)) {
         closeFolder(nodeId);
       } else {
         openFolder(nodeId);
       }
+    } else {
+      // Non-parent node clicked: close all open folders (opens the detail panel instead)
+      // Note: Konva suppresses onClick when a drag occurs, so drag-into-folder is safe.
+      Object.keys(folderState).forEach((id) => {
+        if (!folderState[id]?.closing) closeFolder(id);
+      });
     }
     selectNode(nodeId);
-  }, [nestCounts, openFolderIds, openFolder, closeFolder, selectNode]);
+  }, [nestCounts, openFolderIds, openFolder, closeFolder, selectNode, folderState]);
 
   /* ── Node double-click: drill into sub-map if one exists ─────────── */
   const handleNodeDblClick = useCallback((nodeId) => {
@@ -1225,6 +1299,7 @@ export default function MapCanvas({
       setNestTargetId(null);
       setRejectTargetId(null);
       setRejectFolderGridId(null);
+      setNestFolderGridId(null);
       return;
     }
 
@@ -1238,16 +1313,18 @@ export default function MapCanvas({
           setNestTargetId(n.id);
           setRejectTargetId(null);
           setRejectFolderGridId(null);
+          setNestFolderGridId(null);
         } else {
           setNestTargetId(null);
           setRejectTargetId(n.id);
           setRejectFolderGridId(null);
+          setNestFolderGridId(null);
         }
         return;
       }
     }
 
-    // 2. Check open folder grids — show red glow if folder can't accept
+    // 2. Check open folder grids — green glow if can accept, red if not
     for (const [rootId, state] of Object.entries(folderState)) {
       const rootNode = mapNodes.find((n) => n.id === rootId);
       if (!rootNode) continue;
@@ -1265,8 +1342,10 @@ export default function MapCanvas({
         setRejectTargetId(null);
         if (!canNestInto(nodeId, currentFolderId)) {
           setRejectFolderGridId(rootId);
+          setNestFolderGridId(null);
         } else {
           setRejectFolderGridId(null);
+          setNestFolderGridId(rootId);
         }
         return;
       }
@@ -1275,6 +1354,7 @@ export default function MapCanvas({
     setNestTargetId(null);
     setRejectTargetId(null);
     setRejectFolderGridId(null);
+    setNestFolderGridId(null);
   }, [mapNodes, openFolderIds, folderState, canNestInto]);
 
   /* ── Node drag end ───────────────────────────────────────────────── */
@@ -1282,6 +1362,7 @@ export default function MapCanvas({
     setNestTargetId(null);
     setRejectTargetId(null);
     setRejectFolderGridId(null);
+    setNestFolderGridId(null);
     const dragX = e.target.x();
     const dragY = e.target.y();
     const draggedNode = mapNodes.find((n) => n.id === nodeId);
@@ -1499,6 +1580,78 @@ export default function MapCanvas({
               <Rect name="bg-rect" x={-3000} y={-3000} width={6000} height={6000} fill="#031012" listening={true} />
             )}
 
+
+            {/* ── Map layer overlays — positioned below territories, above background ── */}
+            {(mapOverlays || [])
+              .filter((o) => o.mapId === activeMapId)
+              .map((overlay) => {
+                const imgEl = overlayImages[overlay.url];
+                const isEditing = selectedOverlayId === overlay.id;
+                const isAccepted = overlay.locked;
+                const sharedProps = {
+                  x: overlay.x,
+                  y: overlay.y,
+                  width: overlay.width,
+                  height: overlay.height,
+                  opacity: overlay.opacity,
+                  // Accepted overlays are fully passive unless sidebar pencil activated edit mode
+                  draggable: !isAccepted || isEditing,
+                  listening: !isAccepted || isEditing,
+                  perfectDrawEnabled: false,
+                  onClick: (e) => {
+                    if (isAccepted && !isEditing) return;
+                    e.cancelBubble = true;
+                    setSelectedOverlayId(overlay.id);
+                  },
+                  onDragEnd: (e) => {
+                    onUpdateOverlay?.(campaignId, overlay.id, { x: e.target.x(), y: e.target.y() });
+                  },
+                  onTransformEnd: (e) => {
+                    const node = e.target;
+                    onUpdateOverlay?.(campaignId, overlay.id, {
+                      x: node.x(),
+                      y: node.y(),
+                      width:  Math.max(10, node.width()  * node.scaleX()),
+                      height: Math.max(10, node.height() * node.scaleY()),
+                    });
+                    node.scaleX(1);
+                    node.scaleY(1);
+                  },
+                };
+                // Show a placeholder rect while the image loads (or if it failed)
+                if (!imgEl) {
+                  return (
+                    <Rect
+                      key={overlay.id}
+                      ref={(el) => { overlayNodeRefs.current[overlay.id] = el; }}
+                      {...sharedProps}
+                      fill="rgba(100,120,140,0.25)"
+                      stroke="#ff9248"
+                      strokeWidth={2 / (stageRef.current?.scaleX() ?? stageScale)}
+                      dash={[8, 6]}
+                    />
+                  );
+                }
+                return (
+                  <KImage
+                    key={overlay.id}
+                    ref={(el) => { overlayNodeRefs.current[overlay.id] = el; }}
+                    image={imgEl}
+                    {...sharedProps}
+                  />
+                );
+              })}
+            {/* Transformer — attaches imperatively to the selected overlay KImage */}
+            <Transformer
+              ref={overlayTransformerRef}
+              rotateEnabled={false}
+              keepRatio={false}
+              borderStroke="#ff9248"
+              anchorStroke="#ff9248"
+              anchorFill="#fff"
+              anchorSize={10}
+            />
+
             {/* ── Territories ──
              *  Org view: opacity boosted to 0.65, stroke doubled so they read clearly.
              *  Normal:   use stored territory.opacity (typically 0.15).
@@ -1515,6 +1668,7 @@ export default function MapCanvas({
               const stroke = isSel ? '#fff' : territory.strokeColor;
 
               if (territory.shapeType === 'polygon') {
+                const isEditing = editingTerritoryId === territory.id;
                 return (
                   <Line
                     key={territory.id}
@@ -1526,6 +1680,40 @@ export default function MapCanvas({
                     stroke={stroke}
                     strokeWidth={strokeWidth}
                     listening={true} perfectDrawEnabled={false} hitStrokeWidth={10}
+                    onClick={isEditing ? (e) => {
+                      e.cancelBubble = true;
+                      // Don't intercept if clicking on an existing handle (Circle) — those
+                      // have their own onClick. This fires on the Line fill/stroke area.
+                      const stage = stageRef.current;
+                      if (!stage) return;
+                      const pos = stage.getPointerPosition();
+                      const transform = stage.getAbsoluteTransform().copy().invert();
+                      const { x: px, y: py } = transform.point(pos);
+
+                      // Find closest edge and insert new point between its endpoints
+                      const pts = territory.points;
+                      let bestDist = Infinity;
+                      let bestIdx  = 0;
+                      for (let i = 0; i < pts.length; i++) {
+                        const a = pts[i];
+                        const b = pts[(i + 1) % pts.length];
+                        // Distance from point to segment
+                        const dx = b.x - a.x, dy = b.y - a.y;
+                        const lenSq = dx * dx + dy * dy;
+                        const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / lenSq));
+                        const nx = a.x + t * dx - px, ny = a.y + t * dy - py;
+                        const dist = Math.sqrt(nx * nx + ny * ny);
+                        if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+                      }
+                      const newPoints = [
+                        ...pts.slice(0, bestIdx + 1),
+                        { x: px, y: py },
+                        ...pts.slice(bestIdx + 1),
+                      ];
+                      updateTerritory(campaignId, territory.id, { points: newPoints });
+                    } : undefined}
+                    onMouseEnter={isEditing ? (e) => { e.target.getStage().container().style.cursor = 'cell'; } : undefined}
+                    onMouseLeave={isEditing ? (e) => { e.target.getStage().container().style.cursor = ''; } : undefined}
                   />
                 );
               } else if (territory.shapeType === 'rectangle') {
@@ -1558,6 +1746,53 @@ export default function MapCanvas({
                 );
               }
               return null;
+            })}
+
+            {/* Org view: faction/org name labels over territories */}
+            {orgView && territories.map((territory) => {
+              if (!territory.nodeId) return null;
+              const ownerNode = allNodes.find((n) => n.id === territory.nodeId);
+              if (!ownerNode) return null;
+              const label = ownerNode.fields?.name || '';
+              if (!label) return null;
+
+              // Compute centroid
+              let cx, cy;
+              if (territory.shapeType === 'polygon' && territory.points?.length) {
+                const sum = territory.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+                cx = sum.x / territory.points.length;
+                cy = sum.y / territory.points.length;
+              } else if (territory.shapeType === 'rectangle') {
+                cx = territory.x + (territory.width || 0) / 2;
+                cy = territory.y + (territory.height || 0) / 2;
+              } else if (territory.shapeType === 'circle') {
+                cx = territory.center?.cx || 0;
+                cy = territory.center?.cy || 0;
+              } else {
+                return null;
+              }
+
+              const liveScale = stageRef.current?.scaleX() ?? stageScale;
+              const fontSize = Math.max(11, Math.min(16, 14 / liveScale));
+              return (
+                <Text
+                  key={`org-label-${territory.id}`}
+                  x={cx}
+                  y={cy}
+                  text={label}
+                  fontSize={fontSize}
+                  fontFamily="sans-serif"
+                  fontStyle="bold"
+                  fill="#fff"
+                  stroke={territory.color}
+                  strokeWidth={3 / liveScale}
+                  fillAfterStrokeEnabled={true}
+                  align="center"
+                  offsetX={label.length * fontSize * 0.3}
+                  listening={false}
+                  perfectDrawEnabled={false}
+                />
+              );
             })}
 
             {/* Territory point editing handles */}
@@ -1629,7 +1864,7 @@ export default function MapCanvas({
             <Group opacity={orgView ? 0.18 : 1}>
               {/* Standalone node circles */}
               {regularNodes.map((node) => {
-                const color    = getTypeColor(node.type, nodeTypeOverrides, customNodeTypes);
+                const color    = node.color || getTypeColor(node.type, nodeTypeOverrides, customNodeTypes);
                 const iconName = node.icon || getTypeIcon(node.type, NODE_TYPES, nodeTypeOverrides, customNodeTypes);
                 const isSearchDimmed = searchHighlightIds
                   ? !searchHighlightIds.has(node.id)
@@ -1662,8 +1897,11 @@ export default function MapCanvas({
                 );
               })}
 
-              {/* Open folder grids */}
-              {Array.from(openFolderIds).map((rootId) => {
+              {/* Open folder grids — nestFolderGridId renders last so it sits on top */}
+              {[
+                ...Array.from(openFolderIds).filter((id) => id !== nestFolderGridId),
+                ...(nestFolderGridId && openFolderIds.has(nestFolderGridId) ? [nestFolderGridId] : []),
+              ].map((rootId) => {
                 const state = folderState[rootId];
                 if (!state) return null;
                 return (
@@ -1690,4 +1928,119 @@ export default function MapCanvas({
                     onFolderDragEnd={handleFolderDragEnd}
                     openFolderBounds={openFolderBounds}
                     onCrossNest={handleCrossNest}
-                    isRejectTarget={rootId =
+                    isRejectTarget={rootId === rejectFolderGridId}
+                    isNestTarget={rootId === nestFolderGridId}
+                    isShaking={rootId === rejectShakeFolderGridId}
+                    stageRef={stageRef}
+                  />
+                );
+              })}
+            </Group>
+          </Layer>
+        </Stage>
+      )}
+
+      {/* ── Overlay controls — shown when an overlay is selected ── */}
+      {(() => {
+        const overlay = selectedOverlayId
+          ? (mapOverlays || []).find((o) => o.id === selectedOverlayId)
+          : null;
+        if (!overlay) return null;
+        return (
+          <div style={{
+            position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+            background: 'var(--bg-surface)', border: '1px solid var(--border-strong)',
+            borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center',
+            gap: 12, zIndex: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            userSelect: 'none', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap',
+          }}>
+            <span style={{ opacity: 0.5, fontSize: 11 }}>Map Layer</span>
+            <div style={{ width: 1, height: 16, background: 'var(--border-strong)' }} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              Opacity
+              {(() => {
+                const pct = Math.round(overlay.opacity * 100);
+                const sliderRef = { current: null };
+                const handleSliderInteraction = (clientX, rect) => {
+                  const raw = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+                  const stepped = Math.round(raw * 20) * 5;
+                  onUpdateOverlay?.(campaignId, overlay.id, { opacity: stepped / 100 });
+                };
+                return (
+                  <div
+                    style={{ position: 'relative', width: 116, height: 20, display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0, padding: '0 8px', boxSizing: 'border-box' }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      handleSliderInteraction(e.clientX, rect);
+                      const onMove = (ev) => handleSliderInteraction(ev.clientX, rect);
+                      const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+                      window.addEventListener('mousemove', onMove);
+                      window.addEventListener('mouseup', onUp);
+                    }}
+                  >
+                    <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)', position: 'relative', pointerEvents: 'none' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', borderRadius: 2, background: '#ff9248' }} />
+                      <div style={{
+                        position: 'absolute', top: '50%', left: `${pct}%`,
+                        transform: 'translate(-50%, -50%)',
+                        width: 13, height: 13, borderRadius: '50%',
+                        background: '#ff9248', border: '2px solid #fff',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
+                      }} />
+                    </div>
+                  </div>
+                );
+              })()}
+              <span style={{ opacity: 0.55, minWidth: 28, textAlign: 'right' }}>
+                {Math.round(overlay.opacity * 100)}%
+              </span>
+            </label>
+            <div style={{ width: 1, height: 16, background: 'var(--border-strong)' }} />
+            {overlay.locked ? (
+              // Edit mode (triggered from sidebar) — just dismiss, stay accepted
+              <button
+                onClick={() => setSelectedOverlayId(null)}
+                style={{
+                  background: 'var(--bg-inset)', border: '1px solid var(--border-strong)', borderRadius: 4,
+                  padding: '3px 10px', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 11,
+                }}
+                title="Done editing — layer stays accepted"
+              >
+                Done Editing
+              </button>
+            ) : (
+              // Not yet accepted — show Accept button
+              <button
+                onClick={() => {
+                  onUpdateOverlay?.(campaignId, overlay.id, { locked: true });
+                  setSelectedOverlayId(null);
+                }}
+                style={{
+                  background: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 4,
+                  padding: '3px 10px', cursor: 'pointer', color: '#fff', fontSize: 11, fontWeight: 600,
+                }}
+                title="Accept — layer becomes part of the map background"
+              >
+                Accept
+              </button>
+            )}
+            <button
+              onClick={() => {
+                onDeleteOverlay?.(campaignId, overlay.id);
+                setSelectedOverlayId(null);
+              }}
+              style={{
+                background: 'none', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 4,
+                padding: '3px 10px', cursor: 'pointer', color: '#f87171', fontSize: 11,
+              }}
+              title="Remove this map layer"
+            >
+              Remove
+            </button>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}

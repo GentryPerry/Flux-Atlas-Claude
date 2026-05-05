@@ -8,6 +8,7 @@ import useTagStore from '../stores/tagStore';
 import useConnectionStore from '../stores/connectionStore';
 import useSettingsStore from '../stores/settingsStore';
 import useTerritoryStore from '../stores/territoryStore';
+import useMapOverlayStore from '../stores/mapOverlayStore';
 import MapSidebar from '../components/map/MapSidebar';
 import MapToolbar from '../components/map/MapToolbar';
 import MapCanvas from '../components/map/MapCanvas';
@@ -27,7 +28,10 @@ import TroubleEngineModal from '../components/time/TroubleEngineModal';
 import SnapshotSidebar from '../components/time/SnapshotSidebar';
 import WidgetLayer from '../components/widgets/WidgetLayer';
 import ResetModal from '../components/common/ResetModal';
+import OnboardingTour from '../components/onboarding/OnboardingTour';
+import OnboardingTourMobile from '../components/onboarding/OnboardingTourMobile';
 import useSnapshotStore from '../stores/snapshotStore';
+import { uploadImage } from '../utils/api';
 import useWidgetStore from '../stores/widgetStore';
 import useHierarchyStore from '../stores/hierarchyStore';
 import useMobile from '../hooks/useMobile';
@@ -53,11 +57,20 @@ export default function WorkspaceView() {
   const loadTags = useTagStore((s) => s.loadTags);
   const loadConnections = useConnectionStore((s) => s.loadConnections);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
-  const loadTerritories = useTerritoryStore((s) => s.loadTerritories);
+  const loadTerritories  = useTerritoryStore((s) => s.loadTerritories);
+  const allTerritories   = useTerritoryStore((s) => s.territories);
   const deselectNode = useNodeStore((s) => s.deselectNode);
   const loadSnapshots    = useSnapshotStore((s) => s.loadSnapshots);
+  const takeSnapshot     = useSnapshotStore((s) => s.takeSnapshot);
   const loadWidgets      = useWidgetStore((s) => s.loadWidgets);
   const loadHierarchies  = useHierarchyStore((s) => s.loadHierarchies);
+
+  // Map layer overlay store
+  const loadOverlays   = useMapOverlayStore((s) => s.loadOverlays);
+  const addOverlay     = useMapOverlayStore((s) => s.addOverlay);
+  const updateOverlay  = useMapOverlayStore((s) => s.updateOverlay);
+  const deleteOverlay  = useMapOverlayStore((s) => s.deleteOverlay);
+  const mapOverlays    = useMapOverlayStore((s) => s.overlays);
 
   // Settings-driven layout
   const layout = useSettingsStore((s) => s.layout);
@@ -108,6 +121,11 @@ export default function WorkspaceView() {
       if (e.ctrlKey && e.shiftKey && e.key === 'Backspace') {
         e.preventDefault();
         setResetOpen(true);
+      }
+      // Shift+/ (?) — relaunch onboarding tour
+      if (e.shiftKey && e.key === '?') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('flux:startTour'));
       }
     };
     window.addEventListener('keydown', handler);
@@ -166,7 +184,8 @@ export default function WorkspaceView() {
     loadSnapshots(campaignId);
     loadWidgets(campaignId);
     loadHierarchies(campaignId);
-  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies]);
+    loadOverlays(campaignId);
+  }, [campaignId, loadMaps, loadNodes, loadTags, loadConnections, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies, loadOverlays]);
 
   const handlePlacingDone = useCallback(() => {
     setPlacingType(null);
@@ -175,6 +194,43 @@ export default function WorkspaceView() {
   const handleNodeContextMenu = useCallback((nodeId, viewportX, viewportY) => {
     setContextMenu({ nodeId, x: viewportX, y: viewportY });
   }, []);
+
+  const handleAddMapLayer = useCallback(async (file) => {
+    if (!campaignId || !activeMapId) return;
+    try {
+      const url = await uploadImage(file);
+      // Read natural dimensions from the file before placing, to avoid squishing
+      const { naturalW, naturalH } = await new Promise((resolve) => {
+        const img = new window.Image();
+        img.onload = () => resolve({ naturalW: img.naturalWidth, naturalH: img.naturalHeight });
+        img.onerror = () => resolve({ naturalW: 600, naturalH: 450 });
+        img.src = URL.createObjectURL(file);
+      });
+      // Fit within ~700px on the longest axis while preserving aspect ratio
+      const MAX_SIDE = 700;
+      const ratio = naturalW / (naturalH || 1);
+      let w, h;
+      if (naturalW >= naturalH) {
+        w = Math.min(naturalW, MAX_SIDE);
+        h = w / ratio;
+      } else {
+        h = Math.min(naturalH, MAX_SIDE);
+        w = h * ratio;
+      }
+      // Place overlay at the center of the current viewport in world coordinates
+      const { x: vpX, y: vpY, scale } = useViewportStore.getState();
+      const worldCX = (window.innerWidth  / 2 - vpX) / scale;
+      const worldCY = (window.innerHeight / 2 - vpY) / scale;
+      addOverlay(campaignId, activeMapId, url, {
+        x: worldCX - w / 2,
+        y: worldCY - h / 2,
+        width:  Math.round(w),
+        height: Math.round(h),
+      });
+    } catch (err) {
+      console.warn('Map layer upload failed:', err);
+    }
+  }, [campaignId, activeMapId, addOverlay]);
 
   const mapCanvas = (
     <ErrorBoundary fallback={
@@ -196,6 +252,9 @@ export default function WorkspaceView() {
         editingTerritoryId={editingTerritoryId}
         searchHighlightIds={searchHighlightIds}
         orgView={orgView}
+        mapOverlays={mapOverlays}
+        onUpdateOverlay={updateOverlay}
+        onDeleteOverlay={deleteOverlay}
       />
     </ErrorBoundary>
   );
@@ -216,6 +275,7 @@ export default function WorkspaceView() {
   const splitToggle = (
     <button
       className="split-toggle-btn"
+      data-tour="split-toggle"
       onClick={() => setSetting(campaignId, 'layout', layout === 'split' ? 'full' : 'split')}
       title={layout === 'split' ? 'Switch to full canvas' : 'Switch to split view'}
     >
@@ -266,6 +326,7 @@ export default function WorkspaceView() {
   const mapColumn = (
     <div
       ref={mapContainerRef}
+      data-tour="canvas"
       style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -317,6 +378,10 @@ export default function WorkspaceView() {
 
           {activeView === 'board' ? (
             <MobileBoardView />
+          ) : activeView === 'nodes' ? (
+            <div className="mobile-nodes-pane">
+              <CardPanel />
+            </div>
           ) : activeView === 'hierarchy' ? (
             <HierarchyTreeView />
           ) : activeView === 'settings' ? null : (
@@ -411,6 +476,8 @@ export default function WorkspaceView() {
         )}
 
         {resetOpen && <ResetModal onClose={() => setResetOpen(false)} />}
+
+        <OnboardingTourMobile />
       </div>
     );
   }
@@ -432,6 +499,12 @@ export default function WorkspaceView() {
           onOpenTroubleEngine={() => setTroubleEngineOpen(true)}
           onToggleHistory={() => setHistoryOpen((v) => !v)}
           historyOpen={historyOpen}
+          onAddMapLayer={handleAddMapLayer}
+          onTakeSnapshot={() => takeSnapshot(
+            campaignId,
+            `Snapshot ${new Date().toLocaleString()}`,
+            { nodes: allNodes ?? [], territories: allTerritories ?? [] },
+          )}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -522,4 +595,12 @@ export default function WorkspaceView() {
       {resetOpen && <ResetModal onClose={() => setResetOpen(false)} />}
 
       {searchOpen && (
-        <Sea
+        <SearchOverlay
+          onClose={() => { setSearchOpen(false); setSearchHighlightIds(null); }}
+        />
+      )}
+
+      <OnboardingTour />
+    </div>
+  );
+}

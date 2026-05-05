@@ -1,0 +1,619 @@
+{
+  "id": "encounter-social-general",
+  "title": "Encounter Social General",
+  "category": "encounter-social",
+  "subcategory": "general",
+  "genre": [
+    "any"
+  ],
+  "die": 100,
+  "description": "A table of non-combat social encounters, public run-ins, awkward requests, and conversational complications for use during travel or downtime.",
+  "tags": [
+    "social",
+    "encounters",
+    "run-ins",
+    "downtime"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "An anxious courier mistakes one character for the intended recipient of a sealed message and begs them to accept it before a pair of watchers notices."
+    },
+    {
+      "roll": 2,
+      "result": "Three children have built a toll gate from crates and string, demanding payment in jokes, candy, or heroic titles before allowing passage."
+    },
+    {
+      "roll": 3,
+      "result": "Outside a shuttered shop, a tired owner accuses a former employee of stealing the keys, while the employee insists the keys were left inside."
+    },
+    {
+      "roll": 4,
+      "result": "Two travelers argue over a hand-drawn map that places the same town in different directions, and each wants the party to confirm their route."
+    },
+    {
+      "roll": 5,
+      "result": "A street musician stops mid-song after recognizing someone in the party, then quietly asks where they learned a melody from their childhood."
+    },
+    {
+      "roll": 6,
+      "result": "Near a crowded fountain, a lost elderly visitor offers a small reward to anyone who can help find a relative whose name they only partly remember."
+    },
+    {
+      "roll": 7,
+      "result": "Someone selling homemade charms insists one character desperately needs protection today, though their explanation changes each time they are questioned."
+    },
+    {
+      "roll": 8,
+      "result": "At a public notice board, a person tears down a warning poster and stuffs it into their coat before anyone else can read it."
+    },
+    {
+      "roll": 9,
+      "result": "A nervous apprentice carries a covered cage that keeps rattling; they ask for directions while pretending nothing inside is moving."
+    },
+    {
+      "roll": 10,
+      "result": "Several laborers refuse to unload a wagon because the cargo crate whispers compliments whenever someone touches it."
+    },
+    {
+      "roll": 11,
+      "result": "During a neighborhood argument, both sides ask the party to judge whether a noisy rooster, generator, or magical clock is violating local custom."
+    },
+    {
+      "roll": 12,
+      "result": "A well-dressed stranger offers to buy one ordinary item from the party, claiming it resembles something lost by a beloved sibling."
+    },
+    {
+      "roll": 13,
+      "result": "Two rivals compete to sell the same rare ingredient, each loudly accusing the other of watering, diluting, or enchanting their stock."
+    },
+    {
+      "roll": 14,
+      "result": "Under a dripping awning, a young person practices a formal apology and asks the party whether it sounds sincere enough."
+    },
+    {
+      "roll": 15,
+      "result": "A guard, usher, or attendant blocks a doorway while trying to remember whether the party is on an invitation list that may not exist."
+    },
+    {
+      "roll": 16,
+      "result": "Beside a busy road, a family argues over whether to continue traveling after one member claims to have seen a bad omen."
+    },
+    {
+      "roll": 17,
+      "result": "A vendor's trained animal refuses to perform and instead sits beside one character, staring at them as if waiting for instructions."
+    },
+    {
+      "roll": 18,
+      "result": "Inside a crowded waiting room, a stranger quietly swaps seats with the party and asks them not to mention it if anyone asks."
+    },
+    {
+      "roll": 19,
+      "result": "At a corner stall, a cook offers free samples but becomes offended if anyone identifies the secret spice correctly."
+    },
+    {
+      "roll": 20,
+      "result": "During a sudden silence in the crowd, everyone hears a private accusation shouted from somewhere overhead, though no one can locate the speaker."
+    },
+    {
+      "roll": 21,
+      "result": "An exhausted mediator asks the party to help settle a dispute between two neighbors who both claim ownership of the same ladder."
+    },
+    {
+      "roll": 22,
+      "result": "A cheerful guide offers a tour of local landmarks, but every story they tell ends with the guide blaming one specific official."
+    },
+    {
+      "roll": 23,
+      "result": "Near a stable or transit bay, a handler struggles with an animal or machine that refuses to move unless addressed by its preferred name."
+    },
+    {
+      "roll": 24,
+      "result": "Someone with ink-stained fingers asks the party to witness a signature, then hesitates when asked what the document actually says."
+    },
+    {
+      "roll": 25,
+      "result": "At closing time, a shopkeeper offers a discount if the party escorts a nervous employee home through an area they fear."
+    },
+    {
+      "roll": 26,
+      "result": "A person in formal clothing runs past carrying flowers, then turns back to ask whether they look like someone about to make a terrible mistake."
+    },
+    {
+      "roll": 27,
+      "result": "In a narrow alley, two performers rehearse a staged argument so convincingly that bystanders begin choosing sides."
+    },
+    {
+      "roll": 28,
+      "result": "A messenger requests help reading a smudged address, but the name on the envelope belongs to someone famous, infamous, or impossible."
+    },
+    {
+      "roll": 29,
+      "result": "During a public meal, a stranger invites the party to sit at an empty place reserved for someone who has not arrived in years."
+    },
+    {
+      "roll": 30,
+      "result": "A local gossip offers valuable information only if the party first shares a rumor worth repeating."
+    },
+    {
+      "roll": 31,
+      "result": "At a small shrine, memorial, or street corner, a mourner asks strangers to listen to one story about the person they lost."
+    },
+    {
+      "roll": 32,
+      "result": "Someone polishing a sign complains that the business keeps changing names because of debt, scandal, or superstition."
+    },
+    {
+      "roll": 33,
+      "result": "Beside a broken cart, vehicle, or delivery bot, a driver asks for help while insisting the cargo is not dangerous, despite the smell."
+    },
+    {
+      "roll": 34,
+      "result": "A group of students debates an absurd theory with complete seriousness and tries to recruit the party as impartial field researchers."
+    },
+    {
+      "roll": 35,
+      "result": "Near a locked gate, a caretaker explains that the person with the key is inside, but they are refusing to answer for personal reasons."
+    },
+    {
+      "roll": 36,
+      "result": "A stranger wearing too many rings claims each one represents a promise and asks which promise sounds easiest to break."
+    },
+    {
+      "roll": 37,
+      "result": "At a crowded crossing, someone drops a pouch filled with letters instead of coins, each addressed to a different local person."
+    },
+    {
+      "roll": 38,
+      "result": "A proud craftsperson invites the party to inspect a new invention, tool, or artwork, then nervously asks if it looks too much like theft."
+    },
+    {
+      "roll": 39,
+      "result": "During a sudden downpour, strangers crowd under shelter and one person begins confessing secrets as if rain makes honesty mandatory."
+    },
+    {
+      "roll": 40,
+      "result": "A hungry child offers to trade a handmade drawing for food, claiming the drawing shows a place where something valuable is hidden."
+    },
+    {
+      "roll": 41,
+      "result": "Someone dressed as a mascot, festival figure, or ceremonial beast asks for help escaping a costume they cannot remove alone."
+    },
+    {
+      "roll": 42,
+      "result": "At a public bench, two old friends play a game with missing pieces and invite the party to invent replacement rules."
+    },
+    {
+      "roll": 43,
+      "result": "A person cleaning graffiti refuses to erase one phrase, saying it saved their life once."
+    },
+    {
+      "roll": 44,
+      "result": "Near a market entrance, a merchant asks the party to identify a customer who paid with a coin that should not exist anymore."
+    },
+    {
+      "roll": 45,
+      "result": "A nervous couple asks whether the party can stand nearby during a difficult conversation with a parent, employer, or patron."
+    },
+    {
+      "roll": 46,
+      "result": "In front of a closed office, a line of angry people appoints the party as temporary spokesperson without asking permission."
+    },
+    {
+      "roll": 47,
+      "result": "A street vendor claims one character resembles the subject of a painting, statue, wanted notice, or old family portrait."
+    },
+    {
+      "roll": 48,
+      "result": "During a festival contest, the previous champion accuses the judges of changing the rules because they fear another victory."
+    },
+    {
+      "roll": 49,
+      "result": "Someone carrying too many parcels asks the party to hold one, then vanishes into the crowd before explaining what it contains."
+    },
+    {
+      "roll": 50,
+      "result": "At a hostel, inn, or capsule block, a clerk insists the party already checked in yesterday and left behind a sealed package."
+    },
+    {
+      "roll": 51,
+      "result": "A traveling lecturer offers a free talk on a niche subject, but their assistant whispers that the lecture is actually a coded warning."
+    },
+    {
+      "roll": 52,
+      "result": "Beside a canal, river, or drainage channel, a fisher complains that people keep throwing messages into the water instead of bottles."
+    },
+    {
+      "roll": 53,
+      "result": "A barber, stylist, or groomer waves the party over, claiming they can tell someone's profession by the state of their hair."
+    },
+    {
+      "roll": 54,
+      "result": "During an argument over a spilled drink, the accused person insists the drink moved on its own before tipping over."
+    },
+    {
+      "roll": 55,
+      "result": "A local organizer begs the party to judge a contest because the official judge has fallen asleep, disappeared, or been bribed."
+    },
+    {
+      "roll": 56,
+      "result": "At a rental counter, someone tries to return equipment covered in mud, glitter, ash, or seawater and claims it was like that already."
+    },
+    {
+      "roll": 57,
+      "result": "A stranger offers the party a seat at their table, then quietly warns them not to react to the person watching from the doorway."
+    },
+    {
+      "roll": 58,
+      "result": "Near a notice board, two people post contradictory warnings about the same road, neighborhood, or facility."
+    },
+    {
+      "roll": 59,
+      "result": "Someone collecting donations for a worthy cause becomes evasive when asked where the funds are stored."
+    },
+    {
+      "roll": 60,
+      "result": "A storyteller begins recounting the party's recent actions with unsettling accuracy, though several details are wrong in meaningful ways."
+    },
+    {
+      "roll": 61,
+      "result": "At a crowded doorway, a doorman refuses entry to a person whose name everyone else seems afraid to say aloud."
+    },
+    {
+      "roll": 62,
+      "result": "A local child insists their missing pet has joined a union, gang, monastery, or research team and needs rescuing from responsibility."
+    },
+    {
+      "roll": 63,
+      "result": "Someone selling old books refuses to sell one volume unless the buyer promises never to open the final chapter."
+    },
+    {
+      "roll": 64,
+      "result": "At a repair stall, a mechanic or tinker recognizes a part carried by the party and asks whether the original owner is still alive."
+    },
+    {
+      "roll": 65,
+      "result": "A food vendor challenges the party to identify three ingredients in a dish, promising a reward if they guess without flinching."
+    },
+    {
+      "roll": 66,
+      "result": "During a heated debate, a bystander keeps translating insults into polite compliments, making both sides angrier."
+    },
+    {
+      "roll": 67,
+      "result": "A person with a bandaged hand asks for help retrieving an engagement ring, heirloom, or token from a place they are too embarrassed to name."
+    },
+    {
+      "roll": 68,
+      "result": "Near a public clock, sundial, or schedule board, several people insist time has been displayed incorrectly all morning."
+    },
+    {
+      "roll": 69,
+      "result": "A cleaner sweeping the street finds a bloodless tooth, metal tooth, or animal fang and asks whether it belongs to anyone present."
+    },
+    {
+      "roll": 70,
+      "result": "At a small booth, an amateur photographer, portraitist, or image-maker insists the party's faces are exactly what their project needs."
+    },
+    {
+      "roll": 71,
+      "result": "A member of a local club challenges one character to join an ongoing scavenger hunt after mistaking them for a rival player."
+    },
+    {
+      "roll": 72,
+      "result": "Someone in uniform asks a casual question that becomes increasingly specific, revealing they may already know too much."
+    },
+    {
+      "roll": 73,
+      "result": "Beside a quiet wall, a person listens with a cup, horn, or sensor pressed against it and gestures for the party to be silent."
+    },
+    {
+      "roll": 74,
+      "result": "A nervous host asks the party to attend a dinner because one invited guest is unbearable unless strangers are present."
+    },
+    {
+      "roll": 75,
+      "result": "In a crowded shop, a customer tries to pay with a story instead of money, insisting the story is worth more."
+    },
+    {
+      "roll": 76,
+      "result": "Someone at a crossroads offers directions, but only in exchange for being allowed to ask one personal question."
+    },
+    {
+      "roll": 77,
+      "result": "A frustrated teacher, trainer, or supervisor asks the party to demonstrate courage, manners, or negotiation to an unruly class."
+    },
+    {
+      "roll": 78,
+      "result": "At a public ceremony, the honored guest fails to appear, and the organizers ask the party to stall with speeches or entertainment."
+    },
+    {
+      "roll": 79,
+      "result": "A person with soot on their sleeves tries to sell slightly burned goods while insisting smoke adds character."
+    },
+    {
+      "roll": 80,
+      "result": "Near a warehouse, storehouse, or locker, two workers argue about whether something inside is breathing."
+    },
+    {
+      "roll": 81,
+      "result": "A retired professional recognizes a tool, weapon, instrument, or device in the party's possession and tells a sad story about its maker."
+    },
+    {
+      "roll": 82,
+      "result": "Someone hands the party a sealed invitation meant for another person and asks them to deliver it discreetly before midnight."
+    },
+    {
+      "roll": 83,
+      "result": "At a busy corner, a person silently points to a hat, bowl, or cup with a note reading that their voice has been stolen."
+    },
+    {
+      "roll": 84,
+      "result": "A worried sibling asks the party to interrupt a duel, audition, proposal, or job interview before it ruins a life."
+    },
+    {
+      "roll": 85,
+      "result": "During a routine inspection, an official finds something harmless but embarrassing and tries to make it sound criminal."
+    },
+    {
+      "roll": 86,
+      "result": "A vendor offers to sell the party the exact object needed for a problem they have not mentioned yet."
+    },
+    {
+      "roll": 87,
+      "result": "Someone with a freshly shaved head insists their hair was stolen and wants help finding the culprit."
+    },
+    {
+      "roll": 88,
+      "result": "At a public game table, one player wins too often, but their opponents seem more frightened than angry."
+    },
+    {
+      "roll": 89,
+      "result": "A tired nurse, medic, or healer asks for help calming a waiting crowd after supplies run low."
+    },
+    {
+      "roll": 90,
+      "result": "Near a statue, memorial, or mural, a person leaves an offering for someone widely believed to have been a villain."
+    },
+    {
+      "roll": 91,
+      "result": "Someone recognizes the party's accent, dialect, or slang and asks for news from a place they have not seen in years."
+    },
+    {
+      "roll": 92,
+      "result": "In a public hallway, a courier asks the party to hold a door open while they carry an absurdly fragile delivery."
+    },
+    {
+      "roll": 93,
+      "result": "A local official attempts to recruit the party for a committee no one else will join."
+    },
+    {
+      "roll": 94,
+      "result": "At a crowded counter, a clerk claims a form requires a witness, a second witness, and someone willing to admit fault."
+    },
+    {
+      "roll": 95,
+      "result": "A person carrying a musical instrument asks the party to listen for one wrong note that only strangers seem able to hear."
+    },
+    {
+      "roll": 96,
+      "result": "Beside a display case, an attendant confesses that the famous object on display is a replica and the real one is missing."
+    },
+    {
+      "roll": 97,
+      "result": "Someone covered in flour, paint, or dust asks whether the party saw anyone running away with a guilty expression."
+    },
+    {
+      "roll": 98,
+      "result": "A local poet challenges one character to provide a rhyme for an impossible word."
+    },
+    {
+      "roll": 99,
+      "result": "At a ferry, elevator, checkpoint, or platform, a dispute erupts over who was first in line, despite no visible line existing."
+    },
+    {
+      "roll": 100,
+      "result": "A person with an empty leash claims the animal on the other end is invisible, shy, or selectively present."
+    },
+    {
+      "roll": 101,
+      "result": "Someone tries to hire the party as witnesses to prove they did not attend an event they very clearly describe in detail."
+    },
+    {
+      "roll": 102,
+      "result": "Near an open window, an argument above spills into the street as letters, clothing, or small objects are thrown down."
+    },
+    {
+      "roll": 103,
+      "result": "A shop assistant whispers that their employer is acting strangely and asks the party to test them with ordinary questions."
+    },
+    {
+      "roll": 104,
+      "result": "At a public table, strangers invite the party into a tradition where everyone must tell one truth and one lie before eating."
+    },
+    {
+      "roll": 105,
+      "result": "Someone selling tickets to an event admits the venue is real but the performer may be imaginary."
+    },
+    {
+      "roll": 106,
+      "result": "A local caretaker asks the party to help move a bench, statue, or machine because people keep gathering around it for the wrong reason."
+    },
+    {
+      "roll": 107,
+      "result": "During a heated sale, two buyers claim the same heirloom belongs to their family and both produce convincing proof."
+    },
+    {
+      "roll": 108,
+      "result": "A person carrying a stack of identical masks asks which one best suits an apology, a robbery, or a wedding."
+    },
+    {
+      "roll": 109,
+      "result": "At a small clinic, waiting patients trade exaggerated diagnoses and pressure the party to declare who seems sickest."
+    },
+    {
+      "roll": 110,
+      "result": "Someone selling flowers asks the party to deliver a bouquet to a person who promised never to accept one again."
+    },
+    {
+      "roll": 111,
+      "result": "Near a delivery entrance, a worker mistakes the party for temporary help and starts explaining an alarming procedure."
+    },
+    {
+      "roll": 112,
+      "result": "A local historian interrupts the party to correct a popular story, then asks them to help prove the official version is false."
+    },
+    {
+      "roll": 113,
+      "result": "Someone begs the party to taste-test a recipe before a competition, then reveals the judges include bitter rivals."
+    },
+    {
+      "roll": 114,
+      "result": "At a public board, an anonymous note accuses three different people of the same crime with equal confidence."
+    },
+    {
+      "roll": 115,
+      "result": "A fortune-teller, analyst, or personality reader gives a disturbingly accurate description of one character's morning and nothing else."
+    },
+    {
+      "roll": 116,
+      "result": "Someone in ceremonial dress asks the party to help locate a missing crown, sash, badge, or symbolic object before a speech begins."
+    },
+    {
+      "roll": 117,
+      "result": "Near a pile of luggage, a traveler realizes every bag has the same tag and asks the party to determine which one is theirs."
+    },
+    {
+      "roll": 118,
+      "result": "A group of neighbors holds a meeting about a strange noise, but each witness imitates a completely different sound."
+    },
+    {
+      "roll": 119,
+      "result": "Someone seeks directions to a place that locals insist burned down, closed, sank, or was demolished years ago."
+    },
+    {
+      "roll": 120,
+      "result": "At a public fountain, a person throws in coins and demands each wish back because none of them came true."
+    },
+    {
+      "roll": 121,
+      "result": "A clerk quietly asks the party to distract an angry customer long enough to find the missing receipt."
+    },
+    {
+      "roll": 122,
+      "result": "Someone confesses to a petty crime and then becomes offended when the party does not consider it dramatic enough."
+    },
+    {
+      "roll": 123,
+      "result": "Beside a row of mailboxes, lockers, or pigeonholes, one compartment keeps filling with letters addressed to people who deny writing them."
+    },
+    {
+      "roll": 124,
+      "result": "A person in a borrowed uniform asks whether it looks convincing, then admits they need to sneak into a harmless but private event."
+    },
+    {
+      "roll": 125,
+      "result": "At a crowded stairway, two people carrying large objects become stuck facing opposite directions and refuse to back down."
+    },
+    {
+      "roll": 126,
+      "result": "When shown a love letter, the party is asked whether it sounds romantic, threatening, or legally binding."
+    },
+    {
+      "roll": 127,
+      "result": "Near a public garden, a caretaker accuses a visitor of stealing flowers, while the visitor claims the flowers followed them."
+    },
+    {
+      "roll": 128,
+      "result": "A person offers a reward for finding a missing umbrella, hat, helmet, or scarf that they insist has sentimental political importance."
+    },
+    {
+      "roll": 129,
+      "result": "At a busy counter, a vendor refuses to serve anyone until someone can identify who left a threatening note under the till."
+    },
+    {
+      "roll": 130,
+      "result": "A person quietly invites the party to a memorial for someone who is standing nearby and pretending not to hear."
+    },
+    {
+      "roll": 131,
+      "result": "During a casual conversation, a stranger mentions a private detail about one character and then insists it was only a lucky guess."
+    },
+    {
+      "roll": 132,
+      "result": "A nervous assistant asks the party to deliver bad news because their employer likes strangers better than employees."
+    },
+    {
+      "roll": 133,
+      "result": "At a small performance, the audience applauds at the wrong moments, and the performer grows increasingly desperate for honest feedback."
+    },
+    {
+      "roll": 134,
+      "result": "Someone selling maps offers a discount on one with coffee stains, burn marks, or bite marks that reveal a hidden route."
+    },
+    {
+      "roll": 135,
+      "result": "Near a public oven, kiln, or charging station, a queue forms around one person who refuses to remove their item."
+    },
+    {
+      "roll": 136,
+      "result": "A person in mourning clothes asks the party to help return a gift they never wanted to receive."
+    },
+    {
+      "roll": 137,
+      "result": "At a communal table, a stranger leaves abruptly and abandons a half-finished confession written on a napkin."
+    },
+    {
+      "roll": 138,
+      "result": "Someone claims a public statue nodded at them and asks the party to watch it while they fetch witnesses."
+    },
+    {
+      "roll": 139,
+      "result": "Beside a line of parked carts, bikes, mounts, or vehicles, two people argue over identical ownership marks."
+    },
+    {
+      "roll": 140,
+      "result": "A person selling secondhand clothes insists one jacket is unlucky because every buyer has returned it with a new stain."
+    },
+    {
+      "roll": 141,
+      "result": "At a small administrative desk, an official recognizes the party from a dream and becomes reluctant to process their request."
+    },
+    {
+      "roll": 142,
+      "result": "Someone asks the party to accompany them to apologize to a rival, then admits the rival may not know they are rivals."
+    },
+    {
+      "roll": 143,
+      "result": "Near a bulletin board, a child posts a hand-drawn bounty on an older sibling for stealing dessert."
+    },
+    {
+      "roll": 144,
+      "result": "A vendor offers a free item to anyone who can make their gloomy partner laugh."
+    },
+    {
+      "roll": 145,
+      "result": "At a crossing, a blindfolded person asks the party to describe the street exactly because they are testing their memory."
+    },
+    {
+      "roll": 146,
+      "result": "Someone carrying a locked box asks the party to listen to it and confirm whether the ticking is getting faster."
+    },
+    {
+      "roll": 147,
+      "result": "During a neighborhood cleanup, volunteers uncover a buried plaque naming someone who is still alive."
+    },
+    {
+      "roll": 148,
+      "result": "A local celebrity tries to pass unnoticed and quietly asks the party to pretend they are traveling together."
+    },
+    {
+      "roll": 149,
+      "result": "At a small roadside altar, a person asks strangers to choose between two offerings because they cannot decide what forgiveness requires."
+    },
+    {
+      "roll": 150,
+      "result": "A passerby slips a note into one character's hand that reads, 'Smile and keep walking,' then disappears into the crowd."
+    }
+  ]
+}

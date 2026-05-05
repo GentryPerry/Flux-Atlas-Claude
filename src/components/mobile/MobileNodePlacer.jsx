@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Note, Gauge, Clock, Lightning, GitBranch } from '@phosphor-icons/react';
+import { Plus, Note, Gauge, Clock, Lightning, GitBranch, DiceSix } from '@phosphor-icons/react';
 import useSettingsStore from '../../stores/settingsStore';
 import useWidgetStore from '../../stores/widgetStore';
 import useViewportStore from '../../stores/viewportStore';
@@ -14,6 +14,7 @@ const WIDGET_TYPES = [
   { id: 'clock-widget',   label: 'Clock',           Icon: Clock     },
   { id: 'thread-tracker', label: 'Thread Tracker',  Icon: GitBranch },
   { id: 'trouble-engine', label: 'Trouble Engine',  Icon: Lightning },
+  { id: 'table-roller',   label: 'Table Roller',    Icon: DiceSix   },
 ];
 
 /**

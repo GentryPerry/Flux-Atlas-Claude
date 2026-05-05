@@ -1,0 +1,1219 @@
+{
+  "id": "npc-physical-traits",
+  "title": "NPC Physical Traits",
+  "category": "npc",
+  "subcategory": "appearance",
+  "genre": [
+    "any"
+  ],
+  "die": 100,
+  "description": "A distinctive physical feature or quality to make an NPC immediately memorable.",
+  "tags": [
+    "npc",
+    "appearance",
+    "description",
+    "physical"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "A long beard with intricate braids, each one representing something the NPC refuses to explain."
+    },
+    {
+      "roll": 2,
+      "result": "A cleft cut into one side of their nose, old and well-healed."
+    },
+    {
+      "roll": 3,
+      "result": "Tiny tattoos crawling from the corner of their mouth to the edge of their eye — dozens of them, each a different symbol."
+    },
+    {
+      "roll": 4,
+      "result": "One arm noticeably shorter than the other, with a different shape of hand at the end."
+    },
+    {
+      "roll": 5,
+      "result": "A missing front tooth they make no effort to hide."
+    },
+    {
+      "roll": 6,
+      "result": "Perpetual bags under their eyes, deep and bruised-looking regardless of how much sleep they claim to have gotten."
+    },
+    {
+      "roll": 7,
+      "result": "Meticulously groomed — every hair in place, beard trimmed to the millimeter, clothes unwrinkled."
+    },
+    {
+      "roll": 8,
+      "result": "An array of mismatched jewelry, clearly collected over years rather than chosen to match."
+    },
+    {
+      "roll": 9,
+      "result": "Scars and thick callouses running up both forearms, the kind built by a lifetime of repetitive hard work."
+    },
+    {
+      "roll": 10,
+      "result": "Long, unusually slender fingers that seem slightly too long for their hands."
+    },
+    {
+      "roll": 11,
+      "result": "Noticeably well-developed leg muscles visible even through their clothing."
+    },
+    {
+      "roll": 12,
+      "result": "A broad, flat nose that has clearly been broken more than once."
+    },
+    {
+      "roll": 13,
+      "result": "Extremely pale skin with a faint blue tint to the veins visible at their temples and wrists."
+    },
+    {
+      "roll": 14,
+      "result": "A jaw so pronounced it seems almost architectural — square and heavy."
+    },
+    {
+      "roll": 15,
+      "result": "One ear slightly higher than the other, a flaw so minor it takes a moment to identify why their face looks slightly off."
+    },
+    {
+      "roll": 16,
+      "result": "Deeply tanned skin on their hands and face but pale everywhere else — the tan of someone who works outdoors."
+    },
+    {
+      "roll": 17,
+      "result": "A scar that bisects one eyebrow cleanly, leaving a thin gap in the hair."
+    },
+    {
+      "roll": 18,
+      "result": "Cheekbones so pronounced they cast small shadows on the face in direct light."
+    },
+    {
+      "roll": 19,
+      "result": "A forehead marked with a faded brand, old enough that the edges have blurred."
+    },
+    {
+      "roll": 20,
+      "result": "Extremely long eyelashes, more notable because nothing else about their face is delicate."
+    },
+    {
+      "roll": 21,
+      "result": "A port-wine birthmark covering the left side of their jaw and neck."
+    },
+    {
+      "roll": 22,
+      "result": "One cheek slightly puffier than the other from an old injury that never healed quite cleanly."
+    },
+    {
+      "roll": 23,
+      "result": "A face that is deeply, dramatically symmetrical in a way that feels slightly uncanny."
+    },
+    {
+      "roll": 24,
+      "result": "Laugh lines so deep they're visible even when the person isn't smiling."
+    },
+    {
+      "roll": 25,
+      "result": "A thin, almost lipless mouth that gives their face a severe, compressed look."
+    },
+    {
+      "roll": 26,
+      "result": "A widow's peak so sharp it looks almost deliberate."
+    },
+    {
+      "roll": 27,
+      "result": "Deep-set eyes that sit in shadow even in good light, giving them a permanent look of quiet calculation."
+    },
+    {
+      "roll": 28,
+      "result": "A round, open face that makes them look younger than they are — something they seem aware of and either play up or resent."
+    },
+    {
+      "roll": 29,
+      "result": "Freckles so dense they nearly form a single patch of color across the nose and cheeks."
+    },
+    {
+      "roll": 30,
+      "result": "An unusually large and mobile mouth, given to very expressive shapes even when they're not speaking."
+    },
+    {
+      "roll": 31,
+      "result": "A long, thin scar running vertically across their lips."
+    },
+    {
+      "roll": 32,
+      "result": "Slightly protruding ears, pinned close to the head by habit and perhaps embarrassment."
+    },
+    {
+      "roll": 33,
+      "result": "Skin that tans in minutes — dark and even, with no signs of burning."
+    },
+    {
+      "roll": 34,
+      "result": "A complexion that flushes intensely with any strong emotion, betraying them constantly."
+    },
+    {
+      "roll": 35,
+      "result": "A nose that dominates their face — long and curved, the first thing you notice."
+    },
+    {
+      "roll": 36,
+      "result": "Three small dots tattooed beneath their left eye in a triangle, faded with age."
+    },
+    {
+      "roll": 37,
+      "result": "A gap between their two front teeth wide enough to be notable."
+    },
+    {
+      "roll": 38,
+      "result": "Heavy, expressive eyebrows that do most of the emotional work in their face."
+    },
+    {
+      "roll": 39,
+      "result": "A receding chin they compensate for with very confident posture."
+    },
+    {
+      "roll": 40,
+      "result": "An unusually wide forehead that somehow suits the rest of their face perfectly."
+    },
+    {
+      "roll": 41,
+      "result": "Faint parallel scars along their right cheek — three lines, old and nearly invisible."
+    },
+    {
+      "roll": 42,
+      "result": "A face that has clearly been reconstructed after some significant injury — the proportions are slightly off."
+    },
+    {
+      "roll": 43,
+      "result": "Very thin, arched eyebrows that look maintained but probably aren't."
+    },
+    {
+      "roll": 44,
+      "result": "A cauliflower ear on the left side, legacy of too many blows in too many fights."
+    },
+    {
+      "roll": 45,
+      "result": "Dark circles under their eyes that look permanent and constitutional rather than from lack of sleep."
+    },
+    {
+      "roll": 46,
+      "result": "A neck tattoo, visible above their collar, the design partially hidden."
+    },
+    {
+      "roll": 47,
+      "result": "A small round scar at the center of their forehead, perfectly circular."
+    },
+    {
+      "roll": 48,
+      "result": "Crow's feet at the corners of their eyes that appear when they squint, which is often."
+    },
+    {
+      "roll": 49,
+      "result": "Thin lips with a very defined cupid's bow — precise and a little imperious looking."
+    },
+    {
+      "roll": 50,
+      "result": "A face that seems younger in repose and older when animated — the expression adds years."
+    },
+    {
+      "roll": 51,
+      "result": "Eyes of two different colors — one warm brown, one pale grey."
+    },
+    {
+      "roll": 52,
+      "result": "Very light blue eyes that look almost colorless in bright light."
+    },
+    {
+      "roll": 53,
+      "result": "Eyes so dark brown they appear black unless examined closely in direct light."
+    },
+    {
+      "roll": 54,
+      "result": "A visible ring of gold around the pupil that gives their eyes an unusual warmth."
+    },
+    {
+      "roll": 55,
+      "result": "One eye that wanders slightly — not a full cast, just enough to make sustained eye contact faintly disorienting."
+    },
+    {
+      "roll": 56,
+      "result": "Pale green eyes with a dark ring around the iris."
+    },
+    {
+      "roll": 57,
+      "result": "Eyes that are larger than expected for their face, giving them a perpetually alert expression."
+    },
+    {
+      "roll": 58,
+      "result": "Deep-set eyes of an amber color uncommon enough to notice."
+    },
+    {
+      "roll": 59,
+      "result": "Very small, sharp eyes that seem to take in more than they let on."
+    },
+    {
+      "roll": 60,
+      "result": "Eyes ringed with dark lashes so thick they look artificially applied."
+    },
+    {
+      "roll": 61,
+      "result": "A pale, milky eye on the left side — blind, and they neither hide nor draw attention to it."
+    },
+    {
+      "roll": 62,
+      "result": "Eyes with unusually large pupils that give the impression of permanent low-light adaptation."
+    },
+    {
+      "roll": 63,
+      "result": "Hooded eyes that make them look perpetually drowsy, which is at odds with their energy."
+    },
+    {
+      "roll": 64,
+      "result": "A prominent sclera — more white visible than usual, giving their gaze an unintentional intensity."
+    },
+    {
+      "roll": 65,
+      "result": "Eyes that change apparent color depending on the light — grey indoors, blue-green in sunlight."
+    },
+    {
+      "roll": 66,
+      "result": "Very red-rimmed eyes, chronic and constitutional rather than from recent emotion."
+    },
+    {
+      "roll": 67,
+      "result": "Eyes crinkled at the corners from years of squinting into wind or sun."
+    },
+    {
+      "roll": 68,
+      "result": "An unusual downward cant to the outer corners of their eyes that reads as either sad or kind depending on their expression."
+    },
+    {
+      "roll": 69,
+      "result": "Startlingly bright eyes in a shade that seems too vivid for their otherwise weathered face."
+    },
+    {
+      "roll": 70,
+      "result": "Eyes that never quite land on you directly — they look slightly past you, consistently."
+    },
+    {
+      "roll": 71,
+      "result": "A mouth that defaults to a slight frown at rest — not unhappy, just architecturally severe."
+    },
+    {
+      "roll": 72,
+      "result": "A nose with a sharp upturn at the tip that gives their profile a distinctive silhouette."
+    },
+    {
+      "roll": 73,
+      "result": "Full lips, dramatically so, that make their face oddly expressive even from across a room."
+    },
+    {
+      "roll": 74,
+      "result": "A mouth that defaults to a faint smile even in neutral expression — unsettling in serious moments."
+    },
+    {
+      "roll": 75,
+      "result": "A nose that was once aquiline and is now flattened across the bridge from an old break."
+    },
+    {
+      "roll": 76,
+      "result": "Very thin lips, barely distinguishable from the surrounding skin in poor light."
+    },
+    {
+      "roll": 77,
+      "result": "A distinctive nasal quality to their voice suggesting a structural issue with their sinuses — present since birth, they say."
+    },
+    {
+      "roll": 78,
+      "result": "A wide, mobile mouth that stretches nearly ear to ear when they really laugh."
+    },
+    {
+      "roll": 79,
+      "result": "A nose with wide nostrils that flare visibly when they're interested or annoyed."
+    },
+    {
+      "roll": 80,
+      "result": "A mouth that always looks slightly dry — they lick their lips when nervous."
+    },
+    {
+      "roll": 81,
+      "result": "A completely shaved head with the ghost of a very dark hairline still visible at the skin."
+    },
+    {
+      "roll": 82,
+      "result": "A single long braid hanging from an otherwise closely-cropped head, reaching the middle of their back."
+    },
+    {
+      "roll": 83,
+      "result": "Hair that is aggressively, completely grey despite a relatively young face."
+    },
+    {
+      "roll": 84,
+      "result": "Extremely coarse, dense hair kept short but resistant to lying flat."
+    },
+    {
+      "roll": 85,
+      "result": "Dramatic dark hair with a sharp widow's peak that makes their forehead look taller than it is."
+    },
+    {
+      "roll": 86,
+      "result": "Hair worn loose and long, streaked with natural pale highlights that look almost deliberate."
+    },
+    {
+      "roll": 87,
+      "result": "A shaved side and long top, heavily oiled and swept back."
+    },
+    {
+      "roll": 88,
+      "result": "Thin, fine hair worn in an elaborate updo that must take considerable time to achieve."
+    },
+    {
+      "roll": 89,
+      "result": "A close-cropped beard and mustache so precisely shaped they must be maintained daily."
+    },
+    {
+      "roll": 90,
+      "result": "Long, thick locs worn pinned up with several hand-carved pins."
+    },
+    {
+      "roll": 91,
+      "result": "Completely white hair, worn naturally and without apparent self-consciousness."
+    },
+    {
+      "roll": 92,
+      "result": "Hair that curls tightly near the roots but loosens dramatically by the ends."
+    },
+    {
+      "roll": 93,
+      "result": "A patchy beard that looks intentional enough to suggest this is simply how it grows."
+    },
+    {
+      "roll": 94,
+      "result": "Hair tucked entirely under a well-worn hat — you suspect you will never see it."
+    },
+    {
+      "roll": 95,
+      "result": "Extremely long hair worn loose, clearly taken care of, clearly a point of some pride."
+    },
+    {
+      "roll": 96,
+      "result": "Hair unevenly grown back from a recent illness or wound — the shape of the original cut is just visible."
+    },
+    {
+      "roll": 97,
+      "result": "A dramatic streak of pure white through otherwise dark hair, old enough to have been there for years."
+    },
+    {
+      "roll": 98,
+      "result": "Hair cropped so close it shows the contours of their skull, including an interesting dent above the left ear."
+    },
+    {
+      "roll": 99,
+      "result": "A very thick, full beard that dominates the lower half of their face entirely."
+    },
+    {
+      "roll": 100,
+      "result": "Hair that falls across one eye that they never seem to move, leaving you constantly uncertain what that eye is doing."
+    },
+    {
+      "roll": 101,
+      "result": "Exceptionally tall — not just tall, but tall enough that they duck through most doorframes out of habit."
+    },
+    {
+      "roll": 102,
+      "result": "Very short but with a physical presence and bearing that makes the height feel irrelevant."
+    },
+    {
+      "roll": 103,
+      "result": "A heavyset build worn with complete ease — they move comfortably and unselfconsciously in their body."
+    },
+    {
+      "roll": 104,
+      "result": "Lean to the point of gauntness, but not sickly — just very little surplus anywhere."
+    },
+    {
+      "roll": 105,
+      "result": "A barrel chest that makes them look wider than they are tall when seated."
+    },
+    {
+      "roll": 106,
+      "result": "Extremely broad shoulders that make their neck look shorter than it probably is."
+    },
+    {
+      "roll": 107,
+      "result": "Long arms relative to their height — their hands hang nearly to their knees when standing."
+    },
+    {
+      "roll": 108,
+      "result": "A noticeable limp they've long since compensated for — it's in the rhythm of how they walk, not a stumble."
+    },
+    {
+      "roll": 109,
+      "result": "The posture of someone who spent years in formal service — upright, controlled, never fully casual even now."
+    },
+    {
+      "roll": 110,
+      "result": "The posture of someone who has spent decades hunched over a worktable — a permanent forward lean."
+    },
+    {
+      "roll": 111,
+      "result": "Hands much larger than expected for their frame — thick-fingered and rough."
+    },
+    {
+      "roll": 112,
+      "result": "Unusually small hands for their body, kept very clean with carefully maintained nails."
+    },
+    {
+      "roll": 113,
+      "result": "A spine that has settled into a mild sideways curve — old, and not painful anymore, they say."
+    },
+    {
+      "roll": 114,
+      "result": "A missing finger on the left hand — the ring finger, gone at the second knuckle."
+    },
+    {
+      "roll": 115,
+      "result": "Extra weight carried low and forward, with the careful deliberate gait of someone who has learned how to move with it."
+    },
+    {
+      "roll": 116,
+      "result": "A build that looks soft until they move — then the efficiency of it becomes apparent."
+    },
+    {
+      "roll": 117,
+      "result": "A significant height difference between one shoulder and the other, noticeable when they're still."
+    },
+    {
+      "roll": 118,
+      "result": "Hands that shake slightly and constantly — not from fear, just always."
+    },
+    {
+      "roll": 119,
+      "result": "A body that has been very strong and is now in late middle age — the shape of old muscle still present."
+    },
+    {
+      "roll": 120,
+      "result": "Extremely precise, economical movements — they never gesture unnecessarily and always land exactly where they intend."
+    },
+    {
+      "roll": 121,
+      "result": "They never sit still — a constant low-level fidget of the fingers or the feet."
+    },
+    {
+      "roll": 122,
+      "result": "They stand with their weight on one hip, always the same hip."
+    },
+    {
+      "roll": 123,
+      "result": "They maintain careful, deliberate eye contact — more than is quite comfortable."
+    },
+    {
+      "roll": 124,
+      "result": "They avoid eye contact almost entirely, addressing a point slightly above or beside your head."
+    },
+    {
+      "roll": 125,
+      "result": "They laugh too loudly for indoor spaces and seem unaware of this."
+    },
+    {
+      "roll": 126,
+      "result": "They speak with their hands — not gesturing, but actually touching things and people when they talk."
+    },
+    {
+      "roll": 127,
+      "result": "They pause for an unusual length of time before responding to any question."
+    },
+    {
+      "roll": 128,
+      "result": "They tilt their head slightly when listening, in a way that makes them look like a curious animal."
+    },
+    {
+      "roll": 129,
+      "result": "They drum their fingers when waiting, in a pattern that suggests they're counting something."
+    },
+    {
+      "roll": 130,
+      "result": "Their voice is significantly quieter than expected for their physicality — you have to lean in."
+    },
+    {
+      "roll": 131,
+      "result": "They smell strongly of a specific thing — woodsmoke, machine oil, salt water, old iron, or something herbal."
+    },
+    {
+      "roll": 132,
+      "result": "A walk that takes up more space than it needs to — broad strides, arms swinging wide."
+    },
+    {
+      "roll": 133,
+      "result": "They touch their face frequently when thinking, specifically the left side of their jaw."
+    },
+    {
+      "roll": 134,
+      "result": "Whenever they stop moving, they immediately cross their arms — clearly a default resting state."
+    },
+    {
+      "roll": 135,
+      "result": "They blink slowly and infrequently in a way that becomes noticeable once you notice it."
+    },
+    {
+      "roll": 136,
+      "result": "A habit of straightening things around them — objects on a table, their own clothes — without seeming to realize they're doing it."
+    },
+    {
+      "roll": 137,
+      "result": "They crack their knuckles at the start of any serious conversation."
+    },
+    {
+      "roll": 138,
+      "result": "They stand too close — not aggressively, just seemingly unaware of conventional spacing."
+    },
+    {
+      "roll": 139,
+      "result": "They breathe audibly through their nose, a faint whistle on the inhale."
+    },
+    {
+      "roll": 140,
+      "result": "They rarely change their facial expression, which makes the moments they do considerably more significant."
+    },
+    {
+      "roll": 141,
+      "result": "A long scar running from their left ear to the point of their chin, old and silver."
+    },
+    {
+      "roll": 142,
+      "result": "A burn covering most of their right forearm and hand — long healed but extensive."
+    },
+    {
+      "roll": 143,
+      "result": "A series of small round scars up their left arm at regular intervals — they don't discuss these."
+    },
+    {
+      "roll": 144,
+      "result": "A professionally done tattoo sleeve on one arm, detailed and clearly costly when it was commissioned."
+    },
+    {
+      "roll": 145,
+      "result": "A poorly done tattoo on their neck, the kind done by a friend rather than a professional."
+    },
+    {
+      "roll": 146,
+      "result": "A scar across both lips — horizontal, thin, and clearly from a blade."
+    },
+    {
+      "roll": 147,
+      "result": "A brand on the inside of their left wrist, faded but still legible as a number or symbol."
+    },
+    {
+      "roll": 148,
+      "result": "Prominent veins on the backs of their hands, vivid and close to the surface."
+    },
+    {
+      "roll": 149,
+      "result": "Nails kept very short and clean — the nails of someone for whom cleanliness has professional consequences."
+    },
+    {
+      "roll": 150,
+      "result": "Nails worn down to nearly nothing from habit — not bitten but pressed and ground away."
+    },
+    {
+      "roll": 151,
+      "result": "A chunk missing from their right ear, taken cleanly, long healed."
+    },
+    {
+      "roll": 152,
+      "result": "Three fingers on the right hand ring-scarred — the marks of someone who has worn heavy rings for decades."
+    },
+    {
+      "roll": 153,
+      "result": "A faded ink stain on the first two fingers of their right hand that will never fully wash out."
+    },
+    {
+      "roll": 154,
+      "result": "Hands calloused in the specific places that come from extended use of a particular tool."
+    },
+    {
+      "roll": 155,
+      "result": "A prosthetic hand on the left side, clearly functional and clearly old — they use it without thinking."
+    },
+    {
+      "roll": 156,
+      "result": "A scar on their throat, thin and horizontal, that gives their voice a slight rasp."
+    },
+    {
+      "roll": 157,
+      "result": "Paint under their nails and in the creases of their knuckles that never fully comes out."
+    },
+    {
+      "roll": 158,
+      "result": "Silvery hypopigmented patches on the forearms and neck — old sun damage or scarring, long integrated."
+    },
+    {
+      "roll": 159,
+      "result": "A finger that sits at a slightly wrong angle, healed from a break that was never properly set."
+    },
+    {
+      "roll": 160,
+      "result": "A surgical scar visible above their collar or cuff edge — larger than a simple procedure would explain."
+    },
+    {
+      "roll": 161,
+      "result": "They wear too many rings — both hands, most fingers — and they all look like they mean something."
+    },
+    {
+      "roll": 162,
+      "result": "A single piece of jewelry worn visibly and clearly never removed, worn smooth by years of contact."
+    },
+    {
+      "roll": 163,
+      "result": "Clothing that is clean and in good repair but of a noticeably older style."
+    },
+    {
+      "roll": 164,
+      "result": "They dress simply and practically but one item is conspicuously expensive."
+    },
+    {
+      "roll": 165,
+      "result": "A hat they wear in all circumstances and resist removing even indoors."
+    },
+    {
+      "roll": 166,
+      "result": "Gloves worn indoors — not cold weather gloves, just always gloved."
+    },
+    {
+      "roll": 167,
+      "result": "Clothing selected for function over form, patched and maintained but not replaced."
+    },
+    {
+      "roll": 168,
+      "result": "A very distinctive belt or baldric — the one item they have clearly spent real money on."
+    },
+    {
+      "roll": 169,
+      "result": "They carry several visible tools clipped or tied to their person — more than the current situation explains."
+    },
+    {
+      "roll": 170,
+      "result": "Clothing bearing the colors or insignia of an organization that no longer exists."
+    },
+    {
+      "roll": 171,
+      "result": "A single earring, heavy and old, that sways when they turn their head."
+    },
+    {
+      "roll": 172,
+      "result": "Boots that cost more than everything else they're wearing combined."
+    },
+    {
+      "roll": 173,
+      "result": "A well-worn traveling cloak worn in every weather, clearly long-favored — the hem replaced but the rest original."
+    },
+    {
+      "roll": 174,
+      "result": "Very fine clothes worn with no apparent concern for the rough environment they're currently in."
+    },
+    {
+      "roll": 175,
+      "result": "Practical, nondescript clothing — the kind worn specifically not to be remembered."
+    },
+    {
+      "roll": 176,
+      "result": "They look ten years younger than they are and clearly know it."
+    },
+    {
+      "roll": 177,
+      "result": "They look older than they are — not poorly, just very lived-in."
+    },
+    {
+      "roll": 178,
+      "result": "A slight tremor in their hands that is recent enough that they're still quietly adjusting to it."
+    },
+    {
+      "roll": 179,
+      "result": "Moving more carefully than someone their age should need to — an old injury that has not aged well."
+    },
+    {
+      "roll": 180,
+      "result": "The easy physicality of someone who has remained active their entire life."
+    },
+    {
+      "roll": 181,
+      "result": "Deeply weathered skin, lined and spotted from decades outdoors."
+    },
+    {
+      "roll": 182,
+      "result": "Still strong in the way of someone who was very strong when young — not what they were, but not gone either."
+    },
+    {
+      "roll": 183,
+      "result": "A persistent cough they minimize — present at the back of everything they say."
+    },
+    {
+      "roll": 184,
+      "result": "They tire mid-sentence occasionally and then pick back up — something systemic, long-present."
+    },
+    {
+      "roll": 185,
+      "result": "A gait that shows the history of an old leg injury more clearly on cold days."
+    },
+    {
+      "roll": 186,
+      "result": "They are quite beautiful in a way that seems to make them genuinely uncomfortable."
+    },
+    {
+      "roll": 187,
+      "result": "A face that is striking without being conventionally attractive — too much of everything to be handsome, too interesting to look away from."
+    },
+    {
+      "roll": 188,
+      "result": "A very particular stillness to their face that reads first as calm and later as watchfulness."
+    },
+    {
+      "roll": 189,
+      "result": "A quality of constant slight amusement that is either genuine or so practiced it amounts to the same thing."
+    },
+    {
+      "roll": 190,
+      "result": "Something in how they move says they've been hit before and know exactly how to fall."
+    },
+    {
+      "roll": 191,
+      "result": "A pleasant face that becomes difficult to describe immediately after looking away from it."
+    },
+    {
+      "roll": 192,
+      "result": "A quality of taking up exactly the right amount of space — not imposing, not self-effacing, just present."
+    },
+    {
+      "roll": 193,
+      "result": "A face that reads as completely open and trustworthy, which is either genuine or extremely concerning."
+    },
+    {
+      "roll": 194,
+      "result": "An air of having recently recovered from something that left its mark — still not quite at full capacity, but almost."
+    },
+    {
+      "roll": 195,
+      "result": "Something in their hands says manual skill of a very specific kind — the way they pick things up, set things down."
+    },
+    {
+      "roll": 196,
+      "result": "A voice that carries precisely as far as they intend it to and no further."
+    },
+    {
+      "roll": 197,
+      "result": "An unusual height proportion — very long torso relative to legs, only apparent when they're seated."
+    },
+    {
+      "roll": 198,
+      "result": "Skin on their forearms that shows the fine pale lines of very old, very numerous small cuts."
+    },
+    {
+      "roll": 199,
+      "result": "They carry themselves with the physical confidence of someone who has rarely needed to fight because they rarely lose."
+    },
+    {
+      "roll": 200,
+      "result": "An old wound that affects their right arm — they compensate so naturally you only notice on very close observation."
+    },
+    {
+      "roll": 201,
+      "result": "Teeth that are very white and very even — not natural, clearly maintained."
+    },
+    {
+      "roll": 202,
+      "result": "Teeth that are natural and imperfect — one slightly overlapping another, one slightly turned."
+    },
+    {
+      "roll": 203,
+      "result": "Hair that is always slightly damp, as if they recently washed it or were recently somewhere humid."
+    },
+    {
+      "roll": 204,
+      "result": "A ring on their right middle finger they rotate when thinking — a constant, unconscious motion."
+    },
+    {
+      "roll": 205,
+      "result": "The callous pattern of someone who has used a bow for many years — three fingertips on the right hand worn smooth."
+    },
+    {
+      "roll": 206,
+      "result": "Knuckles that have been split and re-split so many times the skin there is different in texture."
+    },
+    {
+      "roll": 207,
+      "result": "A resting expression that reads as deeply polite interest and gives nothing else away."
+    },
+    {
+      "roll": 208,
+      "result": "They have clearly shaved recently but not quite recently enough — a fine regrowth visible in certain light."
+    },
+    {
+      "roll": 209,
+      "result": "Clothing that fits poorly in a specific way — too large in the shoulders, or the sleeves slightly too short."
+    },
+    {
+      "roll": 210,
+      "result": "A slight asymmetry to their face that you cannot quite locate the source of."
+    },
+    {
+      "roll": 211,
+      "result": "A very particular way of sitting — always with one foot flat on the floor, one leg crossed."
+    },
+    {
+      "roll": 212,
+      "result": "They tap three times on any surface before writing on it."
+    },
+    {
+      "roll": 213,
+      "result": "Their handshake is very careful — controlled pressure, exactly long enough, then done."
+    },
+    {
+      "roll": 214,
+      "result": "A mole or cluster of moles at the hairline, visible when they pull their hair back."
+    },
+    {
+      "roll": 215,
+      "result": "A thumb that extends backward at an unusual angle — hypermobile, and they use it in conversation to make a point."
+    },
+    {
+      "roll": 216,
+      "result": "They gesture primarily with one hand while the other remains completely still."
+    },
+    {
+      "roll": 217,
+      "result": "A faint rhythmic tapping of their foot, slow enough that you aren't sure if it's intentional."
+    },
+    {
+      "roll": 218,
+      "result": "A chin they jut forward slightly when listening — as if moving toward something."
+    },
+    {
+      "roll": 219,
+      "result": "An unusually mobile forehead — every thought registers there briefly before the rest of their face decides what to do."
+    },
+    {
+      "roll": 220,
+      "result": "The hands of someone who has worked with fiber, thread, or rope for years — fingertips worn smooth in a particular way."
+    },
+    {
+      "roll": 221,
+      "result": "They touch the side of their neck when uncertain — a tell so consistent you can set your watch to it."
+    },
+    {
+      "roll": 222,
+      "result": "Very clean clothing despite circumstances that should make it otherwise."
+    },
+    {
+      "roll": 223,
+      "result": "Very dirty hands despite circumstances that should make it otherwise."
+    },
+    {
+      "roll": 224,
+      "result": "A stitch of grey at both temples and nowhere else."
+    },
+    {
+      "roll": 225,
+      "result": "Laughter that comes in short bursts that stop abruptly rather than trailing off."
+    },
+    {
+      "roll": 226,
+      "result": "They orient their body toward exits without apparently being aware of this."
+    },
+    {
+      "roll": 227,
+      "result": "Very deliberate enunciation — no swallowed syllables, no contractions, as if they're being transcribed."
+    },
+    {
+      "roll": 228,
+      "result": "A walking pace just slightly faster than feels comfortable for most people to match."
+    },
+    {
+      "roll": 229,
+      "result": "Boots with the heels worn uneven — more weight on the outside of one foot, the inside of the other."
+    },
+    {
+      "roll": 230,
+      "result": "They smell faintly of smoke older than today — not current fire, something that has lived in their clothing for years."
+    },
+    {
+      "roll": 231,
+      "result": "A quality of listening that suggests they're hearing everything including what you're not saying."
+    },
+    {
+      "roll": 232,
+      "result": "A slight lateral sway when they're standing still that looks involuntary."
+    },
+    {
+      "roll": 233,
+      "result": "Hands that are always moving when not engaged — folding, touching a thumb to each finger in sequence."
+    },
+    {
+      "roll": 234,
+      "result": "A habit of standing with their back against something when the option is available."
+    },
+    {
+      "roll": 235,
+      "result": "The specific competent calm of someone who has dealt with something worse than whatever this currently is."
+    },
+    {
+      "roll": 236,
+      "result": "A quality of wearing their face carefully in certain situations and relaxing it noticeably when those situations pass."
+    },
+    {
+      "roll": 237,
+      "result": "They seem to be keeping track of everyone in the room without looking like they're doing so."
+    },
+    {
+      "roll": 238,
+      "result": "A faded tattoo on the back of their left hand, the design no longer fully legible."
+    },
+    {
+      "roll": 239,
+      "result": "Hands that are cold — not just cool, actively cold, regardless of ambient temperature."
+    },
+    {
+      "roll": 240,
+      "result": "Very warm hands, notably so when they make contact — constitutionally warm rather than feverish."
+    },
+    {
+      "roll": 241,
+      "result": "A pattern of small raised scars on their scalp, visible when they push their hair back."
+    },
+    {
+      "roll": 242,
+      "result": "They blink deliberately before answering difficult questions, as if resetting."
+    },
+    {
+      "roll": 243,
+      "result": "A habitual slight nod when you speak to them — not agreement, just acknowledgment, but easily mistaken for agreement."
+    },
+    {
+      "roll": 244,
+      "result": "Slightly sunken cheeks that suggest weight lost over time rather than natural proportion."
+    },
+    {
+      "roll": 245,
+      "result": "Forearms wrapped in linen or leather, reason not offered, never commented on."
+    },
+    {
+      "roll": 246,
+      "result": "They chew the inside of their cheek when thinking — the jaw working subtly, visibly."
+    },
+    {
+      "roll": 247,
+      "result": "A pale line at the wrist where something was once clasped for a very long time."
+    },
+    {
+      "roll": 248,
+      "result": "A build that was once significantly larger — the clothes, the movement, the proportion all speak to it."
+    },
+    {
+      "roll": 249,
+      "result": "A very faint accent that surfaces only in certain words or when they're tired."
+    },
+    {
+      "roll": 250,
+      "result": "They crack their back reflexively when they stand from sitting — a full-spine adjustment, without comment."
+    },
+    {
+      "roll": 251,
+      "result": "A small hard lump visible at their collar or cuff edge — something worn against the skin."
+    },
+    {
+      "roll": 252,
+      "result": "Ink stains on their right thumb and the side of their hand at the base of their pinky."
+    },
+    {
+      "roll": 253,
+      "result": "A habit of greeting people without looking at them first — they finish what they're doing, then turn, fully."
+    },
+    {
+      "roll": 254,
+      "result": "Their teeth are very slightly too large for their mouth — not grotesquely, just giving their face a slightly intense quality at certain angles."
+    },
+    {
+      "roll": 255,
+      "result": "They peel at the skin on their thumb when nervous, completely habitually."
+    },
+    {
+      "roll": 256,
+      "result": "They carry something in their right hand when walking — turning it over, pocketing it when they stop."
+    },
+    {
+      "roll": 257,
+      "result": "A habit of pressing their lips together before speaking that reads either as deliberation or suppression."
+    },
+    {
+      "roll": 258,
+      "result": "They look younger when animated and suddenly, remarkably older when they go still."
+    },
+    {
+      "roll": 259,
+      "result": "A nose with a fine network of broken capillaries across the bridge — constitution or habit, unclear."
+    },
+    {
+      "roll": 260,
+      "result": "A quality of giving you their complete attention that is either flattering or overwhelming depending on the moment."
+    },
+    {
+      "roll": 261,
+      "result": "They breathe through their mouth when concentrating — silent but open."
+    },
+    {
+      "roll": 262,
+      "result": "A habit of tracking movement at the edge of their vision even in conversation — eyes flicking to it and back."
+    },
+    {
+      "roll": 263,
+      "result": "Clothing with small careful alterations done by hand — seams let out, a collar replaced, sleeves lengthened."
+    },
+    {
+      "roll": 264,
+      "result": "They touch their collarbone when surprised — a fast, unconscious reach that stops short of whatever it was reaching for."
+    },
+    {
+      "roll": 265,
+      "result": "Very defined, strong forearms that taper to smaller hands than you'd expect from them."
+    },
+    {
+      "roll": 266,
+      "result": "A specific way of looking at things they want — a brief complete inventory before their expression returns to neutral."
+    },
+    {
+      "roll": 267,
+      "result": "Hair that is clearly not quite its original color anymore, the transition handled quietly rather than dramatically."
+    },
+    {
+      "roll": 268,
+      "result": "A permanent squint that is probably sun damage, giving them a look of permanent mild skepticism."
+    },
+    {
+      "roll": 269,
+      "result": "Very reluctant to sit down — given the option they stand, and given no option they sit forward."
+    },
+    {
+      "roll": 270,
+      "result": "A ring of callous around each wrist, old and well-integrated — the mark of something worn for a very long time."
+    },
+    {
+      "roll": 271,
+      "result": "A quality of physical comfort with themselves that is neither vanity nor indifference — they exist in their body without argument."
+    },
+    {
+      "roll": 272,
+      "result": "A very faint facial scar visible only when light catches it at a specific angle."
+    },
+    {
+      "roll": 273,
+      "result": "They have the walk of someone who has spent years on uneven terrain — a slight readiness in the knee and ankle."
+    },
+    {
+      "roll": 274,
+      "result": "Something in their stillness suggests they have sat through longer silences than this and will sit through longer ones again."
+    },
+    {
+      "roll": 275,
+      "result": "Their left eye is fractionally lower than their right — a subtle asymmetry that takes time to locate but explains the slight wrongness of their face."
+    },
+    {
+      "roll": 276,
+      "result": "A quality of taking up less space than their size would suggest — physically present but carefully contained."
+    },
+    {
+      "roll": 277,
+      "result": "They smell faintly of something medicinal — not unpleasant, just clinical."
+    },
+    {
+      "roll": 278,
+      "result": "A voice with an accent that places them somewhere specific, though they don't discuss where."
+    },
+    {
+      "roll": 279,
+      "result": "They measure things unconsciously — distances, quantities, time — and you catch them doing it."
+    },
+    {
+      "roll": 280,
+      "result": "A scar on the palm of their right hand, the kind that comes from catching a blade."
+    },
+    {
+      "roll": 281,
+      "result": "A habit of completing other people's sentences that is either warm or presumptuous depending on your tolerance."
+    },
+    {
+      "roll": 282,
+      "result": "A very short upper lip that gives their face a slightly unfinished quality."
+    },
+    {
+      "roll": 283,
+      "result": "A long upper lip that gives their face a somewhat patrician, serious quality at rest."
+    },
+    {
+      "roll": 284,
+      "result": "Eyes that reflect firelight unusually — a specific quality to it you couldn't quite explain."
+    },
+    {
+      "roll": 285,
+      "result": "The faint particular smell of a specific landscape — coastal air, pine forest, old stone — that clings to them."
+    },
+    {
+      "roll": 286,
+      "result": "A very defined philtrum — the ridge above the upper lip, prominent and deep."
+    },
+    {
+      "roll": 287,
+      "result": "A brow that furrows on one side more than the other, giving certain expressions an inadvertent quizzical quality."
+    },
+    {
+      "roll": 288,
+      "result": "One nostril slightly larger than the other — a feature that becomes apparent only after time spent with them."
+    },
+    {
+      "roll": 289,
+      "result": "A walking pace that adjusts precisely to whoever they're walking with, without appearing to do so."
+    },
+    {
+      "roll": 290,
+      "result": "Clothing worn in layers regardless of temperature — always at least three, never fewer."
+    },
+    {
+      "roll": 291,
+      "result": "A small deliberate scar on the back of their right hand — too clean to be accidental."
+    },
+    {
+      "roll": 292,
+      "result": "They introduce themselves with both a name and a trade or title, always, even when only one was asked for."
+    },
+    {
+      "roll": 293,
+      "result": "A quality of being difficult to photograph in memory — something about their features doesn't stick cleanly."
+    },
+    {
+      "roll": 294,
+      "result": "Eyebrows significantly lighter than their hair, giving their face an unintentionally surprised resting state."
+    },
+    {
+      "roll": 295,
+      "result": "They stand at a slight angle to whoever they're speaking to — never quite facing them head-on."
+    },
+    {
+      "roll": 296,
+      "result": "A voice that drops noticeably when they're being sincere and rises when they're performing."
+    },
+    {
+      "roll": 297,
+      "result": "A ring on their left hand worn on the wrong finger for its size — adjusted to fit, or deliberately placed."
+    },
+    {
+      "roll": 298,
+      "result": "Very even, slow speech — the same cadence whether they're describing the weather or delivering bad news."
+    },
+    {
+      "roll": 299,
+      "result": "A habit of finishing a drink before beginning any serious conversation, regardless of how full the cup is."
+    },
+    {
+      "roll": 300,
+      "result": "They go completely still when they're thinking hard — no fidgeting, no microexpressions, just a brief total absence."
+    }
+  ]
+}

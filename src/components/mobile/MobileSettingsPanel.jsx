@@ -1,4 +1,4 @@
-import { CaretLeft, Eye, Cube, ListDashes, Images, DownloadSimple, MapTrifold } from '@phosphor-icons/react';
+import { CaretLeft, Eye, Cube, ListDashes, Images, DownloadSimple, MapTrifold, Question, Key } from '@phosphor-icons/react';
 import SettingsPanel from '../settings/SettingsPanel';
 import useSettingsStore from '../../stores/settingsStore';
 
@@ -9,6 +9,7 @@ const CATEGORIES = [
   { id: 'images',    label: 'Images',     icon: Images         },
   { id: 'import',    label: 'Import',     icon: DownloadSimple },
   { id: 'campaign',  label: 'Campaign',   icon: MapTrifold     },
+  { id: 'account',   label: 'Account',    icon: Key            },
 ];
 
 /**

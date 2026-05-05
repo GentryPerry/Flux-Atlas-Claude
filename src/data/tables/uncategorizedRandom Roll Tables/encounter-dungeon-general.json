@@ -1,0 +1,818 @@
+{
+  "id": "encounter-dungeon-general",
+  "title": "Dungeon Encounters – General",
+  "category": "encounter-dungeon",
+  "subcategory": "general",
+  "genre": [
+    "fantasy"
+  ],
+  "die": 100,
+  "description": "A broad table of non-combat and combat situations encountered in dungeons, ruins, and labyrinthine structures in a fantasy setting.",
+  "tags": [
+    "dungeon",
+    "encounters",
+    "ruins"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name."
+    },
+    {
+      "roll": 2,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence."
+    },
+    {
+      "roll": 3,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue."
+    },
+    {
+      "roll": 4,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot."
+    },
+    {
+      "roll": 5,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches."
+    },
+    {
+      "roll": 6,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby."
+    },
+    {
+      "roll": 7,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence."
+    },
+    {
+      "roll": 8,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly."
+    },
+    {
+      "roll": 9,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance."
+    },
+    {
+      "roll": 10,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches."
+    },
+    {
+      "roll": 11,
+      "result": "The armory contains a singing statue; the ceiling sheds dust."
+    },
+    {
+      "roll": 12,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence."
+    },
+    {
+      "roll": 13,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source."
+    },
+    {
+      "roll": 14,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure."
+    },
+    {
+      "roll": 15,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches."
+    },
+    {
+      "roll": 16,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself."
+    },
+    {
+      "roll": 17,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence."
+    },
+    {
+      "roll": 18,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold."
+    },
+    {
+      "roll": 19,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered."
+    },
+    {
+      "roll": 20,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches."
+    },
+    {
+      "roll": 21,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Crooked Bell sign."
+    },
+    {
+      "roll": 22,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Crooked Road sign."
+    },
+    {
+      "roll": 23,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Crooked Fox sign."
+    },
+    {
+      "roll": 24,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Crooked Gate sign."
+    },
+    {
+      "roll": 25,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Crooked Star sign."
+    },
+    {
+      "roll": 26,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Crooked Lantern sign."
+    },
+    {
+      "roll": 27,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Crooked Thorn sign."
+    },
+    {
+      "roll": 28,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Crooked River sign."
+    },
+    {
+      "roll": 29,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Crooked Crown sign."
+    },
+    {
+      "roll": 30,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Crooked Key sign."
+    },
+    {
+      "roll": 31,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Distant Bell sign."
+    },
+    {
+      "roll": 32,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Distant Road sign."
+    },
+    {
+      "roll": 33,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Distant Fox sign."
+    },
+    {
+      "roll": 34,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Distant Gate sign."
+    },
+    {
+      "roll": 35,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Distant Star sign."
+    },
+    {
+      "roll": 36,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Distant Lantern sign."
+    },
+    {
+      "roll": 37,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Distant Thorn sign."
+    },
+    {
+      "roll": 38,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Distant River sign."
+    },
+    {
+      "roll": 39,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Distant Crown sign."
+    },
+    {
+      "roll": 40,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Distant Key sign."
+    },
+    {
+      "roll": 41,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Elder Bell sign."
+    },
+    {
+      "roll": 42,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Elder Road sign."
+    },
+    {
+      "roll": 43,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Elder Fox sign."
+    },
+    {
+      "roll": 44,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Elder Gate sign."
+    },
+    {
+      "roll": 45,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Elder Star sign."
+    },
+    {
+      "roll": 46,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Elder Lantern sign."
+    },
+    {
+      "roll": 47,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Elder Thorn sign."
+    },
+    {
+      "roll": 48,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Elder River sign."
+    },
+    {
+      "roll": 49,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Elder Crown sign."
+    },
+    {
+      "roll": 50,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Elder Key sign."
+    },
+    {
+      "roll": 51,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Fallen Bell sign."
+    },
+    {
+      "roll": 52,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Fallen Road sign."
+    },
+    {
+      "roll": 53,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Fallen Fox sign."
+    },
+    {
+      "roll": 54,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Fallen Gate sign."
+    },
+    {
+      "roll": 55,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Fallen Star sign."
+    },
+    {
+      "roll": 56,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Fallen Lantern sign."
+    },
+    {
+      "roll": 57,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Fallen Thorn sign."
+    },
+    {
+      "roll": 58,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Fallen River sign."
+    },
+    {
+      "roll": 59,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Fallen Crown sign."
+    },
+    {
+      "roll": 60,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Fallen Key sign."
+    },
+    {
+      "roll": 61,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Golden Bell sign."
+    },
+    {
+      "roll": 62,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Golden Road sign."
+    },
+    {
+      "roll": 63,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Golden Fox sign."
+    },
+    {
+      "roll": 64,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Golden Gate sign."
+    },
+    {
+      "roll": 65,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Golden Star sign."
+    },
+    {
+      "roll": 66,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Golden Lantern sign."
+    },
+    {
+      "roll": 67,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Golden Thorn sign."
+    },
+    {
+      "roll": 68,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Golden River sign."
+    },
+    {
+      "roll": 69,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Golden Crown sign."
+    },
+    {
+      "roll": 70,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Golden Key sign."
+    },
+    {
+      "roll": 71,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Hidden Bell sign."
+    },
+    {
+      "roll": 72,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Hidden Road sign."
+    },
+    {
+      "roll": 73,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Hidden Fox sign."
+    },
+    {
+      "roll": 74,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Hidden Gate sign."
+    },
+    {
+      "roll": 75,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Hidden Star sign."
+    },
+    {
+      "roll": 76,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Hidden Lantern sign."
+    },
+    {
+      "roll": 77,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Hidden Thorn sign."
+    },
+    {
+      "roll": 78,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Hidden River sign."
+    },
+    {
+      "roll": 79,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Hidden Crown sign."
+    },
+    {
+      "roll": 80,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Hidden Key sign."
+    },
+    {
+      "roll": 81,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Iron Bell sign."
+    },
+    {
+      "roll": 82,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Iron Road sign."
+    },
+    {
+      "roll": 83,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Iron Fox sign."
+    },
+    {
+      "roll": 84,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Iron Gate sign."
+    },
+    {
+      "roll": 85,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Iron Star sign."
+    },
+    {
+      "roll": 86,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Iron Lantern sign."
+    },
+    {
+      "roll": 87,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Iron Thorn sign."
+    },
+    {
+      "roll": 88,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Iron River sign."
+    },
+    {
+      "roll": 89,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Iron Crown sign."
+    },
+    {
+      "roll": 90,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Iron Key sign."
+    },
+    {
+      "roll": 91,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Jade Bell sign."
+    },
+    {
+      "roll": 92,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Jade Road sign."
+    },
+    {
+      "roll": 93,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Jade Fox sign."
+    },
+    {
+      "roll": 94,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Jade Gate sign."
+    },
+    {
+      "roll": 95,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Jade Star sign."
+    },
+    {
+      "roll": 96,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Jade Lantern sign."
+    },
+    {
+      "roll": 97,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Jade Thorn sign."
+    },
+    {
+      "roll": 98,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Jade River sign."
+    },
+    {
+      "roll": 99,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Jade Crown sign."
+    },
+    {
+      "roll": 100,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Jade Key sign."
+    },
+    {
+      "roll": 101,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Kindly Bell sign."
+    },
+    {
+      "roll": 102,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Kindly Road sign."
+    },
+    {
+      "roll": 103,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Kindly Fox sign."
+    },
+    {
+      "roll": 104,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Kindly Gate sign."
+    },
+    {
+      "roll": 105,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Kindly Star sign."
+    },
+    {
+      "roll": 106,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Kindly Lantern sign."
+    },
+    {
+      "roll": 107,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Kindly Thorn sign."
+    },
+    {
+      "roll": 108,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Kindly River sign."
+    },
+    {
+      "roll": 109,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Kindly Crown sign."
+    },
+    {
+      "roll": 110,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Kindly Key sign."
+    },
+    {
+      "roll": 111,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Lost Bell sign."
+    },
+    {
+      "roll": 112,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Lost Road sign."
+    },
+    {
+      "roll": 113,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Lost Fox sign."
+    },
+    {
+      "roll": 114,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Lost Gate sign."
+    },
+    {
+      "roll": 115,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Lost Star sign."
+    },
+    {
+      "roll": 116,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Lost Lantern sign."
+    },
+    {
+      "roll": 117,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Lost Thorn sign."
+    },
+    {
+      "roll": 118,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Lost River sign."
+    },
+    {
+      "roll": 119,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Lost Crown sign."
+    },
+    {
+      "roll": 120,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Lost Key sign."
+    },
+    {
+      "roll": 121,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Moonlit Bell sign."
+    },
+    {
+      "roll": 122,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Moonlit Road sign."
+    },
+    {
+      "roll": 123,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Moonlit Fox sign."
+    },
+    {
+      "roll": 124,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Moonlit Gate sign."
+    },
+    {
+      "roll": 125,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Moonlit Star sign."
+    },
+    {
+      "roll": 126,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Moonlit Lantern sign."
+    },
+    {
+      "roll": 127,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Moonlit Thorn sign."
+    },
+    {
+      "roll": 128,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Moonlit River sign."
+    },
+    {
+      "roll": 129,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Moonlit Crown sign."
+    },
+    {
+      "roll": 130,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Moonlit Key sign."
+    },
+    {
+      "roll": 131,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Narrow Bell sign."
+    },
+    {
+      "roll": 132,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Narrow Road sign."
+    },
+    {
+      "roll": 133,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Narrow Fox sign."
+    },
+    {
+      "roll": 134,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Narrow Gate sign."
+    },
+    {
+      "roll": 135,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Narrow Star sign."
+    },
+    {
+      "roll": 136,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Narrow Lantern sign."
+    },
+    {
+      "roll": 137,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Narrow Thorn sign."
+    },
+    {
+      "roll": 138,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Narrow River sign."
+    },
+    {
+      "roll": 139,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Narrow Crown sign."
+    },
+    {
+      "roll": 140,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Narrow Key sign."
+    },
+    {
+      "roll": 141,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Old Bell sign."
+    },
+    {
+      "roll": 142,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Old Road sign."
+    },
+    {
+      "roll": 143,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Old Fox sign."
+    },
+    {
+      "roll": 144,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Old Gate sign."
+    },
+    {
+      "roll": 145,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Old Star sign."
+    },
+    {
+      "roll": 146,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Old Lantern sign."
+    },
+    {
+      "roll": 147,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Old Thorn sign."
+    },
+    {
+      "roll": 148,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Old River sign."
+    },
+    {
+      "roll": 149,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Old Crown sign."
+    },
+    {
+      "roll": 150,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Old Key sign."
+    },
+    {
+      "roll": 151,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Pale Bell sign."
+    },
+    {
+      "roll": 152,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Pale Road sign."
+    },
+    {
+      "roll": 153,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Pale Fox sign."
+    },
+    {
+      "roll": 154,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Pale Gate sign."
+    },
+    {
+      "roll": 155,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Pale Star sign."
+    },
+    {
+      "roll": 156,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Pale Lantern sign."
+    },
+    {
+      "roll": 157,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Pale Thorn sign."
+    },
+    {
+      "roll": 158,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Pale River sign."
+    },
+    {
+      "roll": 159,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Pale Crown sign."
+    },
+    {
+      "roll": 160,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Pale Key sign."
+    },
+    {
+      "roll": 161,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Quiet Bell sign."
+    },
+    {
+      "roll": 162,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Quiet Road sign."
+    },
+    {
+      "roll": 163,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Quiet Fox sign."
+    },
+    {
+      "roll": 164,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Quiet Gate sign."
+    },
+    {
+      "roll": 165,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Quiet Star sign."
+    },
+    {
+      "roll": 166,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Quiet Lantern sign."
+    },
+    {
+      "roll": 167,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Quiet Thorn sign."
+    },
+    {
+      "roll": 168,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Quiet River sign."
+    },
+    {
+      "roll": 169,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Quiet Crown sign."
+    },
+    {
+      "roll": 170,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Quiet Key sign."
+    },
+    {
+      "roll": 171,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Red Bell sign."
+    },
+    {
+      "roll": 172,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Red Road sign."
+    },
+    {
+      "roll": 173,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Red Fox sign."
+    },
+    {
+      "roll": 174,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Red Gate sign."
+    },
+    {
+      "roll": 175,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Red Star sign."
+    },
+    {
+      "roll": 176,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Red Lantern sign."
+    },
+    {
+      "roll": 177,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Red Thorn sign."
+    },
+    {
+      "roll": 178,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Red River sign."
+    },
+    {
+      "roll": 179,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Red Crown sign."
+    },
+    {
+      "roll": 180,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Red Key sign."
+    },
+    {
+      "roll": 181,
+      "result": "The flooded chamber contains an old diary; a whisper speaks a familiar name. Locals remember this as the Silver Bell sign."
+    },
+    {
+      "roll": 182,
+      "result": "A leather door opens into crypt alcove, where a dry fountain waits in eerie silence. Locals remember this as the Silver Road sign."
+    },
+    {
+      "roll": 183,
+      "result": "In the subterranean garden, a single heartbeat echoes from behind a singing statue; the torchlight turns blue. Locals remember this as the Silver Fox sign."
+    },
+    {
+      "roll": 184,
+      "result": "A corridor slopes into ritual room; the floor is covered with charcoal sketches, and the stones shift underfoot. Locals remember this as the Silver Gate sign."
+    },
+    {
+      "roll": 185,
+      "result": "The party finds an old diary beside a stone pillar; a ticking mechanism grows louder when anyone approaches. Locals remember this as the Silver Star sign."
+    },
+    {
+      "roll": 186,
+      "result": "The statue chamber contains a dry fountain; an unseen creature breathes nearby. Locals remember this as the Silver Lantern sign."
+    },
+    {
+      "roll": 187,
+      "result": "A obsidian door opens into well room, where a singing statue waits in eerie silence. Locals remember this as the Silver Thorn sign."
+    },
+    {
+      "roll": 188,
+      "result": "In the dusty library, a deep sigh echoes from behind a pile of broken weapons; a hidden mechanism clicks softly. Locals remember this as the Silver River sign."
+    },
+    {
+      "roll": 189,
+      "result": "A corridor slopes into guardroom; the floor is covered with dry petals, and the exit is harder to find than the entrance. Locals remember this as the Silver Crown sign."
+    },
+    {
+      "roll": 190,
+      "result": "The party finds a dry fountain beside a ash wood pillar; rustling paper grows louder when anyone approaches. Locals remember this as the Silver Key sign."
+    },
+    {
+      "roll": 191,
+      "result": "The armory contains a singing statue; the ceiling sheds dust. Locals remember this as the Twilit Bell sign."
+    },
+    {
+      "roll": 192,
+      "result": "A clay door opens into narrow cell, where a pile of broken weapons waits in eerie silence. Locals remember this as the Twilit Road sign."
+    },
+    {
+      "roll": 193,
+      "result": "In the bone chapel, distant laughter echoes from behind an old diary; a shadow moves without a source. Locals remember this as the Twilit Fox sign."
+    },
+    {
+      "roll": 194,
+      "result": "A corridor slopes into underground bridge; the floor is covered with torn banners, and the walls hum with pressure. Locals remember this as the Twilit Gate sign."
+    },
+    {
+      "roll": 195,
+      "result": "The party finds a singing statue beside a wax pillar; someone counting grows louder when anyone approaches. Locals remember this as the Twilit Star sign."
+    },
+    {
+      "roll": 196,
+      "result": "The mosaic gallery contains a pile of broken weapons; the door closes by itself. Locals remember this as the Twilit Lantern sign."
+    },
+    {
+      "roll": 197,
+      "result": "A bone door opens into empty barracks, where an old diary waits in eerie silence. Locals remember this as the Twilit Thorn sign."
+    },
+    {
+      "roll": 198,
+      "result": "In the mirror hall, muffled bells echoes from behind a dry fountain; the air suddenly turns cold. Locals remember this as the Twilit River sign."
+    },
+    {
+      "roll": 199,
+      "result": "A corridor slopes into clockwork room; the floor is covered with broken pottery, and a trap has already been triggered. Locals remember this as the Twilit Crown sign."
+    },
+    {
+      "roll": 200,
+      "result": "The party finds a pile of broken weapons beside a brass pillar; a child humming grows louder when anyone approaches. Locals remember this as the Twilit Key sign."
+    }
+  ]
+}

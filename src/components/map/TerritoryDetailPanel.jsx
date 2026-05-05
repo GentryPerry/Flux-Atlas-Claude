@@ -1,5 +1,5 @@
-import { useMemo, useCallback, useRef } from 'react';
-import { X, Trash, Shield, Cross, Crown, PencilSimple } from '@phosphor-icons/react';
+import { useMemo, useCallback, useRef, useState, useEffect } from 'react';
+import { X, Trash, Shield, Cross, Crown, PencilSimple, DotsSixVertical } from '@phosphor-icons/react';
 import CustomSelect from '../common/CustomSelect';
 import useTerritoryStore from '../../stores/territoryStore';
 import useNodeStore from '../../stores/nodeStore';
@@ -15,22 +15,27 @@ const PRESET_COLORS = [
 
 export default function TerritoryDetailPanel({ territoryId, onClose, editingPoints, onToggleEditPoints }) {
   const colorInputRef = useRef(null);
-  const campaignId = useCampaignStore((s) => s.activeCampaignId);
-  const allTerritories = useTerritoryStore((s) => s.territories);
+  const panelRef      = useRef(null);
+  const dragRef       = useRef(null); // { startX, startY, origLeft, origTop }
+
+  const campaignId      = useCampaignStore((s) => s.activeCampaignId);
+  const allTerritories  = useTerritoryStore((s) => s.territories);
   const updateTerritory = useTerritoryStore((s) => s.updateTerritory);
   const deleteTerritory = useTerritoryStore((s) => s.deleteTerritory);
-  const allNodes = useNodeStore((s) => s.nodes);
+  const allNodes        = useNodeStore((s) => s.nodes);
+
+  // Drag position — null means use default CSS centering
+  const [dragPos, setDragPos] = useState(null);
 
   const territory = allTerritories.find((t) => t.id === territoryId);
+
+  // Reset position when territory changes
+  useEffect(() => { setDragPos(null); }, [territoryId]);
 
   const ownerOptions = useMemo(() => {
     return allNodes
       .filter((n) => OWNER_TYPES.includes(n.type) && n.fields?.name)
-      .map((n) => ({
-        id: n.id,
-        name: n.fields.name,
-        type: n.type,
-      }))
+      .map((n) => ({ id: n.id, name: n.fields.name, type: n.type }))
       .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
   }, [allNodes]);
 
@@ -46,10 +51,7 @@ export default function TerritoryDetailPanel({ territoryId, onClose, editingPoin
   }, [territory, allNodes, campaignId, territoryId, updateTerritory]);
 
   const handleColorChange = useCallback((color) => {
-    updateTerritory(campaignId, territoryId, {
-      color,
-      strokeColor: color,
-    });
+    updateTerritory(campaignId, territoryId, { color, strokeColor: color });
   }, [campaignId, territoryId, updateTerritory]);
 
   const handleDelete = useCallback(() => {
@@ -57,19 +59,61 @@ export default function TerritoryDetailPanel({ territoryId, onClose, editingPoin
     onClose();
   }, [campaignId, territoryId, deleteTerritory, onClose]);
 
+  // ── Drag-to-reposition ───────────────────────────────────────────────────
+  const handleHeaderPointerDown = useCallback((e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      origLeft: rect.left,
+      origTop:  rect.top,
+    };
+
+    const onMove = (me) => {
+      const { startX, startY, origLeft, origTop } = dragRef.current;
+      const newLeft = origLeft + (me.clientX - startX);
+      const newTop  = origTop  + (me.clientY - startY);
+      // Clamp to viewport
+      const pw = panel.offsetWidth;
+      const ph = panel.offsetHeight;
+      const clampedLeft = Math.max(8, Math.min(window.innerWidth  - pw - 8, newLeft));
+      const clampedTop  = Math.max(8, Math.min(window.innerHeight - ph - 8, newTop));
+      setDragPos({ left: clampedLeft, top: clampedTop });
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup',   onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup',   onUp);
+  }, []);
+
   if (!territory) return null;
 
+  // When dragged, override to absolute positioning; otherwise use default CSS
+  const posStyle = dragPos
+    ? { position: 'fixed', left: dragPos.left, top: dragPos.top, bottom: 'auto', transform: 'none' }
+    : {};
+
   return (
-    <div className="territory-detail-panel">
-      <div className="territory-detail-header">
+    <div className="territory-detail-panel" ref={panelRef} style={posStyle}>
+      <div
+        className="territory-detail-header"
+        onPointerDown={handleHeaderPointerDown}
+        style={{ cursor: 'grab', userSelect: 'none' }}
+        title="Drag to reposition"
+      >
         <div className="territory-detail-title">
-          <div
-            className="territory-color-swatch"
-            style={{ background: territory.color }}
-          />
+          <DotsSixVertical size={13} style={{ opacity: 0.4, flexShrink: 0 }} />
+          <div className="territory-color-swatch" style={{ background: territory.color }} />
           <span>{territory.name}</span>
         </div>
-        <button className="btn-icon" onClick={onClose} title="Close">
+        <button className="btn-icon" onPointerDown={(e) => e.stopPropagation()} onClick={onClose} title="Close">
           <X size={16} />
         </button>
       </div>
@@ -141,7 +185,7 @@ export default function TerritoryDetailPanel({ territoryId, onClose, editingPoin
             </button>
             {editingPoints && (
               <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Drag handles to reposition. Shift+click a handle to remove it.
+                Drag handles to reposition. Click edge to add a point. Shift+click a handle to remove it.
               </div>
             )}
           </div>

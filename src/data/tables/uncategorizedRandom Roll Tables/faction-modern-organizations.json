@@ -1,0 +1,818 @@
+{
+  "id": "faction-modern-organizations",
+  "title": "Modern Factions – Organizations",
+  "category": "faction",
+  "subcategory": "organizations",
+  "genre": [
+    "modern"
+  ],
+  "die": 100,
+  "description": "Contemporary civic, criminal, nonprofit, and informal organizations for modern stories and investigations.",
+  "tags": [
+    "modern",
+    "factions",
+    "organizations"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "The neighborhood watch coalition protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 2,
+      "result": "The neighborhood watch coalition knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 3,
+      "result": "The neighborhood watch coalition keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 4,
+      "result": "The neighborhood watch coalition claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 5,
+      "result": "The neighborhood watch coalition trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 6,
+      "result": "The neighborhood watch coalition has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 7,
+      "result": "The neighborhood watch coalition operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 8,
+      "result": "The neighborhood watch coalition collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 9,
+      "result": "The neighborhood watch coalition believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 10,
+      "result": "The neighborhood watch coalition is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 11,
+      "result": "The private security contractor protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 12,
+      "result": "The private security contractor knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 13,
+      "result": "The private security contractor keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 14,
+      "result": "The private security contractor claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 15,
+      "result": "The private security contractor trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 16,
+      "result": "The private security contractor has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 17,
+      "result": "The private security contractor operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 18,
+      "result": "The private security contractor collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 19,
+      "result": "The private security contractor believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 20,
+      "result": "The private security contractor is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 21,
+      "result": "The tenants’ rights committee protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 22,
+      "result": "The tenants’ rights committee knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 23,
+      "result": "The tenants’ rights committee keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 24,
+      "result": "The tenants’ rights committee claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 25,
+      "result": "The tenants’ rights committee trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 26,
+      "result": "The tenants’ rights committee has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 27,
+      "result": "The tenants’ rights committee operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 28,
+      "result": "The tenants’ rights committee collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 29,
+      "result": "The tenants’ rights committee believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 30,
+      "result": "The tenants’ rights committee is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 31,
+      "result": "The regional courier network protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 32,
+      "result": "The regional courier network knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 33,
+      "result": "The regional courier network keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 34,
+      "result": "The regional courier network claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 35,
+      "result": "The regional courier network trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 36,
+      "result": "The regional courier network has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 37,
+      "result": "The regional courier network operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 38,
+      "result": "The regional courier network collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 39,
+      "result": "The regional courier network believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 40,
+      "result": "The regional courier network is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 41,
+      "result": "The church benevolence board protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 42,
+      "result": "The church benevolence board knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 43,
+      "result": "The church benevolence board keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 44,
+      "result": "The church benevolence board claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 45,
+      "result": "The church benevolence board trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 46,
+      "result": "The church benevolence board has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 47,
+      "result": "The church benevolence board operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 48,
+      "result": "The church benevolence board collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 49,
+      "result": "The church benevolence board believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 50,
+      "result": "The church benevolence board is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 51,
+      "result": "The local historical society protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 52,
+      "result": "The local historical society knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 53,
+      "result": "The local historical society keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 54,
+      "result": "The local historical society claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 55,
+      "result": "The local historical society trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 56,
+      "result": "The local historical society has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 57,
+      "result": "The local historical society operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 58,
+      "result": "The local historical society collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 59,
+      "result": "The local historical society believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 60,
+      "result": "The local historical society is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 61,
+      "result": "The freelance journalist circle protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 62,
+      "result": "The freelance journalist circle knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 63,
+      "result": "The freelance journalist circle keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 64,
+      "result": "The freelance journalist circle claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 65,
+      "result": "The freelance journalist circle trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 66,
+      "result": "The freelance journalist circle has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 67,
+      "result": "The freelance journalist circle operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 68,
+      "result": "The freelance journalist circle collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 69,
+      "result": "The freelance journalist circle believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 70,
+      "result": "The freelance journalist circle is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 71,
+      "result": "The urban explorers club protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 72,
+      "result": "The urban explorers club knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 73,
+      "result": "The urban explorers club keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 74,
+      "result": "The urban explorers club claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 75,
+      "result": "The urban explorers club trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 76,
+      "result": "The urban explorers club has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 77,
+      "result": "The urban explorers club operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 78,
+      "result": "The urban explorers club collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 79,
+      "result": "The urban explorers club believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 80,
+      "result": "The urban explorers club is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 81,
+      "result": "The county emergency volunteers protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 82,
+      "result": "The county emergency volunteers knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 83,
+      "result": "The county emergency volunteers keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 84,
+      "result": "The county emergency volunteers claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 85,
+      "result": "The county emergency volunteers trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 86,
+      "result": "The county emergency volunteers has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 87,
+      "result": "The county emergency volunteers operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 88,
+      "result": "The county emergency volunteers collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 89,
+      "result": "The county emergency volunteers believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 90,
+      "result": "The county emergency volunteers is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 91,
+      "result": "The hospital donor foundation protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 92,
+      "result": "The hospital donor foundation knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 93,
+      "result": "The hospital donor foundation keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 94,
+      "result": "The hospital donor foundation claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 95,
+      "result": "The hospital donor foundation trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 96,
+      "result": "The hospital donor foundation has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 97,
+      "result": "The hospital donor foundation operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 98,
+      "result": "The hospital donor foundation collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 99,
+      "result": "The hospital donor foundation believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 100,
+      "result": "The hospital donor foundation is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 101,
+      "result": "The food truck association protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 102,
+      "result": "The food truck association knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 103,
+      "result": "The food truck association keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 104,
+      "result": "The food truck association claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 105,
+      "result": "The food truck association trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 106,
+      "result": "The food truck association has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 107,
+      "result": "The food truck association operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 108,
+      "result": "The food truck association collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 109,
+      "result": "The food truck association believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 110,
+      "result": "The food truck association is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 111,
+      "result": "The night-shift rideshare union protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 112,
+      "result": "The night-shift rideshare union knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 113,
+      "result": "The night-shift rideshare union keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 114,
+      "result": "The night-shift rideshare union claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 115,
+      "result": "The night-shift rideshare union trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 116,
+      "result": "The night-shift rideshare union has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 117,
+      "result": "The night-shift rideshare union operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 118,
+      "result": "The night-shift rideshare union collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 119,
+      "result": "The night-shift rideshare union believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 120,
+      "result": "The night-shift rideshare union is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 121,
+      "result": "The veterans’ motorcycle club protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 122,
+      "result": "The veterans’ motorcycle club knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 123,
+      "result": "The veterans’ motorcycle club keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 124,
+      "result": "The veterans’ motorcycle club claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 125,
+      "result": "The veterans’ motorcycle club trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 126,
+      "result": "The veterans’ motorcycle club has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 127,
+      "result": "The veterans’ motorcycle club operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 128,
+      "result": "The veterans’ motorcycle club collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 129,
+      "result": "The veterans’ motorcycle club believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 130,
+      "result": "The veterans’ motorcycle club is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 131,
+      "result": "The independent bookstore collective protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 132,
+      "result": "The independent bookstore collective knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 133,
+      "result": "The independent bookstore collective keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 134,
+      "result": "The independent bookstore collective claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 135,
+      "result": "The independent bookstore collective trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 136,
+      "result": "The independent bookstore collective has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 137,
+      "result": "The independent bookstore collective operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 138,
+      "result": "The independent bookstore collective collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 139,
+      "result": "The independent bookstore collective believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 140,
+      "result": "The independent bookstore collective is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 141,
+      "result": "The suburban parent council protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 142,
+      "result": "The suburban parent council knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 143,
+      "result": "The suburban parent council keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 144,
+      "result": "The suburban parent council claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 145,
+      "result": "The suburban parent council trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 146,
+      "result": "The suburban parent council has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 147,
+      "result": "The suburban parent council operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 148,
+      "result": "The suburban parent council collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 149,
+      "result": "The suburban parent council believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 150,
+      "result": "The suburban parent council is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 151,
+      "result": "The charity thrift consortium protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 152,
+      "result": "The charity thrift consortium knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 153,
+      "result": "The charity thrift consortium keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 154,
+      "result": "The charity thrift consortium claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 155,
+      "result": "The charity thrift consortium trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 156,
+      "result": "The charity thrift consortium has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 157,
+      "result": "The charity thrift consortium operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 158,
+      "result": "The charity thrift consortium collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 159,
+      "result": "The charity thrift consortium believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 160,
+      "result": "The charity thrift consortium is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 161,
+      "result": "The storm-chaser network protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 162,
+      "result": "The storm-chaser network knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 163,
+      "result": "The storm-chaser network keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 164,
+      "result": "The storm-chaser network claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 165,
+      "result": "The storm-chaser network trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 166,
+      "result": "The storm-chaser network has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 167,
+      "result": "The storm-chaser network operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 168,
+      "result": "The storm-chaser network collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 169,
+      "result": "The storm-chaser network believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 170,
+      "result": "The storm-chaser network is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 171,
+      "result": "The community garden league protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 172,
+      "result": "The community garden league knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 173,
+      "result": "The community garden league keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 174,
+      "result": "The community garden league claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 175,
+      "result": "The community garden league trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 176,
+      "result": "The community garden league has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 177,
+      "result": "The community garden league operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 178,
+      "result": "The community garden league collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 179,
+      "result": "The community garden league believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 180,
+      "result": "The community garden league is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 181,
+      "result": "The civil liberties clinic protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 182,
+      "result": "The civil liberties clinic knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 183,
+      "result": "The civil liberties clinic keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 184,
+      "result": "The civil liberties clinic claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 185,
+      "result": "The civil liberties clinic trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 186,
+      "result": "The civil liberties clinic has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 187,
+      "result": "The civil liberties clinic operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 188,
+      "result": "The civil liberties clinic collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 189,
+      "result": "The civil liberties clinic believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 190,
+      "result": "The civil liberties clinic is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    },
+    {
+      "roll": 191,
+      "result": "The amateur radio club protects its members from outside scrutiny while presenting itself as civic-minded; Their help can open doors, but their expectations travel with it."
+    },
+    {
+      "roll": 192,
+      "result": "The amateur radio club knows the city’s unofficial routes, favors, and grudges; They know where the paper trail begins and where it gets buried."
+    },
+    {
+      "roll": 193,
+      "result": "The amateur radio club keeps careful records and shares them only with people who prove useful; They are friendly until they feel used."
+    },
+    {
+      "roll": 194,
+      "result": "The amateur radio club claims to serve the public but often protects its own first; Crossing them creates social consequences before legal ones."
+    },
+    {
+      "roll": 195,
+      "result": "The amateur radio club trades in favors rather than money and remembers every slight; Their enemies describe them as meddling, corrupt, or necessary."
+    },
+    {
+      "roll": 196,
+      "result": "The amateur radio club has one legitimate arm and one deniable arm that handles uglier errands; They can provide access, witnesses, vehicles, or pressure."
+    },
+    {
+      "roll": 197,
+      "result": "The amateur radio club operates through potlucks, text chains, and quiet pressure; They fear exposure almost as much as failure."
+    },
+    {
+      "roll": 198,
+      "result": "The amateur radio club collects secrets because secrets are more dependable than donations; Their internal dispute may become the real obstacle."
+    },
+    {
+      "roll": 199,
+      "result": "The amateur radio club believes the authorities are too slow and acts before asking permission; They measure trust in repeated small favors."
+    },
+    {
+      "roll": 200,
+      "result": "The amateur radio club is split between older members seeking control and younger members demanding transparency; They are strongest on familiar streets and weakest under scrutiny."
+    }
+  ]
+}

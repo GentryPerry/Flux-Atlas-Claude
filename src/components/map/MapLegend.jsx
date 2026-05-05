@@ -73,19 +73,23 @@ export default function MapLegend() {
       {(presentTypes.length > 0 || stagedNodes.length > 0) && (
         <div className={`legend-staging${presentTypes.length > 0 ? ' legend-staging-divided' : ''}`}>
           <button
-            className="legend-staging-header"
+            className={`legend-staging-header${stagingOpen ? ' open' : ''}`}
             onClick={() => setStagingOpen((v) => !v)}
+            title={stagingOpen ? 'Collapse staging' : 'Expand staging'}
           >
-            <Tray size={12} />
+            <Tray size={13} style={{ flexShrink: 0 }} />
             <span>Staging</span>
             {stagedNodes.length > 0 && (
               <span className="legend-staging-count">{stagedNodes.length}</span>
             )}
             <span className="legend-staging-caret">
-              {stagingOpen
-                ? <CaretDown size={10} />
-                : <CaretRight size={10} />
-              }
+              <CaretDown
+                size={11}
+                style={{
+                  transform: stagingOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                  transition: 'transform 0.15s',
+                }}
+              />
             </span>
           </button>
 

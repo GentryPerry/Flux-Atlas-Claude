@@ -1,0 +1,419 @@
+{
+  "id": "ancestry-unusual-traits",
+  "title": "Ancestry Unusual Traits",
+  "category": "ancestry",
+  "subcategory": "unusual traits",
+  "genre": [
+    "fantasy"
+  ],
+  "die": 100,
+  "description": "A table of distinctive inherited traits, bloodline quirks, and visible ancestry markers for fantasy characters.",
+  "tags": [
+    "ancestry",
+    "heritage",
+    "physical traits",
+    "bloodlines"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "Celestial-Touched infants sometimes cry motes of light instead of tears; the glow fades within minutes but leaves a faint scent of rain."
+    },
+    {
+      "roll": 2,
+      "result": "Soft horn buds on a Fiend-Touched child may never harden, remaining warm like candlewax beneath the hairline."
+    },
+    {
+      "roll": 3,
+      "result": "Cat-Folk with night-glass eyes reflect lanternlight in two colors, one from each parent line."
+    },
+    {
+      "roll": 4,
+      "result": "Corvid-Folk often hide a single pale feather under darker plumage, treating it as a private omen of restless curiosity."
+    },
+    {
+      "roll": 5,
+      "result": "Dragon-Blooded families can pass down scale patches shaped like old battle scars, even on descendants who have never fought."
+    },
+    {
+      "roll": 6,
+      "result": "Living Construct bodies sometimes develop hairline seams that open only during sleep for tiny internal maintenance tools."
+    },
+    {
+      "roll": 7,
+      "result": "An Astral Warrior born beneath a comet storm may have star-specked gums and teeth that catch light like opal."
+    },
+    {
+      "roll": 8,
+      "result": "Mindwalker children may answer questions before they are spoken, then forget they did so moments later."
+    },
+    {
+      "roll": 9,
+      "result": "Psionic Aberration ancestry can leave faint ridges around the skull that pulse when nearby thoughts grow loud."
+    },
+    {
+      "roll": 10,
+      "result": "Eye Tyrant bloodlines sometimes show as a ring of tiny birthmarks around one eye, like sealed eyelids waiting to open."
+    },
+    {
+      "roll": 11,
+      "result": "Avian-Folk from high peaks may grow downy insulation at the wrists that thickens before storms."
+    },
+    {
+      "roll": 12,
+      "result": "A Celestial-Touched smile can briefly brighten dim rooms, though the effect is strongest when the smile is sincere."
+    },
+    {
+      "roll": 13,
+      "result": "Fiend-Touched blood occasionally darkens the tongue and gives spicy food a pleasant metallic sweetness."
+    },
+    {
+      "roll": 14,
+      "result": "Some Cat-Folk are born with silent claws that make no click on stone, even when fully extended."
+    },
+    {
+      "roll": 15,
+      "result": "Rare Corvid-Folk dream in perfect echoes, waking able to repeat any sound heard the previous day."
+    },
+    {
+      "roll": 16,
+      "result": "Dragon-Blooded palms may carry enough heat to soften wax or keep a cup warm."
+    },
+    {
+      "roll": 17,
+      "result": "One Living Construct lineage replaces fingerprints with maker-marks that resemble tiny circuit diagrams or chisel flourishes."
+    },
+    {
+      "roll": 18,
+      "result": "An Astral Warrior's shadow may lag a breath behind their movement whenever the stars are visible."
+    },
+    {
+      "roll": 19,
+      "result": "Mindwalker ancestry sometimes shifts eye color toward the emotional state of the nearest person."
+    },
+    {
+      "roll": 20,
+      "result": "Certain Psionic Aberration descendants have too many tiny teeth hidden behind an otherwise normal smile."
+    },
+    {
+      "roll": 21,
+      "result": "Eye Tyrant heirs occasionally sleep with one eye open and see fragmented dreams through it."
+    },
+    {
+      "roll": 22,
+      "result": "Avian-Folk raised near the sea can develop salt-resistant feathers that bead water like waxed canvas."
+    },
+    {
+      "roll": 23,
+      "result": "Halo-shaped cowlicks mark certain Celestial-Touched families, impossible to flatten for more than a few minutes."
+    },
+    {
+      "roll": 24,
+      "result": "Fiend-Touched fingernails may grow slightly pointed and blacken at the tips during moments of embarrassment."
+    },
+    {
+      "roll": 25,
+      "result": "Cat-Folk forearm whiskers help judge tight passages, twitching before the body brushes stone or wood."
+    },
+    {
+      "roll": 26,
+      "result": "A Corvid-Folk voice sometimes gains a second undertone at dusk, as though someone softly repeats each word."
+    },
+    {
+      "roll": 27,
+      "result": "Dragon-Blooded pupils can narrow into fine slits during concentration, regardless of surrounding light."
+    },
+    {
+      "roll": 28,
+      "result": "Living Construct joints may click in a steady rhythm that changes tempo according to mood."
+    },
+    {
+      "roll": 29,
+      "result": "Among Astral Warriors, birthmarks sometimes resemble constellations not visible from the world where they were born."
+    },
+    {
+      "roll": 30,
+      "result": "Mindwalker families may share headaches at the same hour, especially when separated by great distance."
+    },
+    {
+      "roll": 31,
+      "result": "Psionic Aberration skin can show faint branching veins that shimmer when a room falls silent."
+    },
+    {
+      "roll": 32,
+      "result": "Eye Tyrant ancestry sometimes produces panoramic peripheral vision, making direct eye contact feel unnervingly precise."
+    },
+    {
+      "roll": 33,
+      "result": "Avian-Folk toe talons may grow blunt and strong, better for climbing wet stone than gripping prey."
+    },
+    {
+      "roll": 34,
+      "result": "Celestial-Touched blood can leave tiny golden flecks in the whites of the eyes, most visible at sunrise."
+    },
+    {
+      "roll": 35,
+      "result": "Fiend-Touched ears sometimes end in flexible points that warm noticeably when lies are spoken nearby."
+    },
+    {
+      "roll": 36,
+      "result": "Cat-Folk tails may carry ring patterns matching no known feline, used by families like heraldic marks."
+    },
+    {
+      "roll": 37,
+      "result": "Corvid-Folk adolescents sometimes collect words instead of objects, obsessively repeating a new favorite phrase for days."
+    },
+    {
+      "roll": 38,
+      "result": "Dragon-Blooded tongues may split slightly at the tip, softening their speech around sibilants."
+    },
+    {
+      "roll": 39,
+      "result": "Living Construct skin plates can oxidize in decorative colors, giving elders a patina that records weather and travel."
+    },
+    {
+      "roll": 40,
+      "result": "While asleep, an Astral Warrior may float a hair's breadth above still water, sinking only when awakened."
+    },
+    {
+      "roll": 41,
+      "result": "Mindwalker scars sometimes heal into pale, smooth lines that tingle when someone nearby recalls them."
+    },
+    {
+      "roll": 42,
+      "result": "Inner ears shaped by Psionic Aberration heritage can become painfully sensitive to whispered thoughts and distant machinery."
+    },
+    {
+      "roll": 43,
+      "result": "An Eye Tyrant descendant may grow lashes inward without irritation, forming protective dark rings around the eyes."
+    },
+    {
+      "roll": 44,
+      "result": "Desert-born Avian-Folk often molt dusty brown feathers before long journeys, shedding heat more easily."
+    },
+    {
+      "roll": 45,
+      "result": "Celestial-Touched skin may bruise in violet and gold rather than blue or green."
+    },
+    {
+      "roll": 46,
+      "result": "Fiend-Touched children sometimes sneeze tiny sparks that vanish before touching anything."
+    },
+    {
+      "roll": 47,
+      "result": "Cat-Folk can inherit a soothing purr that begins only when someone else is frightened."
+    },
+    {
+      "roll": 48,
+      "result": "Corvid-Folk fingernails may grow glossy and dark, easily mistaken for lacquer even when bare."
+    },
+    {
+      "roll": 49,
+      "result": "Dragon-Blooded shoulders occasionally bear small scale ridges that rise when they feel threatened."
+    },
+    {
+      "roll": 50,
+      "result": "Living Construct eyes might dilate by sliding mechanical shutters instead of changing pupil size."
+    },
+    {
+      "roll": 51,
+      "result": "Astral Warrior hair may drift as if underwater whenever a portal or planar rift is nearby."
+    },
+    {
+      "roll": 52,
+      "result": "Some Mindwalker descendants have no private inner monologue unless they deliberately focus on one."
+    },
+    {
+      "roll": 53,
+      "result": "Psionic Aberration blood can smell faintly of ozone when exposed to air."
+    },
+    {
+      "roll": 54,
+      "result": "Eye Tyrant lineage may produce tear ducts that secrete pearly droplets during intense concentration."
+    },
+    {
+      "roll": 55,
+      "result": "Avian-Folk feathers along the spine can flatten into a smooth crest when social tension rises."
+    },
+    {
+      "roll": 56,
+      "result": "A Celestial-Touched person's footprints may dry faster than the surrounding ground after rain."
+    },
+    {
+      "roll": 57,
+      "result": "Fiend-Touched horns, when present, sometimes grow asymmetrically, with one polished smooth by nervous touching."
+    },
+    {
+      "roll": 58,
+      "result": "Cat-Folk ears can rotate independently, betraying attention even when the face remains calm."
+    },
+    {
+      "roll": 59,
+      "result": "Corvid-Folk elders may silver at the feather tips rather than along the hairline."
+    },
+    {
+      "roll": 60,
+      "result": "Dragon-Blooded teeth sometimes include a second row of small rear molars suited for cracking shells and bones."
+    },
+    {
+      "roll": 61,
+      "result": "Living Construct descendants built with wood components may sprout harmless moss in damp climates."
+    },
+    {
+      "roll": 62,
+      "result": "Astral Warrior hands can leave faint starlike impressions on dusty surfaces for a few seconds."
+    },
+    {
+      "roll": 63,
+      "result": "Mindwalker children may hum the emotional tone of a room before they understand words for feelings."
+    },
+    {
+      "roll": 64,
+      "result": "Mirrors near Psionic Aberration heirs sometimes show the face a fraction too late."
+    },
+    {
+      "roll": 65,
+      "result": "Eye Tyrant families can pass down a stare that animals instinctively avoid meeting."
+    },
+    {
+      "roll": 66,
+      "result": "Avian-Folk chest bones may form a pronounced keel, making armor and formalwear difficult to fit."
+    },
+    {
+      "roll": 67,
+      "result": "Celestial-Touched hair occasionally brightens at the ends after acts of mercy and dulls after cruelty."
+    },
+    {
+      "roll": 68,
+      "result": "Fiend-Touched skin near old wounds may remain slightly warmer than the rest of the body."
+    },
+    {
+      "roll": 69,
+      "result": "Cat-Folk pupils can widen dramatically when music begins, especially strings or bells."
+    },
+    {
+      "roll": 70,
+      "result": "Corvid-Folk with strong mimicry gifts may accidentally borrow another person's laugh for several days."
+    },
+    {
+      "roll": 71,
+      "result": "Dragon-Blooded breath sometimes fogs glass with tiny crystalline patterns instead of ordinary moisture."
+    },
+    {
+      "roll": 72,
+      "result": "Living Construct voices may carry subtle harmonic overtones, like several small chimes beneath speech."
+    },
+    {
+      "roll": 73,
+      "result": "Astral Warrior eyes can show faint rings like planetary orbits under candlelight."
+    },
+    {
+      "roll": 74,
+      "result": "Mindwalker ancestry may cause a person to taste certain memories as citrus, smoke, or iron."
+    },
+    {
+      "roll": 75,
+      "result": "Psionic Aberration fingers are sometimes slightly too long, with an extra crease that aids delicate work."
+    },
+    {
+      "roll": 76,
+      "result": "Eye Tyrant descendants may blink one eye at a time, unsettling anyone trying to read their expression."
+    },
+    {
+      "roll": 77,
+      "result": "Avian-Folk feathers can grow in family-specific bands of color hidden beneath the outer plumage."
+    },
+    {
+      "roll": 78,
+      "result": "A Celestial-Touched wound may close with a brief flash of white light before ordinary scarring begins."
+    },
+    {
+      "roll": 79,
+      "result": "Fiend-Touched hair sometimes smells faintly of sulfur after thunderstorms."
+    },
+    {
+      "roll": 80,
+      "result": "Cat-Folk footprints can appear smaller than expected because each step lands precisely within the last."
+    },
+    {
+      "roll": 81,
+      "result": "Corvid-Folk memory for faces may be uncanny, though names often escape them completely."
+    },
+    {
+      "roll": 82,
+      "result": "Dragon-Blooded nails can harden into scale-like plates during adolescence."
+    },
+    {
+      "roll": 83,
+      "result": "Living Construct ancestry occasionally leaves a visible keyhole-shaped birthmark at the sternum."
+    },
+    {
+      "roll": 84,
+      "result": "Astral Warrior speech may echo faintly when spoken beneath an open sky at night."
+    },
+    {
+      "roll": 85,
+      "result": "Mindwalker palms sometimes prickle when someone nearby hides strong grief."
+    },
+    {
+      "roll": 86,
+      "result": "Psionic Aberration descendants may hear distant static before a crowd becomes hostile."
+    },
+    {
+      "roll": 87,
+      "result": "Eye Tyrant bloodlines can produce unusually steady eyes that never water from wind or smoke."
+    },
+    {
+      "roll": 88,
+      "result": "Avian-Folk shoulders may twitch before sudden pressure changes, long before others notice weather shifting."
+    },
+    {
+      "roll": 89,
+      "result": "Celestial-Touched people sometimes have symmetrical scars even when the original injury was uneven."
+    },
+    {
+      "roll": 90,
+      "result": "Fiend-Touched shadows may show small horns or a tail that the body does not possess."
+    },
+    {
+      "roll": 91,
+      "result": "Cat-Folk children often learn balance before walking, standing easily on narrow rails and chair backs."
+    },
+    {
+      "roll": 92,
+      "result": "Corvid-Folk feathers may hold scent poorly, making perfumes fade quickly and smoke linger strongly."
+    },
+    {
+      "roll": 93,
+      "result": "Dragon-Blooded laughter can include a low resonant rumble felt more than heard."
+    },
+    {
+      "roll": 94,
+      "result": "Living Construct descendants sometimes dream in diagrams, seeing feelings as exploded parts and interlocking gears."
+    },
+    {
+      "roll": 95,
+      "result": "Astral Warrior skin may show faint luminous freckles that rearrange slowly over a lifetime."
+    },
+    {
+      "roll": 96,
+      "result": "Mindwalker ancestry sometimes makes written words feel louder than spoken ones."
+    },
+    {
+      "roll": 97,
+      "result": "Psionic Aberration gums may be dark blue or violet, visible only when they smile broadly."
+    },
+    {
+      "roll": 98,
+      "result": "Eye Tyrant descendants occasionally perceive depth too well, making painted illusions look obviously flat."
+    },
+    {
+      "roll": 99,
+      "result": "Avian-Folk fingers can end in small, toughened nail hooks suited for tying knots and gripping rope."
+    },
+    {
+      "roll": 100,
+      "result": "A Celestial-Touched infant may be born during an unexplained shaft of sunlight, even indoors beneath closed shutters."
+    }
+  ]
+}

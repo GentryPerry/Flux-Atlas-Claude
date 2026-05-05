@@ -6,6 +6,8 @@ import useSettingsStore from '../../stores/settingsStore';
 import useSnapshotStore from '../../stores/snapshotStore';
 import { generateScenarios, applyChangesToWorldState, TIMEFRAME_LABELS } from '../../engine/timeEngine';
 import { saveStore } from '../../utils/api';
+import { recordUsage } from '../../utils/entitlements';
+import { invalidateAccountStatus } from '../../hooks/useAccountStatus';
 import ScenarioCard from './ScenarioCard';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -103,7 +105,17 @@ export default function AdvanceTimeModal({ campaignId, onClose }) {
     return false;
   };
 
-  const handleGenerate = useCallback(() => {
+  const [fluxLimitError, setFluxLimitError] = useState(null);
+
+  const handleGenerate = useCallback(async () => {
+    setFluxLimitError(null);
+    try {
+      await recordUsage('flux');
+      invalidateAccountStatus();
+    } catch (e) {
+      setFluxLimitError(e.message || 'Flux generation limit reached.');
+      return;
+    }
     setStep(3);
 
     // Run engine on next tick so React can render the loading state first
@@ -453,14 +465,21 @@ export default function AdvanceTimeModal({ campaignId, onClose }) {
                 <ArrowRight size={14} />
               </button>
             ) : (
-              <button
-                className="btn btn-primary"
-                onClick={handleGenerate}
-                disabled={!canGoNext()}
-              >
-                Generate Scenarios
-                <Lightning size={14} weight="fill" />
-              </button>
+              <>
+                {fluxLimitError && (
+                  <span style={{ fontSize: 12, color: 'var(--danger)', maxWidth: 260, textAlign: 'right' }}>
+                    {fluxLimitError}
+                  </span>
+                )}
+                <button
+                  className="btn btn-primary"
+                  onClick={handleGenerate}
+                  disabled={!canGoNext()}
+                >
+                  Generate Scenarios
+                  <Lightning size={14} weight="fill" />
+                </button>
+              </>
             )}
           </div>
         )}

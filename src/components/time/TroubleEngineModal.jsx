@@ -10,6 +10,8 @@ import useNodeStore from '../../stores/nodeStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useViewportStore from '../../stores/viewportStore';
 import { saveStore, loadCampaign } from '../../utils/api';
+import { recordUsage } from '../../utils/entitlements';
+import { invalidateAccountStatus } from '../../hooks/useAccountStatus';
 
 // ── Blades in the Dark — Trouble Engine data ──────────────────────────────────
 
@@ -451,9 +453,18 @@ function StepCrewTrouble({ troubles, setTroubles, campaignId, clockWidgets, addW
   const [logged, setLogged] = useState(false);
   const [roll,   setRoll]   = useState(null); // settled result data
 
+  const [limitError, setLimitError] = useState(null);
   const { phase, shown, result, roll: doRoll } = useDiceRoller();
 
-  const handleRoll = () => {
+  const handleRoll = async () => {
+    setLimitError(null);
+    try {
+      await recordUsage('trouble');
+      invalidateAccountStatus();
+    } catch (e) {
+      setLimitError(e.message || 'Trouble limit reached.');
+      return;
+    }
     setRoll(null);
     setLogged(false);
     doRoll(wanted);
@@ -537,6 +548,9 @@ function StepCrewTrouble({ troubles, setTroubles, campaignId, clockWidgets, addW
         </div>
       </div>
 
+      {limitError && (
+        <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{limitError}</p>
+      )}
       <button
         className={`te-roll-btn${phase === 'rolling' ? ' rolling' : ''}`}
         onClick={handleRoll}
@@ -586,12 +600,21 @@ function StepLocalTrouble({ troubles, setTroubles, campaignId, clockWidgets, add
   const [logged, setLogged] = useState(false);
   const [roll,   setRoll]   = useState(null);
 
+  const [limitError, setLimitError] = useState(null);
   const { phase, shown, result, roll: doRoll } = useDiceRoller();
 
   const modifier  = LOCAL_MODS.reduce((sum, m) => sum + (mods[m.key] ? m.delta : 0), 0);
   const diceCount = Math.max(1, 2 + modifier);
 
-  const handleRoll = () => {
+  const handleRoll = async () => {
+    setLimitError(null);
+    try {
+      await recordUsage('trouble');
+      invalidateAccountStatus();
+    } catch (e) {
+      setLimitError(e.message || 'Trouble limit reached.');
+      return;
+    }
     setRoll(null);
     setLogged(false);
     doRoll(diceCount);
@@ -667,6 +690,9 @@ function StepLocalTrouble({ troubles, setTroubles, campaignId, clockWidgets, add
         </div>
       </div>
 
+      {limitError && (
+        <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{limitError}</p>
+      )}
       <button
         className={`te-roll-btn${phase === 'rolling' ? ' rolling' : ''}`}
         onClick={handleRoll}
@@ -820,7 +846,11 @@ export default function TroubleEngineModal({ onClose }) {
   const clockWidgets = widgets.filter((w) => w.campaignId === campaignId && w.type === 'clock-widget');
 
   const [step,     setStep]     = useState(0);
-  const [troubles, setTroubles] = useState(() => loadTroubles(campaignId));
+  const [troubles, setTroubles] = useState([]);
+
+  useEffect(() => {
+    loadTroubles(campaignId).then(setTroubles);
+  }, [campaignId]);
 
   const sharedProps = { troubles, setTroubles, campaignId, clockWidgets, addWidget, updateWidgetData };
 

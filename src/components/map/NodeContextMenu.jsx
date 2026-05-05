@@ -3,10 +3,17 @@ import {
   Trash, Shield, Cross, Eye, EyeSlash,
   Skull, Heart, PencilSimple, ArrowsOut, TreeStructure, Tray,
 } from '@phosphor-icons/react';
+
+const NODE_PRESET_COLORS = [
+  '#fb923c', '#fbbf24', '#e879a8', '#60a5fa', '#4ade80',
+  '#f87171', '#c084fc', '#38bdf8', '#a3e635', '#fb7185',
+];
 import useNodeStore from '../../stores/nodeStore';
 import useTagStore from '../../stores/tagStore';
 import useCampaignStore from '../../stores/campaignStore';
+import useSettingsStore from '../../stores/settingsStore';
 import { NODE_TYPES } from '../../utils/nodeSchemas';
+import { getTypeColor } from '../../utils/typeColors';
 
 /**
  * Right-click context menu for nodes on the canvas and card panel.
@@ -28,6 +35,8 @@ export default function NodeContextMenu({
   const tags = useTagStore((s) => s.tags);
   const createTag = useTagStore((s) => s.createTag);
   const updateNodeFields = useNodeStore((s) => s.updateNodeFields);
+  const nodeTypeOverrides = useSettingsStore((s) => s.nodeTypeOverrides) || {};
+  const customNodeTypes   = useSettingsStore((s) => s.customNodeTypes)   || [];
 
   const node = useMemo(
     () => allNodes.find((n) => n.id === nodeId) || null,
@@ -54,6 +63,8 @@ export default function NodeContextMenu({
 
   const typeInfo = NODE_TYPES[node.type];
   const typeColor = `var(--node-${node.type})`;
+  const resolvedTypeColor = getTypeColor(node.type, nodeTypeOverrides, customNodeTypes);
+  const currentColor = node.color || resolvedTypeColor;
 
   // Gather faction and religion nodes for "Add to" submenus
   const factionNodes = allNodes.filter((n) => n.type === 'faction' && n.id !== nodeId);
@@ -248,11 +259,58 @@ export default function NodeContextMenu({
 
       <div className="context-menu-divider" />
 
+      {/* Node color picker — preset swatches matching territory builder */}
+      <div className="context-menu-label">Node Color</div>
+      <div style={{ padding: '4px 12px 8px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 4 }}>
+          {NODE_PRESET_COLORS.map((c) => (
+            <button
+              key={c}
+              onClick={() => { updateNode(campaignId, node.id, { color: c }); onClose(); }}
+              style={{
+                width: 20, height: 20, borderRadius: '50%', background: c,
+                border: node.color === c ? '2px solid #fff' : '2px solid transparent',
+                boxShadow: node.color === c ? `0 0 0 1px ${c}` : 'none',
+                cursor: 'pointer', padding: 0, flexShrink: 0,
+                transition: 'transform 0.1s',
+              }}
+              title={c}
+            />
+          ))}
+          {/* Custom color button */}
+          <label style={{ position: 'relative', cursor: 'pointer' }} title="Custom color">
+            <span style={{
+              width: 20, height: 20, borderRadius: '50%', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              background: node.color && !NODE_PRESET_COLORS.includes(node.color) ? node.color : 'var(--bg-inset)',
+              border: '1.5px dashed var(--border-strong)',
+              fontSize: 13, color: 'var(--text-muted)',
+            }}>+</span>
+            <input
+              type="color"
+              value={node.color || resolvedTypeColor}
+              onChange={(e) => updateNode(campaignId, node.id, { color: e.target.value })}
+              style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+            />
+          </label>
+        </div>
+        {node.color && (
+          <button
+            onClick={() => { updateNode(campaignId, node.id, { color: null }); onClose(); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'var(--text-muted)', padding: '1px 0' }}
+          >
+            Reset to type default
+          </button>
+        )}
+      </div>
+
+      <div className="context-menu-divider" />
+
       <button className="context-menu-item" onClick={() => {
         updateNode(campaignId, node.id, { mapId: '__staging__', parentNodeId: null });
         onClose();
       }}>
-        <Tray size={16} /> Remove from Map
+        <Tray size={16} /> Move to Staging
       </button>
 
       <button className="context-menu-item danger" onClick={handleDelete}>

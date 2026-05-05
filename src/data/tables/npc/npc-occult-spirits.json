@@ -1,0 +1,32 @@
+{
+  "id": "npc-occult-spirits",
+  "title": "Occult Spirits & Entities",
+  "category": "npc",
+  "subcategory": "occult-spirits",
+  "genre": ["occult-noir"],
+  "die": 20,
+  "description": "Non-human entities the crew might encounter, deal with, or try to avoid — with their nature, their interests, and their cost of engagement.",
+  "tags": ["npc", "occult", "spirit", "entity", "noir", "encounter"],
+  "entries": [
+    { "roll": 1,   "result": "An observer with no apparent agenda beyond watching. Has been watching this location for a long time. Will answer questions if approached correctly, but its answers are always about the past, never the present." },
+    { "roll": 2,   "result": "A bound servant that has outlasted its binding. Technically free. Not entirely sure what to do about this. Currently doing what it was originally told because habit is easier than choice." },
+    { "roll": 3,   "result": "A spirit of accumulation that has become associated with a specific building and collects small things left there. Will trade information about what it has collected in exchange for new items." },
+    { "roll": 4,   "result": "An old agreement in a form — not a contract, not a written thing, but the residue of an obligation that has become self-aware over many decades." },
+    { "roll": 5,   "result": "Something that lives in the negative space between lights. Easier to deal with at dusk and dawn. Dislikes clarity in all forms — physical, intellectual, moral." },
+    { "roll": 6,   "result": "A remnant of a practitioner who didn't make a clean exit. Has their memories, their skills, and their unfinished business. Not them, exactly, but close enough to be complicated." },
+    { "roll": 7,   "result": "A traveling entity passing through the city. Not local. Not interested in staying. Will do a single thing in exchange for passage it needs, which the crew might be able to provide." },
+    { "roll": 8,   "result": "Something attached to a bloodline that has been following the family for three generations. Protective in its own interpretation of the word, which doesn't match the family's." },
+    { "roll": 9,   "result": "A spirit of record that has been maintaining an accurate account of what happens in a specific location. The record is accessible, if you know how to ask." },
+    { "roll": 10,  "result": "An entity that requires regular offering to remain dormant. Someone forgot to make the last offering. It is not yet dangerous but it is no longer dormant." },
+    { "roll": 11,  "result": "Something that feeds on the residue of strong emotion in a location. Dull compared to other entities. Deeply inconvenient in a place where people work under pressure." },
+    { "roll": 12,  "result": "A spirit that has been incorrectly imprisoned and is aware that the imprisonment is flawed. Patient. Waiting for the flaw to be exploited by circumstances rather than by itself." },
+    { "roll": 13,  "result": "An entity associated with a specific trade or craft that has been operating in the city since the trade existed here. Can be useful. Has very specific opinions about how the trade should be practiced." },
+    { "roll": 14,  "result": "Something that knows one specific thing very completely. Will share that knowledge if asked in precisely the right terms. Completely useless on any other subject." },
+    { "roll": 15,  "result": "A very old entity that is diminished from what it was and is aware of this. Not bitter, exactly. More resigned. Will deal, but drives a harder bargain than something diminished should be able to." },
+    { "roll": 16,  "result": "An entity in the process of becoming something. What it is becoming is unclear. What it is now is transitional, unstable, and responds unpredictably to stimuli that would have been safe previously." },
+    { "roll": 17,  "result": "Something that has organized itself around a piece of human infrastructure — a road, a bridge, a specific building — and maintains it in exchange for passage that the crew may be able to provide or withhold." },
+    { "roll": 18,  "result": "An entity with excellent knowledge of what has been lost or hidden in this city over the last century. Will trade information for information, specifically about what currently interests the living." },
+    { "roll": 19,  "result": "A spirit currently serving as an unwilling messenger for a practitioner. The message it's carrying isn't what the practitioner thinks it is." },
+    { "roll": 20,  "result": "Something that has been waiting for a specific person or situation. The crew matches the description closely enough that it is prepared to treat them as the awaited party. This may or may not be a good thing." }
+  ]
+}

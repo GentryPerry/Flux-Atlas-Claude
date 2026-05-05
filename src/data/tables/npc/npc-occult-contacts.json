@@ -1,0 +1,32 @@
+{
+  "id": "npc-occult-contacts",
+  "title": "Occult Contacts",
+  "category": "npc",
+  "subcategory": "occult-contacts",
+  "genre": ["occult-noir"],
+  "die": 20,
+  "description": "Recurring contacts in the occult underground — patrons, suppliers, rivals, and frenemies that a crew might cultivate or inherit.",
+  "tags": ["npc", "occult", "noir", "contact", "patron", "network"],
+  "entries": [
+    { "roll": 1,   "result": "The Pharmacist. Supplies compounds, preparations, and materials that the regulated market doesn't carry. No questions. No credit. Perfect discretion. Occasional curiosity about what the materials are for." },
+    { "roll": 2,   "result": "The Cataloguer. Knows the provenance of almost any significant occult object that has changed hands in the last forty years. Will share for a price, usually information rather than coin." },
+    { "roll": 3,   "result": "The Warden. Manages a private detention situation that nobody with official standing will acknowledge. Rents access for short terms to parties with appropriate references." },
+    { "roll": 4,   "result": "The Archivist. Maintains a collection of primary documents on defunct organizations, dead practitioners, and failed workings. Extremely valuable. Extremely paranoid." },
+    { "roll": 5,   "result": "The Intermediary. Carries messages between parties who can't contact each other directly. Takes no position on content. Has heard everything. Has said nothing." },
+    { "roll": 6,   "result": "The Printer. Produces documentation — licenses, identities, records, letters of introduction — at a quality that passes examination. Slow, expensive, and worth it." },
+    { "roll": 7,   "result": "The Safekeeper. Holds things that need holding — objects, people, information — without opening them, reading them, or asking about them. The service is real. The price is ongoing." },
+    { "roll": 8,   "result": "The Academic. Has legitimate institutional access that the crew lacks and a private research agenda that occasionally requires assistance the institution won't provide." },
+    { "roll": 9,   "result": "The Embalmer. Manages the physical aftermaths of operations involving the dead, both human and otherwise. Professional, discreet, slightly strange in ways that are not entirely explicable." },
+    { "roll": 10,  "result": "The Patron. Provides resources, access, and legitimacy in exchange for occasional unavoidable service. The relationship is good as long as what they ask doesn't require crossing a line the crew has drawn." },
+    { "roll": 11,  "result": "The Surveyor. Has mapped every significant occult site in the city, including those that officially don't exist. Will share maps for equivalents received." },
+    { "roll": 12,  "result": "The Widow. Was once the partner of a significant practitioner. Inherited the practice, the debts, the enemies, and the contacts. Has been navigating this for twenty years with no assistance from anyone." },
+    { "roll": 13,  "result": "The Liaison. Works within a legitimate institution and provides the crew advance notice of investigations, raids, and official interest in their area of operations." },
+    { "roll": 14,  "result": "The Collector. Buys significant occult items at fair market value, no questions. Has a waiting list of buyers. Has a correspondingly extensive set of enemies." },
+    { "roll": 15,  "result": "The Specialist. The only person in the city who can do a very specific thing that the crew occasionally needs done. Aware of their value. Prices accordingly." },
+    { "roll": 16,  "result": "The Courier. Moves things across the city — and occasionally further — using routes that aren't observed and contacts that aren't recorded. Absolute reliability within the terms of a contract." },
+    { "roll": 17,  "result": "The Judge. Mediates disputes between parties in the occult underground. Their decisions are binding by custom rather than law. Enforced by reputation rather than force." },
+    { "roll": 18,  "result": "The Custodian. Maintains several properties that operate as neutral ground for meetings between hostile parties. Has a good relationship with everyone because they work very hard at it." },
+    { "roll": 19,  "result": "The Apprentice. Very young. Very capable. Currently attached to a practitioner whose ethics they're beginning to question. Will be available on the market soon if they don't die first." },
+    { "roll": 20,  "result": "The Ghost. Hasn't been seen in person in years. Communicates exclusively through intermediaries and drop-boxes. Their information is always current. Their location is always wrong." }
+  ]
+}

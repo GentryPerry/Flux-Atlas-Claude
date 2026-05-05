@@ -1,0 +1,619 @@
+{
+  "id": "encounter-terrain-general",
+  "title": "Encounter Terrain – General",
+  "category": "encounter-terrain",
+  "subcategory": "general environment",
+  "genre": [
+    "fantasy"
+  ],
+  "die": 100,
+  "description": "A broad table of overland terrain encounters for adding discoveries, obstacles, atmosphere, and strange environmental details during fantasy travel.",
+  "tags": [
+    "encounter",
+    "terrain",
+    "travel",
+    "environment"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "Morning fog rolls through a birch grove, turning every tree into a pale silhouette while unseen animals move just beyond sight."
+    },
+    {
+      "roll": 2,
+      "result": "Beside the trail, a lightning-split oak still smolders from last night’s storm, its blackened heart glowing with stubborn embers."
+    },
+    {
+      "roll": 3,
+      "result": "Across a wind-scoured ridge, loose shale slides underfoot and sends small stones rattling into a ravine far below."
+    },
+    {
+      "roll": 4,
+      "result": "Near a shallow ford, fresh wagon tracks vanish halfway across the river as if the vehicle simply sank without bubbles."
+    },
+    {
+      "roll": 5,
+      "result": "Under a canopy of yellow leaves, hundreds of tiny cocoons hang from branches and pulse faintly when shadows pass beneath them."
+    },
+    {
+      "roll": 6,
+      "result": "Past a ruined mile marker, the road divides into three overgrown paths, each marked by a different set of animal bones."
+    },
+    {
+      "roll": 7,
+      "result": "Along the marsh edge, reeds bend in perfect waves though no wind touches the water, and frogs fall silent as travelers approach."
+    },
+    {
+      "roll": 8,
+      "result": "High above the valley, an abandoned signal fire platform creaks on wooden supports, its ash pit recently disturbed."
+    },
+    {
+      "roll": 9,
+      "result": "Between two boulders, a narrow spring pours clear water into a basin carved with handprints from many different eras."
+    },
+    {
+      "roll": 10,
+      "result": "Beyond the next hill, a herd of shaggy beasts blocks the road and refuses to move from a patch of warm earth."
+    },
+    {
+      "roll": 11,
+      "result": "During a sudden sunshower, the rain tastes faintly of salt, and small shells appear scattered among the roadside puddles."
+    },
+    {
+      "roll": 12,
+      "result": "Inside a thorn tunnel, scraps of colored cloth hang from the branches like warnings left by earlier travelers."
+    },
+    {
+      "roll": 13,
+      "result": "Before a cracked stone arch, wildflowers bloom in a perfect rectangle where an old gatehouse must once have stood."
+    },
+    {
+      "roll": 14,
+      "result": "Halfway across the meadow, every insect begins chirping in the same rhythm, creating a pulse that seems to guide footsteps."
+    },
+    {
+      "roll": 15,
+      "result": "At the base of a cliff, a fallen nest holds feathers as long as swords and a single cracked eggshell."
+    },
+    {
+      "roll": 16,
+      "result": "Near dusk, pale moths gather on one particular milestone and arrange themselves into shifting patterns before scattering."
+    },
+    {
+      "roll": 17,
+      "result": "Beyond a stand of pines, smoke rises from a cold camp where bedrolls are laid out but no footprints lead away."
+    },
+    {
+      "roll": 18,
+      "result": "Through knee-high grass, a line of stone heads peers upward, their faces worn smooth except for freshly painted eyes."
+    },
+    {
+      "roll": 19,
+      "result": "Where the trail narrows, fresh claw marks score both sides of a tree trunk at shoulder height."
+    },
+    {
+      "roll": 20,
+      "result": "After a steep descent, the path reaches a hollow filled with blue mushrooms that exhale glittering spores when stepped near."
+    },
+    {
+      "roll": 21,
+      "result": "Outside a shepherd’s shelter, a wool cloak flaps on a post while the flock grazes calmly with no shepherd in sight."
+    },
+    {
+      "roll": 22,
+      "result": "Among the dunes, a half-buried doorway sticks out of the sand, its hinges still polished despite the weather."
+    },
+    {
+      "roll": 23,
+      "result": "Below a limestone shelf, dripping water has formed natural columns that sound like chimes when touched."
+    },
+    {
+      "roll": 24,
+      "result": "Over a dry creek bed, someone has strung dozens of bells that ring only when birds fly through them."
+    },
+    {
+      "roll": 25,
+      "result": "Past an old battlefield, rusted helmets protrude from the soil like iron mushrooms after rain."
+    },
+    {
+      "roll": 26,
+      "result": "Within a cedar grove, a circle of trees leans inward as if listening to something buried in the center."
+    },
+    {
+      "roll": 27,
+      "result": "Down in a mossy ravine, a fox with silver fur watches from a fallen log and carries a ribbon in its teeth."
+    },
+    {
+      "roll": 28,
+      "result": "Near the roadside shrine, candles burn though no pilgrim is visible, and the wax has formed shapes like tiny hands."
+    },
+    {
+      "roll": 29,
+      "result": "Beneath a sandstone overhang, faded paintings show animals fleeing from a black star above the mountains."
+    },
+    {
+      "roll": 30,
+      "result": "Along a frozen stream, fish hang suspended under the ice in a spiral pattern that no current could have made."
+    },
+    {
+      "roll": 31,
+      "result": "Past a field of lavender, bees gather around a scarecrow dressed in traveler’s clothes and buzzing can be heard inside it."
+    },
+    {
+      "roll": 32,
+      "result": "On the riverbank, a rowboat sits tied to a tree miles from any navigable water, its hull scratched from below."
+    },
+    {
+      "roll": 33,
+      "result": "At a lonely crossroads, three fresh graves are marked with boots instead of stones, each pair facing a different direction."
+    },
+    {
+      "roll": 34,
+      "result": "Beyond the orchard wall, every apple has been pecked once and left hanging, as if sampled by a discerning flock."
+    },
+    {
+      "roll": 35,
+      "result": "During the hottest hour, frost creeps across a patch of grass shaped like an enormous footprint."
+    },
+    {
+      "roll": 36,
+      "result": "Inside a bamboo thicket, hollow stalks knock together in tones that resemble spoken warnings."
+    },
+    {
+      "roll": 37,
+      "result": "Far from any village, a laundry line stretches between two trees with damp clothes still dripping."
+    },
+    {
+      "roll": 38,
+      "result": "Under a red clay bank, burrows honeycomb the slope and carry the smell of warm bread from deep underground."
+    },
+    {
+      "roll": 39,
+      "result": "Across the salt flats, mirrored heat makes distant figures appear to walk beside the party before dissolving."
+    },
+    {
+      "roll": 40,
+      "result": "Beside a collapsed watchtower, a surveyor’s tripod remains set up and pointed toward a hill that is no longer there."
+    },
+    {
+      "roll": 41,
+      "result": "Near a quarry pool, ripples move outward from the center every few minutes, though nothing breaks the surface."
+    },
+    {
+      "roll": 42,
+      "result": "Past a wall of ivy, a stone stair climbs up a hillside and ends at a bare patch of sky."
+    },
+    {
+      "roll": 43,
+      "result": "At sunrise, long shadows from ordinary grass blades reveal the outline of a hidden foundation beneath the field."
+    },
+    {
+      "roll": 44,
+      "result": "Between rain-dark rocks, a clutch of bright orange lizards basks around a coin that reflects no light."
+    },
+    {
+      "roll": 45,
+      "result": "Above the treeline, the mountain path crosses a patch of red snow that stains boots but melts clear."
+    },
+    {
+      "roll": 46,
+      "result": "Inside a ruined toll booth, careful tally marks cover the walls, counting travelers who never paid."
+    },
+    {
+      "roll": 47,
+      "result": "Where two streams meet, their waters refuse to mix, one running clear and cold, the other brown and warm."
+    },
+    {
+      "roll": 48,
+      "result": "Past a stand of dead trees, each trunk bears a different door knocker nailed at human height."
+    },
+    {
+      "roll": 49,
+      "result": "Along the cliff path, seabirds nest in carved alcoves that look too regular to be natural."
+    },
+    {
+      "roll": 50,
+      "result": "Beyond a low stone wall, sheep graze in a perfect circle around a patch of untouched black grass."
+    },
+    {
+      "roll": 51,
+      "result": "At midday, a shadow crosses the road without any visible source overhead, moving slowly uphill."
+    },
+    {
+      "roll": 52,
+      "result": "Near a peat bog, preserved wooden wheels jut from the mud beside a road that sank centuries ago."
+    },
+    {
+      "roll": 53,
+      "result": "In a rocky pass, stacked cairns form a maze that changes perspective depending on which side is approached."
+    },
+    {
+      "roll": 54,
+      "result": "Past a ridge of red stone, wind whistles through natural holes and produces something like flute music."
+    },
+    {
+      "roll": 55,
+      "result": "Beside the trail, a lone mailbox stands with no house nearby and contains letters addressed to strangers."
+    },
+    {
+      "roll": 56,
+      "result": "Across a patch of moor, white stones mark a safe path through sinkholes, but several stones have recently been moved."
+    },
+    {
+      "roll": 57,
+      "result": "Under hanging vines, a sleeping bear lies beside a pile of neatly folded blankets and a cooking pot."
+    },
+    {
+      "roll": 58,
+      "result": "Beyond the creek, every tree on one side of the bank grows twisted toward the same distant hill."
+    },
+    {
+      "roll": 59,
+      "result": "Near an old charcoal pit, black dust covers the ground and fresh footprints appear darker than they should."
+    },
+    {
+      "roll": 60,
+      "result": "During twilight, fireflies gather into the rough outline of a stag and drift silently between the trees."
+    },
+    {
+      "roll": 61,
+      "result": "Where wheat meets the road, the crop has been flattened into a spiral around a central wooden stake."
+    },
+    {
+      "roll": 62,
+      "result": "Inside a dry well, echoes answer a moment before anyone speaks, repeating words that have not yet been said."
+    },
+    {
+      "roll": 63,
+      "result": "Across a broken causeway, frogs sit on each stone in strict size order from smallest to largest."
+    },
+    {
+      "roll": 64,
+      "result": "Past an abandoned apiary, wax combs fill the empty hives but no bees can be seen or heard."
+    },
+    {
+      "roll": 65,
+      "result": "Near a hot spring, mineral deposits have formed small statues that resemble people kneeling."
+    },
+    {
+      "roll": 66,
+      "result": "On a windswept beach, driftwood has arranged itself into the shape of a massive ribcage."
+    },
+    {
+      "roll": 67,
+      "result": "Beside a mountain lake, the water reflects a night sky at noon, complete with unfamiliar constellations."
+    },
+    {
+      "roll": 68,
+      "result": "After a bend in the road, a toll rope blocks the path, but both posts are made from living saplings."
+    },
+    {
+      "roll": 69,
+      "result": "Within a fern-choked hollow, a deer skeleton lies entirely overgrown except for antlers hung with tiny bells."
+    },
+    {
+      "roll": 70,
+      "result": "Across the prairie, dust devils circle one particular wagon wheel half-buried in the earth."
+    },
+    {
+      "roll": 71,
+      "result": "Under an ancient bridge, chalk marks record flood heights that climb far above the bridge’s highest stones."
+    },
+    {
+      "roll": 72,
+      "result": "Past a burned farmhouse, new green shoots grow only inside the old rooms, outlining the floor plan."
+    },
+    {
+      "roll": 73,
+      "result": "At a river bend, someone has built hundreds of tiny boats from bark and set them afloat downstream."
+    },
+    {
+      "roll": 74,
+      "result": "Beyond a cedar fence, a vineyard’s grapes are ripe on one row and shriveled on the next."
+    },
+    {
+      "roll": 75,
+      "result": "Inside a narrow gorge, echoes return in different voices depending on which wall hears the sound."
+    },
+    {
+      "roll": 76,
+      "result": "On the forest floor, mushrooms grow in the shape of arrows pointing away from a hollow tree."
+    },
+    {
+      "roll": 77,
+      "result": "Near the old border marker, two sets of patrol tracks meet and turn back without crossing."
+    },
+    {
+      "roll": 78,
+      "result": "Across a field of stones, one boulder sweats constantly, leaving damp moss beneath it."
+    },
+    {
+      "roll": 79,
+      "result": "Beneath an exposed root, a tiny shrine holds buttons, bent nails, and broken teeth as offerings."
+    },
+    {
+      "roll": 80,
+      "result": "Past a ruined aqueduct, water still flows overhead despite gaps in the stone channel."
+    },
+    {
+      "roll": 81,
+      "result": "At the entrance to a cave, warm air breathes outward every few minutes with the smell of cinnamon."
+    },
+    {
+      "roll": 82,
+      "result": "Within a stand of aspens, every trunk bears the same carved symbol, though the trees are different ages."
+    },
+    {
+      "roll": 83,
+      "result": "Down a forgotten lane, wild roses grow so thick they hide the remains of a carriage."
+    },
+    {
+      "roll": 84,
+      "result": "Along a glacier’s edge, a dark shape trapped in the ice raises questions about how recently it moved."
+    },
+    {
+      "roll": 85,
+      "result": "Near a millpond, the reflection of the mill wheel turns although the actual wheel is still."
+    },
+    {
+      "roll": 86,
+      "result": "Between two farms, a scarecrow has been dressed in armor and given a real sword."
+    },
+    {
+      "roll": 87,
+      "result": "Past a heap of slag, green flames flicker from vents in the ground and vanish when approached."
+    },
+    {
+      "roll": 88,
+      "result": "Inside a flooded cellar exposed by erosion, shelves of jars remain sealed beneath the muddy water."
+    },
+    {
+      "roll": 89,
+      "result": "Across a hilltop pasture, goats stand facing one direction and refuse to turn, even when startled."
+    },
+    {
+      "roll": 90,
+      "result": "Under the roots of an uprooted tree, a small staircase descends into packed earth and darkness."
+    },
+    {
+      "roll": 91,
+      "result": "Beyond a foggy fen, lanterns bob at waist height with no hands holding them."
+    },
+    {
+      "roll": 92,
+      "result": "Beside a dry fountain in the wilderness, copper coins fill the basin though no road leads nearby."
+    },
+    {
+      "roll": 93,
+      "result": "On a narrow island, every tree has been stripped of bark on the side facing upstream."
+    },
+    {
+      "roll": 94,
+      "result": "During a cold morning, steam rises from a patch of gravel where a buried metal plate vibrates faintly."
+    },
+    {
+      "roll": 95,
+      "result": "At the mouth of a canyon, travelers’ names are scratched into the rock, including one dated tomorrow."
+    },
+    {
+      "roll": 96,
+      "result": "Near a hunting blind, arrows are stuck point-first into the ground in a perfect circle."
+    },
+    {
+      "roll": 97,
+      "result": "Past a meadow of white flowers, a single black flower grows at the center and turns toward sound."
+    },
+    {
+      "roll": 98,
+      "result": "Inside a rain-filled ditch, tadpoles swim around a submerged silver spoon without crossing over it."
+    },
+    {
+      "roll": 99,
+      "result": "Across a shallow marsh, stepping stones are carved with smiling faces that become sadder farther in."
+    },
+    {
+      "roll": 100,
+      "result": "Beyond the last farmstead, a road sign points to a town that locals insist never existed."
+    },
+    {
+      "roll": 101,
+      "result": "Under a cliff of nesting swallows, dropped ribbons and hair ties reveal that the birds collect bright scraps."
+    },
+    {
+      "roll": 102,
+      "result": "At the border of a dark wood, a line of salt has been poured across the trail and recently disturbed."
+    },
+    {
+      "roll": 103,
+      "result": "Near a ruined chapel, ivy has grown through the windows and wrapped the bell rope from inside."
+    },
+    {
+      "roll": 104,
+      "result": "Past a circle of standing stones, sheep bones are stacked into small towers at each cardinal point."
+    },
+    {
+      "roll": 105,
+      "result": "Along the river trail, an overturned canoe has been used as a shelter by someone who left in haste."
+    },
+    {
+      "roll": 106,
+      "result": "Inside a quiet orchard, every tree bears a carved face, and each face looks toward the same empty chair."
+    },
+    {
+      "roll": 107,
+      "result": "Across cracked mudflats, the prints of bare human feet appear ahead of the party and continue onward."
+    },
+    {
+      "roll": 108,
+      "result": "Beyond a waterfall, a narrow ledge reveals hundreds of names painted in mineral pigment."
+    },
+    {
+      "roll": 109,
+      "result": "At a lonely hill shrine, incense smoke rises from a bowl that contains only wet leaves."
+    },
+    {
+      "roll": 110,
+      "result": "Near the pass summit, prayer flags snap against the wind, but one flag hangs limp and heavy with frost."
+    },
+    {
+      "roll": 111,
+      "result": "Under a fallen bridge, a family of otters has gathered coins, buttons, and broken jewelry in a nest."
+    },
+    {
+      "roll": 112,
+      "result": "Inside a ring of charred trees, a patch of untouched grass grows around a stone bowl filled with rainwater."
+    },
+    {
+      "roll": 113,
+      "result": "Along a moonlit road, white stones glow just enough to mark the path until clouds cover the sky."
+    },
+    {
+      "roll": 114,
+      "result": "Past the ridge, a landslide has exposed a wall of worked brick under the hillside."
+    },
+    {
+      "roll": 115,
+      "result": "Beside an abandoned campsite, a stew pot bubbles over cold ashes, thick with roots and river stones."
+    },
+    {
+      "roll": 116,
+      "result": "At the edge of a salt marsh, a flock of black birds lands in perfect silence and watches the road."
+    },
+    {
+      "roll": 117,
+      "result": "Beyond the high grass, a stone well has been capped with iron chains and fresh flowers."
+    },
+    {
+      "roll": 118,
+      "result": "Inside a cedar hollow, resin beads on the trunks resemble amber tears and stick to bare skin."
+    },
+    {
+      "roll": 119,
+      "result": "Across a snowfield, one trail of bootprints leads in circles around an invisible center."
+    },
+    {
+      "roll": 120,
+      "result": "Near a bend in the trail, a signpost has been chewed by something with square teeth."
+    },
+    {
+      "roll": 121,
+      "result": "Under a bright noon sun, a patch of road remains soaked as if rain fell only there."
+    },
+    {
+      "roll": 122,
+      "result": "Past a limestone sinkhole, voices drift upward from below, arguing about directions."
+    },
+    {
+      "roll": 123,
+      "result": "At the ruins of a bridge, someone has laid planks across only half the gap and left tools behind."
+    },
+    {
+      "roll": 124,
+      "result": "Inside a grove of black pines, cones fall at regular intervals like a slow countdown."
+    },
+    {
+      "roll": 125,
+      "result": "Along the shoreline, tide pools contain tiny replicas of distant landscapes sculpted from sand."
+    },
+    {
+      "roll": 126,
+      "result": "Beyond a thorn hedge, a white horse without tack grazes beside a saddle hung from a tree."
+    },
+    {
+      "roll": 127,
+      "result": "Near a cliffside shrine, wax from hundreds of candles has flowed downhill like a frozen river."
+    },
+    {
+      "roll": 128,
+      "result": "Across the heather, smoke rises from holes in the earth and smells of damp wool."
+    },
+    {
+      "roll": 129,
+      "result": "Beneath a windmill with no sails, the shadow of turning blades still sweeps across the ground."
+    },
+    {
+      "roll": 130,
+      "result": "At the foot of a glacier, a sealed wooden chest sits frozen halfway into blue ice."
+    },
+    {
+      "roll": 131,
+      "result": "Inside a field of reeds, a narrow path has been cut recently and brushed clean of footprints."
+    },
+    {
+      "roll": 132,
+      "result": "Past a shepherd’s cairn, the stones vibrate softly when thunderheads gather in the distance."
+    },
+    {
+      "roll": 133,
+      "result": "Near a dry river crossing, fish bones line the banks as though the river vanished in a single day."
+    },
+    {
+      "roll": 134,
+      "result": "Under low storm clouds, a lone tree is covered in keys tied to every branch."
+    },
+    {
+      "roll": 135,
+      "result": "Beyond a muddy hollow, a wagon wheel turns slowly in place though no wagon remains attached."
+    },
+    {
+      "roll": 136,
+      "result": "At the center of a meadow, a dinner table has been set for six with damp plates and no chairs."
+    },
+    {
+      "roll": 137,
+      "result": "Inside a shallow cave, soot marks the ceiling in the shape of wings spread wide."
+    },
+    {
+      "roll": 138,
+      "result": "Along a switchback trail, each turn has a carved wooden mask nailed to a post."
+    },
+    {
+      "roll": 139,
+      "result": "Past an ancient boundary ditch, wildflowers change color abruptly as soon as the ditch is crossed."
+    },
+    {
+      "roll": 140,
+      "result": "Near a willow-fringed pond, the branches hang into the water and continue growing beneath the surface."
+    },
+    {
+      "roll": 141,
+      "result": "Across a field after rain, puddles reflect different seasons: snow in one, autumn leaves in another."
+    },
+    {
+      "roll": 142,
+      "result": "Beneath a crumbling archway, a fox den contains scraps of parchment stolen from travelers’ packs."
+    },
+    {
+      "roll": 143,
+      "result": "At a stone-lined spring, every cup or flask filled there carries a faint metallic taste."
+    },
+    {
+      "roll": 144,
+      "result": "Inside a grove struck by lightning, black glass beads lie scattered among the roots."
+    },
+    {
+      "roll": 145,
+      "result": "Past a stand of cedars, a hunter’s blind contains a neatly folded wedding veil and a broken arrow."
+    },
+    {
+      "roll": 146,
+      "result": "Across a shallow stream, minnows gather around any shadow cast on the water and refuse to scatter."
+    },
+    {
+      "roll": 147,
+      "result": "Under a ruined watch post, a buried bell rings once when anyone steps on the old threshold."
+    },
+    {
+      "roll": 148,
+      "result": "Near a remote milestone, someone has painted a red handprint on the stone every seven paces."
+    },
+    {
+      "roll": 149,
+      "result": "Beyond a low ridge, an entire patch of forest leans away from one small, ordinary-looking rock."
+    },
+    {
+      "roll": 150,
+      "result": "At the forest’s edge, a trail of bread crumbs is carefully arranged in patterns too deliberate for birds."
+    }
+  ]
+}

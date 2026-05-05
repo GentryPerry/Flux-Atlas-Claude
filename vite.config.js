@@ -31,6 +31,18 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+      // Forward all /api/* calls (except pinterest) to the local Wrangler dev server.
+      // Run `npx wrangler dev` on port 8787 alongside `npm run dev`.
+      '/api': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+        // Let the more-specific pinterest rule handle those paths
+        bypass(req) {
+          if (req.url.startsWith('/api/pinterest') || req.url.startsWith('/api/set-pinterest-session')) {
+            return req.url; // return URL to let Vite handle it with its own middleware/proxy
+          }
+        },
+      },
       '/api/pinterest': {
         target: 'https://www.pinterest.com',
         changeOrigin: true,

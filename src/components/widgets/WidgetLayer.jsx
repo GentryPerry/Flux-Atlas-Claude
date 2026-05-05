@@ -8,6 +8,7 @@ import LinearTrackerWidget from './LinearTrackerWidget';
 import ThreadTrackerWidget from './ThreadTrackerWidget';
 import ClockWidget from './ClockWidget';
 import TroubleEngineWidget from './TroubleEngineWidget';
+import TableRollerWidget from './TableRollerWidget';
 
 // ── Context Menu ──────────────────────────────────────────────────────────────
 
@@ -298,6 +299,8 @@ export default function WidgetLayer() {
         inner = <ClockWidget            {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
       case 'trouble-engine':
         inner = <TroubleEngineWidget    {...shared} />; break;
+      case 'table-roller':
+        inner = <TableRollerWidget      {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
       default: return null;
     }
     return (
@@ -320,6 +323,25 @@ export default function WidgetLayer() {
         }}
         aria-label="Map widgets"
         onWheel={(e) => {
+          // Walk up from the scroll target to see if any element within the widget
+          // can absorb this scroll (i.e., has overflow scroll/auto and still has
+          // room to scroll in the direction of the wheel). If so, let the browser
+          // handle it natively and don't zoom the map.
+          let el = e.target;
+          while (el && el !== e.currentTarget) {
+            const style = window.getComputedStyle(el);
+            const oy = style.overflowY || style.overflow;
+            if (oy === 'auto' || oy === 'scroll') {
+              const scrollingDown = e.deltaY > 0;
+              const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+              const atTop    = el.scrollTop <= 0;
+              if ((scrollingDown && !atBottom) || (!scrollingDown && !atTop)) {
+                return; // let widget content scroll; don't zoom map
+              }
+            }
+            el = el.parentElement;
+          }
+          // Nothing scrollable consumed the event — forward to canvas zoom
           window.dispatchEvent(new CustomEvent('flux:canvasWheel', {
             detail: { deltaY: e.deltaY, deltaMode: e.deltaMode, clientX: e.clientX, clientY: e.clientY },
           }));

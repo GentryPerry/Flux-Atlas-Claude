@@ -174,6 +174,11 @@ export default function SearchOverlay({ onClose, onHighlight }) {
 
                     {/* Type badge */}
                     <span className="search-result-type" style={{ color }}>{typeLabel}</span>
+
+                    {/* Staging badge */}
+                    {node.mapId === '__staging__' && (
+                      <span className="search-result-staging">Staging</span>
+                    )}
                   </button>
                 );
               })}

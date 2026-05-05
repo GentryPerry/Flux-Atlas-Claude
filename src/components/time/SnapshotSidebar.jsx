@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { X, Clock, Trash, ArrowCounterClockwise, CalendarBlank } from '@phosphor-icons/react';
+import { X, Clock, Trash, ArrowCounterClockwise, CalendarBlank, Camera, Check, Lightning } from '@phosphor-icons/react';
 import useSnapshotStore from '../../stores/snapshotStore';
 import useNodeStore from '../../stores/nodeStore';
 import useTerritoryStore from '../../stores/territoryStore';
@@ -361,25 +361,109 @@ function SnapshotNode({
   );
 }
 
+// ── AutoSaveRow ───────────────────────────────────────────────────────────────
+
+function AutoSaveRow({ snap, onRestore }) {
+  const [restored, setRestored] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const timerRef = useRef(null);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  const handleRestore = async () => {
+    setRestoring(true);
+    await onRestore();
+    setRestoring(false);
+    setRestored(true);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setRestored(false), 2500);
+  };
+
+  return (
+    <div className="snap-auto-row">
+      <div className="snap-auto-meta">
+        <span className="snap-auto-time">{formatDate(snap.createdAt)}</span>
+        <span className="snap-auto-counts">
+          {snap.nodeCount} node{snap.nodeCount !== 1 ? 's' : ''}
+          {snap.terrCount > 0 && ` · ${snap.terrCount} territories`}
+        </span>
+      </div>
+      {restored ? (
+        <span style={{ fontSize: 10, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Check size={10} weight="bold" /> Restored
+        </span>
+      ) : (
+        <button
+          className="btn btn-secondary btn-sm"
+          style={{ padding: '2px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3 }}
+          onClick={handleRestore}
+          disabled={restoring}
+        >
+          <ArrowCounterClockwise size={10} />
+          {restoring ? '…' : 'Restore'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function SnapshotSidebar({ campaignId, onClose }) {
-  const loadSnapshots          = useSnapshotStore((s) => s.loadSnapshots);
-  const deleteSnapshot         = useSnapshotStore((s) => s.deleteSnapshot);
+  const loadSnapshots              = useSnapshotStore((s) => s.loadSnapshots);
+  const autoSnapshots              = useSnapshotStore((s) => s.autoSnapshots);
+  const restoreAutoSnapshot        = useSnapshotStore((s) => s.restoreAutoSnapshot);
+  const takeSnapshot               = useSnapshotStore((s) => s.takeSnapshot);
+  const deleteSnapshot             = useSnapshotStore((s) => s.deleteSnapshot);
   const writeSnapshotToLiveStorage = useSnapshotStore((s) => s.writeSnapshotToLiveStorage);
-  const currentSnapshotId      = useSnapshotStore((s) => s.currentSnapshotId);
-  // Subscribe directly to the snapshots array so the sidebar re-renders whenever
-  // a new snapshot is committed (the getSnapshots() function reference never changes,
-  // so using it as a selector wouldn't trigger re-renders on data changes).
-  const allSnapshots           = useSnapshotStore((s) => s.snapshots);
-  const loadNodes              = useNodeStore((s) => s.loadNodes);
-  const loadTerritories        = useTerritoryStore((s) => s.loadTerritories);
+  const currentSnapshotId          = useSnapshotStore((s) => s.currentSnapshotId);
+  const allSnapshots               = useSnapshotStore((s) => s.snapshots);
+  const nodes                      = useNodeStore((s) => s.nodes);
+  const loadNodes                  = useNodeStore((s) => s.loadNodes);
+  const territories                = useTerritoryStore((s) => s.territories);
+  const loadTerritories            = useTerritoryStore((s) => s.loadTerritories);
+
+  // ── Quick-snap form state ─────────────────────────────────────────────────
+  const [snapFormOpen, setSnapFormOpen] = useState(false);
+  const [snapName,     setSnapName]     = useState('');
+  const [snapNote,     setSnapNote]     = useState('');
+  const [saving,       setSaving]       = useState(false);
+  const [savedFlash,   setSavedFlash]   = useState(false);
+  const nameInputRef = useRef(null);
+
+  useEffect(() => {
+    if (snapFormOpen && nameInputRef.current) nameInputRef.current.focus();
+  }, [snapFormOpen]);
+
+  const openForm = () => {
+    const now = new Date();
+    const label = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+      + ' ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    setSnapName(`World Snapshot — ${label}`);
+    setSnapNote('');
+    setSnapFormOpen(true);
+  };
+
+  const handleTakeSnapshot = async () => {
+    if (!snapName.trim()) return;
+    setSaving(true);
+    await takeSnapshot(
+      campaignId,
+      snapName.trim(),
+      { nodes: nodes ?? [], territories: territories ?? [] },
+      snapNote.trim(),
+    );
+    setSaving(false);
+    setSnapFormOpen(false);
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 2200);
+  };
+
+  // ── Snapshot list ─────────────────────────────────────────────────────────
 
   useEffect(() => {
     loadSnapshots(campaignId);
   }, [campaignId, loadSnapshots]);
 
-  // Derive sorted snapshot list for this campaign — re-computes whenever allSnapshots changes
   const snapshots = useMemo(
     () => allSnapshots
       .filter((s) => s.campaignId === campaignId)
@@ -387,7 +471,6 @@ export default function SnapshotSidebar({ campaignId, onClose }) {
     [allSnapshots, campaignId],
   );
 
-  // Build tree + spine
   const { byId, roots } = useMemo(() => buildTree(snapshots), [snapshots]);
   const spineIds         = useMemo(() => getSpinePath(byId, currentSnapshotId), [byId, currentSnapshotId]);
 
@@ -412,7 +495,7 @@ export default function SnapshotSidebar({ campaignId, onClose }) {
           <Clock size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} weight="duotone" />
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Timeline History
+              World Snapshots
             </div>
             {snapshots.length > 0 && (
               <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
@@ -421,10 +504,62 @@ export default function SnapshotSidebar({ campaignId, onClose }) {
             )}
           </div>
         </div>
-        <button className="btn-icon" onClick={onClose}>
-          <X size={15} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {savedFlash && (
+            <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Check size={11} weight="bold" /> Saved
+            </span>
+          )}
+          <button
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px' }}
+            onClick={openForm}
+            title="Take a snapshot of the current world state"
+          >
+            <Camera size={12} weight="fill" />
+            Snapshot
+          </button>
+          <button className="btn-icon" onClick={onClose}>
+            <X size={15} />
+          </button>
+        </div>
       </div>
+
+      {/* Quick-snap form */}
+      {snapFormOpen && (
+        <div className="snapshot-sidebar__snap-form">
+          <input
+            ref={nameInputRef}
+            className="snap-form-input"
+            placeholder="Snapshot name…"
+            value={snapName}
+            onChange={(e) => setSnapName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleTakeSnapshot();
+              if (e.key === 'Escape') setSnapFormOpen(false);
+            }}
+          />
+          <textarea
+            className="snap-form-textarea"
+            placeholder="Optional note (what's happening in the world right now…)"
+            value={snapNote}
+            onChange={(e) => setSnapNote(e.target.value)}
+            rows={2}
+          />
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => setSnapFormOpen(false)}>
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleTakeSnapshot}
+              disabled={saving || !snapName.trim()}
+            >
+              {saving ? 'Saving…' : 'Save Snapshot'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Body */}
       <div className="snapshot-sidebar__body">
@@ -432,10 +567,11 @@ export default function SnapshotSidebar({ campaignId, onClose }) {
           <div style={{ padding: '40px 16px', textAlign: 'center' }}>
             <CalendarBlank size={32} style={{ color: 'var(--text-muted)', marginBottom: 12 }} />
             <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              No timeline checkpoints yet.
+              No snapshots yet.
             </p>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.5 }}>
-              Advance time and commit a scenario to create your first branch point.
+              Click <strong style={{ color: 'var(--text-secondary)' }}>Snapshot</strong> above
+              to save the current state of your world — nodes, positions, everything.
             </p>
           </div>
         ) : (
@@ -458,6 +594,31 @@ export default function SnapshotSidebar({ campaignId, onClose }) {
           </div>
         )}
       </div>
+
+      {/* Auto-saves section */}
+      {autoSnapshots.length > 0 && (
+        <div className="snapshot-sidebar__auto-saves">
+          <div className="snap-auto-header">
+            <Lightning size={11} weight="fill" style={{ color: 'var(--accent)', flexShrink: 0 }} />
+            <span>Auto-saves</span>
+            <span className="snap-auto-hint">last {autoSnapshots.length} · every 30 min</span>
+          </div>
+          {[...autoSnapshots].reverse().map((snap, i) => (
+            <AutoSaveRow
+              key={snap.id}
+              snap={snap}
+              onRestore={async () => {
+                const idx = autoSnapshots.length - 1 - i;
+                const ok = await restoreAutoSnapshot(campaignId, idx);
+                if (ok) {
+                  loadNodes(campaignId);
+                  loadTerritories(campaignId);
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Footer hint */}
       <div className="snapshot-sidebar__footer">

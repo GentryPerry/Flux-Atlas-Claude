@@ -5,7 +5,7 @@ import {
   Kanban, MagnifyingGlass, Plus,
   ClockCounterClockwise, DotsNine, Tree,
   Note, ChartBar, ArrowsLeftRight, Circle,
-  Hourglass, Lightning, Wrench,
+  Hourglass, Lightning, Wrench, DiceSix, Camera, StackSimple,
 } from '@phosphor-icons/react';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
@@ -60,8 +60,11 @@ export default function MapToolbar({
   onOpenFluxSystem,
   onOpenTroubleEngine,
   onToggleHistory, historyOpen,
+  onTakeSnapshot,
+  onAddMapLayer,    // (file: File) => void — called when user picks an image to add as overlay
 }) {
   const toolbarRef  = useRef(null);
+  const mapLayerInputRef = useRef(null);
   const trayRef     = useRef(null);
   const trayBtnRef      = useRef(null);
   const widgetBtnRef    = useRef(null);
@@ -265,7 +268,7 @@ export default function MapToolbar({
             </button>
           )}
 
-          <div className="node-palette">
+          <div className="node-palette" data-tour="node-palette">
             {visibleTypes.map(({ type, label, color, icon }) => {
               const isActive = placingType === type;
               const IconComp = resolveIcon(icon);
@@ -298,6 +301,24 @@ export default function MapToolbar({
           <button className="btn-icon" onClick={() => openSettings('nodeTypes')} title="Add node type">
             <Plus size={14} />
           </button>
+          <button
+            className="btn-icon"
+            onClick={() => mapLayerInputRef.current?.click()}
+            title="Add map layer image"
+          >
+            <StackSimple size={16} />
+          </button>
+          <input
+            ref={mapLayerInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) { onAddMapLayer?.(file); }
+              e.target.value = '';
+            }}
+          />
         </>
       )}
 
@@ -310,6 +331,7 @@ export default function MapToolbar({
           <div className="game-tools-dropdown" style={{ position: 'relative' }}>
             <button
               ref={gameToolsBtnRef}
+              data-tour="history-btn"
               className={`toolbar-tool-btn${gameToolsOpen ? ' active' : ''}`}
               onClick={() => setGameToolsOpen((v) => !v)}
               title="Game Tools"
@@ -342,13 +364,23 @@ export default function MapToolbar({
                 </button>
                 <div className="game-tools-divider" />
                 <button
+                  className="game-tools-item"
+                  onClick={() => { onTakeSnapshot?.(); setGameToolsOpen(false); }}
+                >
+                  <Camera size={14} />
+                  <div className="gti-text">
+                    <span className="gti-label">Snapshot</span>
+                    <span className="gti-desc">Save current world state</span>
+                  </div>
+                </button>
+                <button
                   className={`game-tools-item${historyOpen ? ' active' : ''}`}
                   onClick={() => { onToggleHistory(); setGameToolsOpen(false); }}
                 >
                   <ClockCounterClockwise size={14} />
                   <div className="gti-text">
                     <span className="gti-label">History</span>
-                    <span className="gti-desc">View timeline snapshots</span>
+                    <span className="gti-desc">Browse timeline snapshots</span>
                   </div>
                 </button>
               </div>
@@ -428,9 +460,10 @@ export default function MapToolbar({
                 <>
                   <div className="overflow-tray-group-label">Game Tools</div>
                   <div className="overflow-tray-grid">
-                    <TrayTile onClick={wrap(onOpenFluxSystem)}     isActive={false}       icon={Hourglass}             label="Flux System" />
-                    <TrayTile onClick={wrap(onOpenTroubleEngine)}  isActive={false}       icon={Lightning}             label="Trouble" />
-                    <TrayTile onClick={wrap(onToggleHistory)}      isActive={historyOpen} icon={ClockCounterClockwise} label="History" />
+                    <TrayTile onClick={wrap(onOpenFluxSystem)}          isActive={false}       icon={Hourglass}             label="Flux System" />
+                    <TrayTile onClick={wrap(onOpenTroubleEngine)}       isActive={false}       icon={Lightning}             label="Trouble" />
+                    <TrayTile onClick={wrap(() => onTakeSnapshot?.())}  isActive={false}       icon={Camera}                label="Snapshot" />
+                    <TrayTile onClick={wrap(onToggleHistory)}           isActive={historyOpen} icon={ClockCounterClockwise} label="History" />
                   </div>
                 </>
               )}
@@ -443,6 +476,7 @@ export default function MapToolbar({
       <div style={{ position: 'relative' }}>
         <button
           ref={widgetBtnRef}
+          data-tour="widget-btn"
           className={`btn-icon ${widgetPickerOpen ? 'active' : ''}`}
           onClick={() => setWidgetPickerOpen((v) => !v)}
           title="Add widget"
@@ -488,6 +522,13 @@ export default function MapToolbar({
               <Lightning size={15} />
               <span>Trouble Tracker</span>
             </button>
+            <button
+              className="widget-picker-item"
+              onClick={() => { addWidget(campaignId, 'table-roller', useViewportStore.getState()); setWidgetPickerOpen(false); }}
+            >
+              <DiceSix size={15} />
+              <span>Table Roller</span>
+            </button>
           </div>
         )}
       </div>
@@ -496,7 +537,7 @@ export default function MapToolbar({
       <button className="btn-icon" onClick={onOpenSearch} title="Search nodes (Ctrl+K)">
         <MagnifyingGlass size={18} />
       </button>
-      <button className="btn-icon" onClick={() => openSettings()} title="Settings">
+      <button className="btn-icon" data-tour="settings-btn" onClick={() => openSettings()} title="Settings">
         <GearSix size={18} />
       </button>
     </div>

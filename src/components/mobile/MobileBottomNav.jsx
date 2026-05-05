@@ -1,9 +1,10 @@
-import { MapTrifold, TreeStructure, Kanban, GearSix } from '@phosphor-icons/react';
+import { MapTrifold, TreeStructure, Kanban, GearSix, Cards } from '@phosphor-icons/react';
 
 const TABS = [
   { id: 'map',       label: 'Map',       Icon: MapTrifold    },
-  { id: 'hierarchy', label: 'Hierarchy', Icon: TreeStructure },
   { id: 'board',     label: 'Board',     Icon: Kanban        },
+  { id: 'nodes',     label: 'Nodes',     Icon: Cards         },
+  { id: 'hierarchy', label: 'Hierarchy', Icon: TreeStructure },
   { id: 'settings',  label: 'Settings',  Icon: GearSix       },
 ];
 

@@ -1,0 +1,32 @@
+{
+  "id": "npc-occult-crew-archetypes",
+  "title": "Occult Crew Archetypes",
+  "category": "npc",
+  "subcategory": "occult-crew",
+  "genre": ["occult-noir"],
+  "die": 20,
+  "description": "The roles that appear in criminal crews operating within the occult underground — each with a function, a method, and a complication.",
+  "tags": ["npc", "occult", "noir", "crew", "archetype", "character"],
+  "entries": [
+    { "roll": 1,   "result": "The Reader. Senses residue, intent, and history in objects and places. Useful for identifying what something is, where it's been, and whether it's safe. Unreliable under pressure — impressions blur when they're frightened." },
+    { "roll": 2,   "result": "The Anchor. Grounds the crew during operations involving significant entities or active workings. Their presence prevents unwanted drift. No combat skills. No ability to operate alone." },
+    { "roll": 3,   "result": "The Broker. Maintains relationships with suppliers, buyers, and patrons across the occult underground. Knows everyone. Owes everyone. The favors flow in both directions." },
+    { "roll": 4,   "result": "The Walker. Navigates spaces between — buildings, districts, sometimes states of being. Gets people and objects to where they need to go by routes that aren't on any map. What they walk through leaves traces on them." },
+    { "roll": 5,   "result": "The Mouthpiece. Speaks to things that respond to speech. Negotiates with entities, convinces spirits, reads the terms of old agreements. Fluent in several dead languages and one that has no known origin." },
+    { "roll": 6,   "result": "The Cutter. Breaks wards, severs bindings, dissolves active workings. Surgical and effective. Leaves a distinctive absence that practitioners can identify." },
+    { "roll": 7,   "result": "The Face. Has a presence that certain entities and practitioners find immediately credible. Opens doors that wouldn't open otherwise. Not magical — it's something about how they hold themselves." },
+    { "roll": 8,   "result": "The Archive. Carries an extraordinary amount of knowledge about historical operations, defunct organizations, and forgotten entities. The information is accurate. Its relevance is their ongoing value." },
+    { "roll": 9,   "result": "The Hand. Does what needs doing without requiring explanation. Reliable and quiet. Has made peace with what the work involves in ways the rest of the crew hasn't been required to." },
+    { "roll": 10,  "result": "The Fixer. Manages the aftermath. Cleans sites, redirects attention, handles the parts of an operation that have to go smoothly even after everything else goes wrong." },
+    { "roll": 11,  "result": "The Lens. Sees things that others don't. Not visions — just pattern recognition applied to information that others miss. Also sees things that aren't there, which is the cost." },
+    { "roll": 12,  "result": "The Vessel. Can carry presences, agreements, or workings in themselves temporarily for transport. The cargo doesn't always leave cleanly." },
+    { "roll": 13,  "result": "The Heir. Has a bloodline that gives them standing with certain very old entities. They didn't choose this and sometimes it is an advantage and sometimes it is a liability." },
+    { "roll": 14,  "result": "The Skeptic. Doesn't believe in most of what the crew deals with. This turns out to be useful — things that rely on belief don't work on them. This is also occasionally terrifying." },
+    { "roll": 15,  "result": "The Accountant. Manages the real economy of the occult underground — tracks what is owed, by whom, to what, and in what form. Their records are what the crew would lose most if they left." },
+    { "roll": 16,  "result": "The Confessor. NPCs talk to them. Clients tell them more than they intended. Something in the way they listen draws disclosure. They have never betrayed a confidence and that is itself a form of power." },
+    { "roll": 17,  "result": "The Remnant. All that's left of a crew that operated in this city a generation ago. Has information. Has enemies. Has debts that haven't been called yet. The question is whether they're an asset or a liability." },
+    { "roll": 18,  "result": "The Inheritor. Recently came into something — a practice, a collection, a name — that they're still figuring out how to carry. Motivated. Underprepared. Watched by people they haven't met yet." },
+    { "roll": 19,  "result": "The Exit. Has a plan to get out of this world and into a legitimate life. Has been executing this plan for eight years. Something keeps extending the timeline." },
+    { "roll": 20,  "result": "The Variable. The crew member whose role keeps shifting as the crew discovers new things about them. Their true function won't be clear until the worst possible moment." }
+  ]
+}

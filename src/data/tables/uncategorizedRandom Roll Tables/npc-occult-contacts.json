@@ -1,0 +1,501 @@
+{
+  "id": "npc-occult-contacts",
+  "title": "Street Contacts",
+  "category": "npc",
+  "subcategory": "contacts",
+  "genre": [
+    "occult-noir"
+  ],
+  "die": 100,
+  "description": "The fences, fixers, spirit-brokers, black-market alchemists, and corrupt inspectors a crew might know in an industrial-gothic city. Roll for a contact, their specialty, and the catch.",
+  "tags": [
+    "contact",
+    "fence",
+    "fixer",
+    "broker",
+    "street",
+    "occult-noir"
+  ],
+  "entries": [
+    {
+      "roll": 1,
+      "result": "Old Sasha, a fence who runs a pawnshop above a barber's. Buys jewelry at half value and curiosities at six times. Will not handle anything taken from a Ministry office on principle, having been raided once and not caring to repeat it."
+    },
+    {
+      "roll": 2,
+      "result": "Tomek the Brass, a tinker who fits hidden compartments into anything — boot heels, walking sticks, the false bottoms of caskets. Charges in installments and remembers every payment owed to the day."
+    },
+    {
+      "roll": 3,
+      "result": "Mara of the Reed Market, an alchemist who sells tinctures from a stall by day and harder compounds from her flat by night. Never serves the same customer twice in one week and keeps no records the law could find."
+    },
+    {
+      "roll": 4,
+      "result": "Elek the Listener, a deaf-and-dumb beggar who sits at the cathedral steps and reads every conversation off lips with cheerful precision. Sells the day's gleanings to whoever brings him bread and a clean handkerchief."
+    },
+    {
+      "roll": 5,
+      "result": "Mistress Vetch, a spirit-broker who operates from a back room of a milliner's shop. Arranges introductions between the living and the recently dead. Charges by the question and refuses to explain why some questions cost more."
+    },
+    {
+      "roll": 6,
+      "result": "Inspector Krall of the Third Ward, who takes envelopes on the second Monday of each month and reliably looks the other way. The envelopes have grown thicker each year and he has begun to consider this his pension plan."
+    },
+    {
+      "roll": 7,
+      "result": "Big Tova, a smuggler who runs a barge between the city and the salt-flats outside it. Will move anything that fits in the cargo hold and a few things that shouldn't. Pays a tithe to whatever lives in the water and warns clients accordingly."
+    },
+    {
+      "roll": 8,
+      "result": "Jakub the Lemon, a forger of identity papers who works above a citrus-importer's. The forgeries are immaculate; the only tell is a faint smell of rind that fades after a week of carry."
+    },
+    {
+      "roll": 9,
+      "result": "Madame Otrere, who runs a private gambling salon for the better class of criminal. The salon also functions as neutral ground; no business is conducted at the tables, only afterward in the parlor."
+    },
+    {
+      "roll": 10,
+      "result": "Pelle the Quiet, a fence specializing in art and antiquities. Knows every crest of every noble family and the provenance of every piece he handles, which is precisely why his clients prefer to use him."
+    },
+    {
+      "roll": 11,
+      "result": "The Widow Krak, an apothecary whose front-of-shop stock is legitimate and whose back-of-shop stock is not. Makes a particular sleeping draught the city watch refuses to learn the recipe of, on the grounds that it would oblige them to act."
+    },
+    {
+      "roll": 12,
+      "result": "Dunja the Marker, a tattoo artist who specializes in spirit-binding sigils worked into ordinary-looking decoration. Her clients include both crews and the Ministry, who have agreed not to discuss her at official functions."
+    },
+    {
+      "roll": 13,
+      "result": "Old Bram, a coal-merchant with a yard near the rail line. The coal trade is real and reliable cover. Bram also moves bodies, both directions, depending on the contract. Charges by the hundredweight."
+    },
+    {
+      "roll": 14,
+      "result": "Sister Lisette, a defrocked nun who runs a soup kitchen and an information network with equal devotion. The kitchen is always free; the information is never."
+    },
+    {
+      "roll": 15,
+      "result": "Hans the Inkstain, a printer whose presses run respectable journals by day and seditious pamphlets by night. Has been raided four times and has yet to be caught with anything in the press at the moment of inspection."
+    },
+    {
+      "roll": 16,
+      "result": "The Brothers Nev, a pair of identical twins who run a fence operation jointly and refuse to ever be in the same room. Clients deal with one and pay the other. Neither will say which is older."
+    },
+    {
+      "roll": 17,
+      "result": "Pia of the Fish Market, a runner of messages who specializes in deliveries that need to look like they didn't come from anywhere. Charges twice for written messages and four times for memorized ones."
+    },
+    {
+      "roll": 18,
+      "result": "Ezra Mott, a back-alley surgeon who patches up criminals without asking questions and charges in cash, favors, or — for the right wound — in the bullet itself, which he keeps in a labeled jar."
+    },
+    {
+      "roll": 19,
+      "result": "Captain Hessel of the harbor patrol, who is bribable but not for everyone. Has refused twice the rate from criminals he disliked and accepted half from ones he found interesting. Operates on principles known only to himself."
+    },
+    {
+      "roll": 20,
+      "result": "Branka the Wax, a candlemaker whose products are unremarkable except for the special order: candles that burn with smoke patterns readable only by certain trained eyes. Used as signaling devices by three rival organizations, none of whom know about the others."
+    },
+    {
+      "roll": 21,
+      "result": "Lev Voska, a clockmaker who repairs the city's public clocks under a Ministry contract. Has identical access to every public square and is the only person who can reasonably be in any of them at any hour, which has proven useful."
+    },
+    {
+      "roll": 22,
+      "result": "Anya the Quill, a scrivener and contract-writer who can draft a binding agreement in any of the city's three legal traditions and several illegal ones. Will not sign her own name to anything, ever, including marriage."
+    },
+    {
+      "roll": 23,
+      "result": "Old Pekka, a riverman who has worked the canals for sixty years and knows every bend, every slow current, every place a body might be expected to surface. Sells the knowledge as needed and never asks why anyone wants it."
+    },
+    {
+      "roll": 24,
+      "result": "Tilda Bramber, a respectable laundress whose service for certain townhouses includes returning items found in pockets to interested third parties. Pays cash on delivery, takes a finder's fee, and never returns anything to its owner."
+    },
+    {
+      "roll": 25,
+      "result": "Florian the Hush, a music-hall stagehand who runs a side business in stolen jewelry. Uses the theater's costume department as a fence's sorting-room and the props department as a workshop."
+    },
+    {
+      "roll": 26,
+      "result": "Doctor Kresz, an opium den proprietor who keeps a back parlor for paying clients and a back-back parlor for clients of a different sort entirely. Information flows uphill from one to the other."
+    },
+    {
+      "roll": 27,
+      "result": "Magdalena of the South Bank, a textile merchant who sells respectable dress goods and very particular lengths of consecrated cloth. Her workshop has a back room where the cloth is treated and the treatments are not in any guild handbook."
+    },
+    {
+      "roll": 28,
+      "result": "Yuri the Glove, a cutpurse turned fence who keeps office hours behind a glove-maker's stall. Specializes in pocket goods — letters, watches, small valuables — and has a standing arrangement with several stagecoach lines."
+    },
+    {
+      "roll": 29,
+      "result": "The Widow Dirss, a midwife and abortionist whose patient list includes women from every social class and whose memory for family resemblances is encyclopedic. Knows which heir is whose and which heir is not."
+    },
+    {
+      "roll": 30,
+      "result": "Karol the Valve, a steamfitter who installs and maintains the pneumatic tube networks of three different ministries. Reads selected canisters in transit and has an arrangement to forward duplicates to interested parties."
+    },
+    {
+      "roll": 31,
+      "result": "Greta of the Bone Market, a knacker who runs the city's largest bone-and-tallow operation. The unofficial side trade is in finger bones, teeth, and small skulls, sold to those who need them for purposes the knacker has stopped pretending not to understand."
+    },
+    {
+      "roll": 32,
+      "result": "Maks the Hollow, a coffin-maker who builds standard product for the parish and custom product for the criminal class. The custom product has compartments. He charges extra not to ask what fits in them."
+    },
+    {
+      "roll": 33,
+      "result": "Petra the Sweet, a confectioner whose chocolates are sold in respectable shops and whose darker compounds are sold in respectable boxes from the same chocolates. The wrappers are color-coded; only she and her clients know the system."
+    },
+    {
+      "roll": 34,
+      "result": "Solomon Vance, a tobacconist whose shop is a meeting place for political dissidents, foreign agents, and freelance criminals. Sells his discretion as much as his blends and is rumored to know which envelopes have been opened at the post office."
+    },
+    {
+      "roll": 35,
+      "result": "Iza the Wire, a telegrapher who works the night shift at a public office and copies messages of interest for resale. Has memorized the cipher patterns of seventeen organizations and has only been caught once, which she blamed on a fever."
+    },
+    {
+      "roll": 36,
+      "result": "The Friar Gospodin, a wandering preacher who is taken for a harmless eccentric by most of the city. Carries messages, materials, and occasionally small bound spirits from one parish to another, hidden inside a battered prayer book."
+    },
+    {
+      "roll": 37,
+      "result": "Adam the Mute, a piano-tuner who works the city's better houses and listens carefully to everything said while he works. Sells what he hears in writing only, in a small hand, on rolling-paper that burns clean."
+    },
+    {
+      "roll": 38,
+      "result": "Vera Nemes, a flower-seller whose stall is at the corner of the Ministry's main building. Knows by sight which clerk works which case and sells bouquets to certain wives with notes folded inside."
+    },
+    {
+      "roll": 39,
+      "result": "Henrik the Press, a photographer for the morning paper whose plate archive includes images he never published and several he was paid not to. Will sell prints from the archive for cash and a promise of discretion."
+    },
+    {
+      "roll": 40,
+      "result": "Lucia of the Steps, a beggar who works the cathedral plaza and is in fact a former opera singer who lost everything to a scandal she has not finished settling. Reliable, expensive, and absolutely will not work jobs targeting the family that ruined her."
+    },
+    {
+      "roll": 41,
+      "result": "Bartek the Stove, a coal-stoker for the central heating works who has access to every basement of every building connected to the system. Charges to leave certain valves loose, certain doors propped, and certain things temporarily relocated."
+    },
+    {
+      "roll": 42,
+      "result": "Nadezhda the Salt, a fishwife whose stall sells the day's catch and the previous night's information. Married to a harbor-master and well-connected throughout the dock district. Pays in coin or in fish, depending on what's needed."
+    },
+    {
+      "roll": 43,
+      "result": "Father Janos, a chaplain at the city prison whose pastoral duties include carrying messages out for inmates and back in for crews waiting on instructions. Considers it ministry. The diocese disagrees and has not yet caught him."
+    },
+    {
+      "roll": 44,
+      "result": "Erika the Foundry, an ironworker who casts custom pieces for a select clientele — knuckle-dusters, custom keys, lock-bypass tools, and once, for a particular crew, a brass cage of unusual specifications."
+    },
+    {
+      "roll": 45,
+      "result": "Old Misha, a rag-and-bone man who walks a regular route through three districts and sees everyone's discarded items first. Has a side business returning items of interest to interested parties for a finder's fee."
+    },
+    {
+      "roll": 46,
+      "result": "Domenika of the East Bridge, a money-changer whose booth is at the foot of the bridge and whose actual business is laundering the proceeds of crews who need their take cleaned. Takes a flat fifteen percent and never asks the source."
+    },
+    {
+      "roll": 47,
+      "result": "Cyprian the Bell, a sexton who maintains the bells of three small parish churches. The bells are signaling devices for those who know the codes; he charges to pull a particular sequence at a particular hour."
+    },
+    {
+      "roll": 48,
+      "result": "Roza the Plum, a brothel-keeper whose establishment caters to the better class of client and whose clients are encyclopedically catalogued in a ledger only she knows the location of. The ledger is leverage; she has been careful to use it sparingly."
+    },
+    {
+      "roll": 49,
+      "result": "Sebastian Kohut, a defrocked Ministry exorcist who freelances for crews dealing with bound spirits gone bad. Charges by the hour and has not yet failed a job; the cost is rising as his standing in the trade rises."
+    },
+    {
+      "roll": 50,
+      "result": "Pani Olszewska, a respectable widow who runs a boarding house and a network of younger widows in similar establishments. Information moves between boarding houses through the laundry. The crews who use her never see her in person."
+    },
+    {
+      "roll": 51,
+      "result": "Ferenc the Gilt, a frame-maker whose gilded picture frames are commissioned by the city's wealthier homes. The frames have hidden compartments by request. The compartments have hidden compartments by special order."
+    },
+    {
+      "roll": 52,
+      "result": "Nikolaj the Tongue, a translator who works freelance for the foreign legations, the Ministry, and three criminal syndicates simultaneously. Charges in advance and never speaks of one client to another, which is the entire reason he still has all his clients."
+    },
+    {
+      "roll": 53,
+      "result": "Saskia of the Mews, a horse-trainer whose stables are used by the carriage-services of the wealthy. She knows whose carriage went where and at what hour, and sells the information to those who can use it."
+    },
+    {
+      "roll": 54,
+      "result": "The Cousins Vach, a family of locksmiths who hold the city's master concession for the public buildings. They are perfectly legitimate; the duplicate keys made on Sunday afternoons are a separate matter."
+    },
+    {
+      "roll": 55,
+      "result": "Uli the Soft, a brothel doorman who is also the unofficial broker for any crew needing muscle on short notice. He keeps a list of available men in his head and has never written a name down in his life."
+    },
+    {
+      "roll": 56,
+      "result": "Margaretha of the Bath-house, who runs a respectable establishment whose private rooms are also where a great deal of the city's actual business is conducted. The rooms are warded against eavesdropping, which she charges for separately."
+    },
+    {
+      "roll": 57,
+      "result": "Dimi the Crown, a hatter whose specialty is hats with hidden brims, weighted bands, and false-bottomed boxes. His clients include duelists, smugglers, and one judge who has not yet decided what to do about him."
+    },
+    {
+      "roll": 58,
+      "result": "Ondrej Vasek, a cab-driver who works the late shift and has mapped out the city's after-hours traffic better than any official. Sells routes, timings, and sometimes a ride to particular addresses through particular alleys."
+    },
+    {
+      "roll": 59,
+      "result": "The Boy Stas, who is fourteen, runs a network of street children, and has built up a corner of the information trade through sheer cheerful ruthlessness. The children know him; no one knows where the boy lives."
+    },
+    {
+      "roll": 60,
+      "result": "Leah the Pen, a copy-clerk at the city archive who has been quietly photographing inconvenient documents and replacing them with subtle alterations for years. Has never been caught and has begun to suspect she enjoys the work."
+    },
+    {
+      "roll": 61,
+      "result": "Velimir the Box, a courier who works for several rival shipping concerns and who runs a side-line in courier-fraud — switching two boxes between competing deliveries and pocketing the resulting confusion. Has never been suspected by either side."
+    },
+    {
+      "roll": 62,
+      "result": "Anushka of the Locks, a riverman's daughter who took over the family's operation of canal-lock keys and timings. Charges to delay a barge an hour, advance one a quarter-hour, or strand one entirely between locks for the night."
+    },
+    {
+      "roll": 63,
+      "result": "The Doctor Pyotr, an unlicensed physician who treats injuries the licensed ones must report. His clinic is in the basement of a respectable bookshop. The bookshop's owner is his sister and they no longer speak except by paper notes."
+    },
+    {
+      "roll": 64,
+      "result": "Zoltan the Reed, a flute-maker whose instruments are perfectly serviceable and whose particular custom orders are tuned to play notes audible only to certain spirits. Sells exclusively to summoners and won't deal with the curious."
+    },
+    {
+      "roll": 65,
+      "result": "Beata of the South Quay, a sailmaker who patches respectable canvas and a particular alchemical sailcloth used by smuggling boats. The alchemical work shortens her life; she charges accordingly."
+    },
+    {
+      "roll": 66,
+      "result": "Inspector Liesel of the Customs House, who takes a quarter of the value of any cargo she classifies as 'irregular' and waves the rest through. Maintains a perfect official record by being scrupulous about the cargoes she does seize."
+    },
+    {
+      "roll": 67,
+      "result": "Old Anton, the city's senior gravedigger, who knows every plot, every disinterment, and every coffin that came up lighter than it should have. Sells to crews who need to know which graves are honest and which are not."
+    },
+    {
+      "roll": 68,
+      "result": "Liesa Mott, a glove-maker whose specialty is gloves designed not to leave fingerprints, dust traces, or recognizable wear patterns. Each pair is fitted personally and recorded in a private register."
+    },
+    {
+      "roll": 69,
+      "result": "The Brothers Karim, a pair of foreign-born merchants who run an importing business and a parallel trade in materials the customs ledger has no proper category for. Speak in their native tongue when they wish privacy and only one of the city's brokers speaks it back."
+    },
+    {
+      "roll": 70,
+      "result": "Lila of the Knife Lane, a knife-grinder whose mobile cart visits the same back doors on a reliable schedule. Picks up rumors, stolen jewelry, and small packages with each visit. Charges in coin and listens for free."
+    },
+    {
+      "roll": 71,
+      "result": "Ferdinand the Glass, a stained-glass artisan who restores church windows by day and makes alchemical viewing-lenses by night. The lenses reveal certain spirits, certain deceits, and certain truths the user might prefer not to know."
+    },
+    {
+      "roll": 72,
+      "result": "Ula the Crow, a courier-pigeon keeper whose loft serves three legitimate businesses and at least seven illegitimate ones. The pigeons are well-trained. The crows she also keeps are smarter and considerably more expensive."
+    },
+    {
+      "roll": 73,
+      "result": "Henryk the Soft, a perfumer whose blends include the standard floral compositions and a set of darker fragrances that mask blood, gunpowder, or particular herbal residues. Sells the latter only by personal introduction."
+    },
+    {
+      "roll": 74,
+      "result": "Dragica of the Old Mill, a miller who grinds grain for the local bakeries and bone for the local alchemists. The mill runs day and night and its records distinguish carefully between the two materials, in code."
+    },
+    {
+      "roll": 75,
+      "result": "Kasper the Switch, a tram-driver who works a particular route and can be persuaded to stop briefly between stations, take an unscheduled detour, or report a mechanical fault at a useful moment. Charges in cash, prefers small denominations."
+    },
+    {
+      "roll": 76,
+      "result": "Marisa the Pin, a seamstress whose specialty is concealing items in clothing — coin in hems, papers in linings, blades in collars. Her clients include smugglers, dancers, and a particular nun who refuses to explain what she's hiding."
+    },
+    {
+      "roll": 77,
+      "result": "The Old Man at the Pier, a beggar who has worked the same fifty-foot stretch of dock for twenty years and notices every face that passes. Charges in food and drink and has never been wrong about a man's profession on first sight."
+    },
+    {
+      "roll": 78,
+      "result": "Salomé the Veil, a society medium with a back-room practice for clients who require more discreet services — communications with the recently deceased who would prefer not to be officially contacted. Charges in standing favors only."
+    },
+    {
+      "roll": 79,
+      "result": "Otto Krell, a furniture-maker whose pieces include hidden drawers, false bottoms, and concealed compartments by special order. His pieces have been in three royal households and he is paid extra for not mentioning which."
+    },
+    {
+      "roll": 80,
+      "result": "Vesna of the South Gate, a watchwoman who can be persuaded to lose track of certain comings and goings through the gate she works. Maintains a strict hierarchy of bribes and will not accept payment from anyone below her established floor."
+    },
+    {
+      "roll": 81,
+      "result": "Levko the Match, a tinker who specializes in alchemical fuses, signal-flares, and small incendiary devices for theatrical and professional use. The theatrical clients call him an artist; the professional ones call him reliable."
+    },
+    {
+      "roll": 82,
+      "result": "Halina of the North Bank, a midwife whose practice extends to the city's poorest quarters and whose information network reaches into every household with a child or a missing one. Charges nothing for the births and a great deal for the answers."
+    },
+    {
+      "roll": 83,
+      "result": "Ezekiel the Sponge, a public-bath attendant whose work brings him into contact with the unclothed, the unguarded, and the talkative. Has identified two foreign agents and one Ministry mole through casual conversation while scrubbing backs."
+    },
+    {
+      "roll": 84,
+      "result": "Mira the Slate, a chalkboard-painter who works the bookmakers' establishments. Knows every horse, every odds-shift, and every man who placed a wager he couldn't afford. Sells the latter information by request."
+    },
+    {
+      "roll": 85,
+      "result": "The Old Witch Teppen, who lives alone in a flat above a shuttered bakery and is widely rumored to be a hundred years old. Sells charms, curses, and very precise small advice. Her age is unconfirmed because no one has ever seen a record of her birth."
+    },
+    {
+      "roll": 86,
+      "result": "Roman the Wing, a pigeon-fancier whose birds carry messages between rooftop coops and whose competitors have begun to notice his birds outpace theirs by routes the birds shouldn't know. He won't say who taught them and the birds won't either."
+    },
+    {
+      "roll": 87,
+      "result": "Fina of the Three Coins, a card-reader whose readings are largely theatrical and whose actual gift, used sparingly, is genuine. Charges three coins for theater and considerably more for the real thing, which she doles out by careful judgment."
+    },
+    {
+      "roll": 88,
+      "result": "Konrad the Spike, a railwayman who works the rail yards and can arrange for cargo cars to be miscoupled, redirected, or delayed. His official record is spotless because he has never been caught making the same mistake twice."
+    },
+    {
+      "roll": 89,
+      "result": "Pelagia of the Carpetweavers, a respectable widow whose carpets contain stitched patterns readable as text by those who know the cipher. Her exports go to several foreign capitals and her returns are paid in goods she never lists for resale."
+    },
+    {
+      "roll": 90,
+      "result": "Janos the Pail, a night-soil collector whose route covers the better neighborhoods and who has, in passing, identified three blackmail opportunities, two illegitimate children, and one murder by the contents of household bins."
+    },
+    {
+      "roll": 91,
+      "result": "Inka the Bone, a butcher whose shop is a cover for an information operation run from the back. The meat is real and excellent. The information is sorted by the type of cut requested and delivered in the wrapping paper."
+    },
+    {
+      "roll": 92,
+      "result": "Ofelia of the Seven Veils, a stage-magician whose theatrical tricks include a few that aren't tricks at all. Hires herself out to crews needing a distraction, a misdirection, or occasionally an actual disappearance."
+    },
+    {
+      "roll": 93,
+      "result": "Magnus the Inkwell, a Ministry pen-clerk who has built a side practice in forging notes from the desks of his superiors. The forgeries are precise to the pressure of the strokes; he has never been suspected because he never overuses the gift."
+    },
+    {
+      "roll": 94,
+      "result": "Petronella of the Lower Quarter, a hostel-keeper whose establishment has hosted half the foreign agents in the city at one time or another. She does not take sides, only payment, and writes nothing down because she does not need to."
+    },
+    {
+      "roll": 95,
+      "result": "Vidor the Whisper, a barber whose chair is in a square frequented by Ministry clerks on their lunch hour. The clerks talk while he shaves them. He has never quoted a client by name and never failed to identify one by request."
+    },
+    {
+      "roll": 96,
+      "result": "Helga of the Long Road, a coachwoman whose fares include couriers, fugitives, and the occasional sealed casket. Charges by the league and by the discretion required, which is itemized separately on her unwritten bill."
+    },
+    {
+      "roll": 97,
+      "result": "Lazar the Ledger, an unlicensed accountant who keeps the books for several criminal enterprises simultaneously and has constructed a system that allows him to be honest with all of them by lying to none of them in writing."
+    },
+    {
+      "roll": 98,
+      "result": "The Veiled Sister, a former Ministry exorcist who took holy orders after a job went badly and now operates from a small chapel in the canal district. Will perform off-the-books exorcisms for crews in trouble and charges in confessions, not coin."
+    },
+    {
+      "roll": 99,
+      "result": "Old Stefan, a chess-player who is in the same coffeehouse at the same table every afternoon and who sells advice by the move. A good question costs three games; a difficult one costs the whole afternoon. He is reliably correct."
+    },
+    {
+      "roll": 100,
+      "result": "The Anonymous Hand, a fence whose identity is genuinely unknown — clients leave goods at one of seven locations and return three days later for payment. Has never failed to pay and has never been seen. The police have a thick file and no name."
+    },
+    {
+      "roll": 101,
+      "result": "Ksenia the Reed, a basket-weaver whose woven baskets and creels include hidden compartments fitted to specifications. Her workshop is in the marsh-quarter and she will not deliver outside it; clients must come collect."
+    },
+    {
+      "roll": 102,
+      "result": "Wojciech the Salt, a salt-merchant whose product is used to ward against certain spirits and who sells consecrated grades at premium prices to specific clientele. The standard product is also excellent; he is a careful businessman in both directions."
+    },
+    {
+      "roll": 103,
+      "result": "Hilda the Crow, a chimney-sweep whose work brings her into homes throughout the city and who keeps a mental map of valuables, hiding-places, and family secrets. Sells the maps to crews planning entries and charges separately for each room."
+    },
+    {
+      "roll": 104,
+      "result": "Stojan the Soft, a furrier who deals in respectable pelts and a particular grade of cured spirit-wolf hide that buyers in the alchemical trade pay enormously for. The supply is irregular; he refuses to explain how he obtains it."
+    },
+    {
+      "roll": 105,
+      "result": "Aniela of the Garden, a herbalist whose nursery on the city's edge grows the standard medicinal plants and several others not listed in any pharmacopeia. Sells cuttings and seeds only after a long conversation about intended use."
+    },
+    {
+      "roll": 106,
+      "result": "Boris the Cup, a tavern-keeper whose establishment is the unofficial neutral ground for several rival crews. No business is conducted in the bar; arrangements are settled in his back room by appointment, with him as quiet witness."
+    },
+    {
+      "roll": 107,
+      "result": "Rena the Long, a ferrywoman who runs the night-route across the river when the bridge is closed. Her ferry has carried fugitives, contraband, and one occasion a whole crew with their take. Her boatman fee is published; the silence fee is not."
+    },
+    {
+      "roll": 108,
+      "result": "The Old Schoolmaster, a retired teacher who runs a forgery-and-cipher school for criminal apprentices out of his cottage. Three current crews have learned their letters from him and he refuses to take students from rival operations."
+    },
+    {
+      "roll": 109,
+      "result": "Iancu the Veil, a curtain-maker whose fabric work for theaters and parlor rooms includes a particular weave that dampens the sound passing through it. Sells the weave by the bolt and refuses to explain how it's made."
+    },
+    {
+      "roll": 110,
+      "result": "Marushka of the Cloister Road, a pilgrim-guide who leads parties to a particular shrine outside the city and who carries packages, messages, and small persons hidden among the legitimate pilgrims. Pious, paid, and careful."
+    },
+    {
+      "roll": 111,
+      "result": "Tiberius the Brand, a horse-dealer whose stock includes legitimate animals and several with altered brands and forged papers. His clients include foreign agents, fugitives, and one duke who prefers his coursers came from anywhere but where they did."
+    },
+    {
+      "roll": 112,
+      "result": "Jadwiga the Knife, a butcher's widow who took over the shop and the side business her husband ran from it. The side business is body-disposal by way of the shop's grinder; she is more discreet than he ever was and considerably more expensive."
+    },
+    {
+      "roll": 113,
+      "result": "Klaus the Lamp, a gas-lighter whose route covers the older streets where the lamps still need lighting by hand. He has noted which lamps are watched, which streets are empty at which hour, and sells the routing to crews planning night work."
+    },
+    {
+      "roll": 114,
+      "result": "Cecylia of the Choir Loft, a church organist whose informal practice hours include carrying messages between parishioners who cannot meet in person. The organ-loft is always private; the music covers conversation conducted in adjacent pews."
+    },
+    {
+      "roll": 115,
+      "result": "Samuel the Pour, a wine-merchant whose cellar includes a few crates that did not pass through customs and several that did but should not have. His clients in the better houses buy both indistinguishably."
+    },
+    {
+      "roll": 116,
+      "result": "Lidia of the Old Road, a cartwoman who hauls produce into the city from the surrounding villages and back-hauls items that need to leave quietly. Charges by the cart-load and by the discretion; her cart is famously slow and her schedule famously unpredictable."
+    },
+    {
+      "roll": 117,
+      "result": "The Boy Pavel, an apprentice clockmaker whose master does not know about the side business in stolen pocket-watches he runs through the workshop. Pavel buys watches the master would refuse and sells them through a fence in the next district. He is twelve."
+    },
+    {
+      "roll": 118,
+      "result": "Esther the Strand, a hair-merchant who buys human hair from the poor and sells it to the wig-makers serving the rich. Her workshop is a clearinghouse for everything that gets whispered while hair is being sold."
+    },
+    {
+      "roll": 119,
+      "result": "Domitian the Sack, a sack-maker whose work includes the standard grain and coal sacks and a particular grade of body-bag with reinforced seams used by certain professions. Sells to undertakers, butchers, and a few clients who fall in neither category."
+    },
+    {
+      "roll": 120,
+      "result": "The Old Man Kray, a former Ministry officer whose retirement is officially uneventful. He runs a small private intelligence operation from a flat in a respectable boarding-house, takes commissions selectively, and has refused twice the rate from a client he disliked."
+    }
+  ]
+}

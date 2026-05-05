@@ -254,29 +254,31 @@ function ThreadRow({ thread, allNodes, onUpdate, onRemove, onSelectNode }) {
           </span>
         )}
 
-        {/* Linked node chips + picker */}
+        {/* Linked node chips */}
         <div className="tt-chips-row">
           {linkedNodes.map((n) => (
             <NodeChip key={n.id} node={n} onUnlink={() => unlinkNode(n.id)} onSelect={onSelectNode} />
           ))}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              className="tt-tag-btn"
-              onClick={(e) => { e.stopPropagation(); setPickerOpen(true); }}
-              title="Link a node"
-            >
-              <Link size={10} />
-              {linkedNodes.length === 0 && <span>Tag</span>}
-            </button>
-            {pickerOpen && (
-              <NodePicker
-                nodes={allNodes}
-                exclude={thread.linkedNodeIds ?? []}
-                onSelect={(n) => { linkNode(n.id); setPickerOpen(false); }}
-                onClose={() => setPickerOpen(false)}
-              />
-            )}
-          </div>
+        </div>
+
+        {/* Tag picker — outside tt-chips-row so position:absolute isn't clipped by overflow-x:auto */}
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <button
+            className="tt-tag-btn"
+            onClick={(e) => { e.stopPropagation(); setPickerOpen(true); }}
+            title="Link a node"
+          >
+            <Link size={10} />
+            {linkedNodes.length === 0 && <span>Tag</span>}
+          </button>
+          {pickerOpen && (
+            <NodePicker
+              nodes={allNodes}
+              exclude={thread.linkedNodeIds ?? []}
+              onSelect={(n) => { linkNode(n.id); setPickerOpen(false); }}
+              onClose={() => setPickerOpen(false)}
+            />
+          )}
         </div>
 
         <button className="tt-thread-remove" onClick={onRemove} title="Remove thread">

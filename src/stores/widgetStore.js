@@ -35,6 +35,8 @@ function defaultData(type) {
       };
     case 'trouble-engine':
       return { title: 'Trouble Engine', lastRun: null, width: 280 };
+    case 'table-roller':
+      return { title: 'Table Roller', tableId: null, rollCount: 1, lastResults: [], width: 340 };
     case 'thread-tracker':
       return {
         title: 'Narrative Arc',

@@ -6,13 +6,15 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import TopoBackground from '../common/TopoBackground';
+import LandingPage from './LandingPage';
 
 export default function AuthScreen() {
   const { login, signup } = useAuth();
-  const [mode, setMode]       = useState('login'); // 'login' | 'signup'
+  const [mode, setMode]       = useState('landing'); // 'landing' | 'login' | 'signup'
   const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [betaKey, setBetaKey] = useState('');
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +34,7 @@ export default function AuthScreen() {
       if (mode === 'login') {
         await login(email, password);
       } else {
-        await signup(email, password);
+        await signup(email, password, betaKey.trim().toUpperCase());
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
@@ -45,6 +47,12 @@ export default function AuthScreen() {
     setMode(mode === 'login' ? 'signup' : 'login');
     setError('');
     setConfirm('');
+    setBetaKey('');
+  }
+
+  // ── Landing page ──
+  if (mode === 'landing') {
+    return <LandingPage onGetStarted={(m) => setMode(m)} />;
   }
 
   return (
@@ -62,6 +70,20 @@ export default function AuthScreen() {
       </p>
 
       <div className="auth-card" style={{ position: 'relative', zIndex: 1 }}>
+        <button
+          onClick={() => { setMode('landing'); setError(''); }}
+          style={{
+            background: 'none', border: 'none',
+            color: 'var(--text-muted)', fontSize: 12,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+            marginBottom: 12, padding: 0,
+            transition: 'color 180ms',
+          }}
+          onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+          onMouseOut={(e)  => e.currentTarget.style.color = 'var(--text-muted)'}
+        >
+          ← Back
+        </button>
         <h2 className="auth-title">
           {mode === 'login' ? 'Welcome back' : 'Create your account'}
         </h2>
@@ -106,6 +128,31 @@ export default function AuthScreen() {
                 required
                 autoComplete="new-password"
               />
+            </div>
+          )}
+
+          {mode === 'signup' && (
+            <div className="field-group">
+              <label htmlFor="auth-beta-key">
+                Beta Access Key
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 6, fontSize: 11 }}>
+                  required
+                </span>
+              </label>
+              <input
+                id="auth-beta-key"
+                type="text"
+                value={betaKey}
+                onChange={(e) => setBetaKey(e.target.value)}
+                placeholder="FLUX-XXXXX-XXXXX"
+                required
+                autoComplete="off"
+                spellCheck={false}
+                style={{ fontFamily: 'monospace', letterSpacing: '0.04em', textTransform: 'uppercase' }}
+              />
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                Flux Atlas is currently invite-only. Get a key from the team.
+              </p>
             </div>
           )}
 

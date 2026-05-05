@@ -27,8 +27,8 @@ export function AuthProvider({ children }) {
     return u;
   }
 
-  async function handleSignup(email, password) {
-    const u = await api.signup(email, password);
+  async function handleSignup(email, password, betaKey) {
+    const u = await api.signup(email, password, betaKey);
     setUser(u);
     return u;
   }

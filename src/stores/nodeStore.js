@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import { buildDefaultFields, buildDefaultStatusFlags } from '../utils/nodeSchemas';
 import { saveStore, loadCampaign } from '../utils/api';
+import { getCachedStatus } from '../hooks/useAccountStatus';
 
 /**
  * Debounced API save — batches rapid updates (drag, typing) into one write.
@@ -42,6 +43,21 @@ const useNodeStore = create((set, get) => ({
 
   /** Create a node on a specific map at a position */
   createNode: (campaignId, mapId, nodeType, x, y) => {
+    // ── Client-side limit check (server enforces too) ──
+    const status = getCachedStatus();
+    if (status) {
+      const { used, limit } = status.usage.nodes;
+      if (limit !== null && limit !== undefined && used >= limit) {
+        const e = new Error(
+          `Free accounts can create up to ${limit} nodes. Upgrade options are coming soon.`
+        );
+        e.code    = 'NODE_LIMIT_REACHED';
+        e.limit   = limit;
+        e.current = used;
+        throw e;
+      }
+    }
+
     const fields = buildDefaultFields(nodeType);
     const node = {
       id: uuid(),
@@ -76,8 +92,9 @@ const useNodeStore = create((set, get) => ({
 
   /** Update a node's fields */
   updateNodeFields: (campaignId, nodeId, fieldUpdates) => {
+    const now = new Date().toISOString();
     const nodes = get().nodes.map((n) =>
-      n.id === nodeId ? { ...n, fields: { ...n.fields, ...fieldUpdates } } : n
+      n.id === nodeId ? { ...n, updatedAt: now, fields: { ...n.fields, ...fieldUpdates } } : n
     );
     set({ nodes });
     debouncedSave(campaignId, get().nodes);
@@ -85,8 +102,9 @@ const useNodeStore = create((set, get) => ({
 
   /** Update any top-level node property */
   updateNode: (campaignId, nodeId, updates) => {
+    const now = new Date().toISOString();
     const nodes = get().nodes.map((n) =>
-      n.id === nodeId ? { ...n, ...updates } : n
+      n.id === nodeId ? { ...n, updatedAt: now, ...updates } : n
     );
     set({ nodes });
     debouncedSave(campaignId, get().nodes);

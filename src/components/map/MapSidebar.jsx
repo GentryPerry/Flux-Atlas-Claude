@@ -1,8 +1,9 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { MapTrifold, Plus, Trash, CaretLeft, CaretRight, CaretDown, Check, Globe, PencilSimple } from '@phosphor-icons/react';
+import { MapTrifold, Plus, Trash, CaretLeft, CaretRight, CaretDown, Check, Globe, PencilSimple, Image, StackSimple } from '@phosphor-icons/react';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useNodeStore from '../../stores/nodeStore';
+import useMapOverlayStore from '../../stores/mapOverlayStore';
 import { uploadImage } from '../../utils/api';
 
 // ── Campaign Dropdown ─────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ function CampaignDropdown({ campaign, campaigns, onSelect, onCreate }) {
  * Sub-maps store `parentMapId = ownerNode.id` (the node ID, NOT a map ID).
  * So we receive pre-computed `childMaps` rather than filtering allMaps directly.
  */
-function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onDelete, onRename }) {
+function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onDelete, onRename, onReplaceImage, overlaysForMap, onDeleteOverlay }) {
   const [expanded, setExpanded]     = useState(true);
   const [renaming, setRenaming]     = useState(false);
   const [renameVal, setRenameVal]   = useState('');
@@ -244,13 +245,14 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
         )}
         {!renaming && (
           <>
+
             <button
               className="btn-icon"
-              onClick={startRename}
+              onClick={(e) => { e.stopPropagation(); onReplaceImage(map.id); }}
               style={{ opacity: 0.35, flexShrink: 0 }}
-              title="Rename map"
+              title="Replace map image"
             >
-              <PencilSimple size={12} />
+              <Image size={12} />
             </button>
             <button
               className="btn-icon"
@@ -280,10 +282,67 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
               onSelect={onSelect}
               onDelete={onDelete}
               onRename={onRename}
+              onReplaceImage={onReplaceImage}
+              overlaysForMap={overlaysForMap}
+              onDeleteOverlay={onDeleteOverlay}
             />
           ))}
         </div>
       )}
+
+      {/* ── Map layer overlays listed under this map ── */}
+      {(overlaysForMap || [])
+        .filter((o) => o.mapId === map.id)
+        .map((overlay, idx) => {
+          const label = overlay.url
+            ? (overlay.url.split('/').pop() || `Layer ${idx + 1}`).replace(/\.[^.]+$/, '')
+            : `Layer ${idx + 1}`;
+          return (
+            <div
+              key={overlay.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '3px 8px 3px ' + (16 + (depth + 1) * 16) + 'px',
+                fontSize: 11, color: 'var(--text-secondary)',
+                opacity: overlay.locked ? 0.7 : 1,
+              }}
+            >
+              <StackSimple size={11} style={{ flexShrink: 0, opacity: 0.6 }} />
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                title={label}>
+                {label}
+              </span>
+              {overlay.locked && (
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', background: 'var(--bg-elevated)',
+                  padding: '1px 4px', borderRadius: 3, border: '1px solid var(--border)', flexShrink: 0 }}>
+                  accepted
+                </span>
+              )}
+              <button
+                className="btn-icon"
+                title="Edit layer placement"
+                style={{ opacity: 0.45, flexShrink: 0, padding: 2 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent('flux:editOverlay', { detail: { overlayId: overlay.id } }));
+                }}
+              >
+                <PencilSimple size={11} />
+              </button>
+              <button
+                className="btn-icon"
+                title="Remove layer"
+                style={{ opacity: 0.35, flexShrink: 0, padding: 2 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteOverlay?.(overlay.campaignId, overlay.id);
+                }}
+              >
+                <Trash size={11} />
+              </button>
+            </div>
+          );
+        })}
     </div>
   );
 }
@@ -304,6 +363,9 @@ export default function MapSidebar() {
   const updateMap   = useMapStore((s) => s.updateMap);
 
   const allNodes = useNodeStore((s) => s.nodes);
+
+  const allOverlays   = useMapOverlayStore((s) => s.overlays);
+  const deleteOverlay = useMapOverlayStore((s) => s.deleteOverlay);
 
   const campaign = useMemo(
     () => campaigns.find((c) => c.id === campaignId) || null,
@@ -327,6 +389,8 @@ export default function MapSidebar() {
   const [pendingImage, setPendingImage] = useState(null);
   const [collapsed, setCollapsed]     = useState(false);
   const fileInputRef = useRef(null);
+  const replaceFileInputRef = useRef(null);
+  const replacingMapIdRef   = useRef(null);
 
   const handleImageSelect = async (e) => {
     const file = e.target.files?.[0];
@@ -340,6 +404,25 @@ export default function MapSidebar() {
       console.error('Map image upload failed:', err);
       alert('Image upload failed. Please try again.');
     }
+  };
+
+  const handleReplaceImage = useCallback((mapId) => {
+    replacingMapIdRef.current = mapId;
+    replaceFileInputRef.current?.click();
+  }, []);
+
+  const handleReplaceImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !replacingMapIdRef.current) return;
+    e.target.value = '';
+    try {
+      const url = await uploadImage(file);
+      updateMap(campaignId, replacingMapIdRef.current, { image: url });
+    } catch (err) {
+      console.error('Map image replace failed:', err);
+      alert('Image upload failed. Please try again.');
+    }
+    replacingMapIdRef.current = null;
   };
 
   const handleCreateMap = () => {
@@ -407,6 +490,9 @@ export default function MapSidebar() {
                 onSelect={handleSelect}
                 onDelete={handleDelete}
                 onRename={handleRename}
+                onReplaceImage={handleReplaceImage}
+                overlaysForMap={allOverlays}
+                onDeleteOverlay={deleteOverlay}
               />
             ))}
 
@@ -416,6 +502,13 @@ export default function MapSidebar() {
               accept="image/*"
               style={{ display: 'none' }}
               onChange={handleImageSelect}
+            />
+            <input
+              ref={replaceFileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleReplaceImageSelect}
             />
 
             {!showNewMap ? (
@@ -431,4 +524,53 @@ export default function MapSidebar() {
                 <button
                   className="btn btn-ghost btn-sm"
                   style={{ flexShrink: 0, padding: '4px 8px' }}
-                  
+                  onClick={() => { setPendingImage(null); setShowNewMap(true); }}
+                  title="Create a blank map (no image)"
+                >
+                  Blank
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {pendingImage && (
+                  <img
+                    src={pendingImage}
+                    alt="preview"
+                    style={{ width: '100%', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
+                  />
+                )}
+                <input
+                  value={newMapName}
+                  onChange={(e) => setNewMapName(e.target.value)}
+                  placeholder="Map name..."
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateMap();
+                    if (e.key === 'Escape') { setShowNewMap(false); setPendingImage(null); }
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={handleCreateMap}>
+                    Create
+                  </button>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => { setShowNewMap(false); setPendingImage(null); }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {rootMaps.length === 0 && !showNewMap && (
+              <div style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: '20px 10px', lineHeight: 1.5 }}>
+                Click <strong>New Map</strong> to upload an image, or <strong>Blank</strong> for an empty canvas.
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

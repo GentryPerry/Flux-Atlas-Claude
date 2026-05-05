@@ -34,14 +34,14 @@ async function request(method, path, body = null) {
   });
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+  if (!res.ok) throw new Error(data.error?.message || data.error || 'Request failed');
   return data;
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export async function signup(email, password) {
-  const data = await request('POST', '/api/auth/signup', { email, password });
+export async function signup(email, password, betaKey) {
+  const data = await request('POST', '/api/auth/signup', { email, password, beta_key: betaKey });
   setToken(data.token);
   return data.user;
 }
@@ -150,6 +150,20 @@ export async function uploadImage(file) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Image upload failed');
   return data.url; // e.g. /api/images/userid/abc123.jpg
+}
+
+// ─── Admin — Beta Keys ────────────────────────────────────────────────────────
+
+export async function adminListKeys() {
+  return request('GET', '/api/admin/keys');
+}
+
+export async function adminCreateKeys(count = 1, note = '') {
+  return request('POST', '/api/admin/keys', { count, note });
+}
+
+export async function adminRevokeKey(key) {
+  return request('DELETE', `/api/admin/keys/${encodeURIComponent(key)}`);
 }
 
 export { getToken, setToken };

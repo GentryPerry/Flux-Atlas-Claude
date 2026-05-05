@@ -1,0 +1,32 @@
+{
+  "id": "faction-occult-types",
+  "title": "Occult Factions & Organizations",
+  "category": "faction",
+  "subcategory": "occult-types",
+  "genre": ["occult-noir"],
+  "die": 20,
+  "description": "The organizations, orders, and underground structures that define political territory in the occult city — each with their angle, their leverage, and their problem.",
+  "tags": ["faction", "occult", "noir", "organization", "politics"],
+  "entries": [
+    { "roll": 1,   "result": "A fraternal order with legitimate public membership and an inner circle that does the actual work. The outer membership doesn't know the inner exists. The inner doesn't agree on what the work is." },
+    { "roll": 2,   "result": "A collectors' society whose true purpose is controlling access to specific objects. The collection is real. So is the competition to acquire things before anyone else realizes what they are." },
+    { "roll": 3,   "result": "A criminal syndicate that recently discovered it's been operating on top of significant occult infrastructure. Now managing both and doing neither particularly well." },
+    { "roll": 4,   "result": "A research institution with legitimate funding and a private archive that has been building toward something for seventy years. Current leadership knows the goal. Current membership doesn't." },
+    { "roll": 5,   "result": "A hereditary compact between families that has been maintained across generations without most family members knowing they're in it." },
+    { "roll": 6,   "result": "A faith community with genuine spiritual practice and a subset of members who have been using those practices in ways the broader membership would not endorse." },
+    { "roll": 7,   "result": "An investigative bureau that has expanded its mandate into areas it cannot officially acknowledge." },
+    { "roll": 8,   "result": "A network of practitioners connected by apprenticeship lineage rather than formal organization. No central leadership. Strong shared values. Significant internal disagreement about methods." },
+    { "roll": 9,   "result": "A burial society that has been maintaining certain arrangements with certain entities regarding the dead in this city for a very long time." },
+    { "roll": 10,  "result": "A guild structure that controls access to a specific type of knowledge or practice through gatekeeping, licensing, and professional pressure." },
+    { "roll": 11,  "result": "A charitable organization that operates as a legitimate front, a practical cover, and a genuine charity simultaneously — the people running it don't always agree on which takes priority." },
+    { "roll": 12,  "result": "A loose network of independent operators who share information, maintain a common enemy list, and occasionally work together when the job requires it." },
+    { "roll": 13,  "result": "An old organization that has been dormant and is reactivating for reasons that its founding documents may or may not explain." },
+    { "roll": 14,  "result": "A political faction within a legitimate institution that has been pursuing an occult agenda through legitimate channels for a generation." },
+    { "roll": 15,  "result": "An entity-sponsored organization. The entity provides resources and protection. The membership provides access and cover. The arrangement has been in place long enough that most members have forgotten the original terms." },
+    { "roll": 16,  "result": "A debtor class — practitioners who have made agreements with things that have not yet called in payment. They have organized because collective leverage is better than individual leverage." },
+    { "roll": 17,  "result": "A professional association for a specific occult trade. Standards enforcement. Peer review. A rating system. A very uncomfortable disciplinary process." },
+    { "roll": 18,  "result": "A schismatic group that broke from a larger organization over a specific disagreement twenty years ago. The parent organization wants them back. They do not want to go back." },
+    { "roll": 19,  "result": "A surveillance apparatus. Monitors significant occult activity in the city and maintains records. Reports to someone. The question of who that someone is has not been answered satisfactorily." },
+    { "roll": 20,  "result": "An organization that everyone in the occult underground has heard of and none of them are sure actually exists." }
+  ]
+}
