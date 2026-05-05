@@ -8,6 +8,7 @@ import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useTagStore from '../../stores/tagStore';
 import { NODE_TYPES, buildDefaultFields, buildDefaultStatusFlags } from '../../utils/nodeSchemas';
+import { getCachedStatus } from '../../hooks/useAccountStatus';
 
 const TYPE_COLORS = {
   character: 'var(--node-character)',
@@ -208,6 +209,28 @@ export default function ImportModal({ onClose }) {
   const handleImport = () => {
     if (preview.length === 0) return;
 
+    // Guard: nodes must have a map to land on.
+    if (!activeMapId) {
+      alert('No active map found. Create a map first before importing nodes.');
+      return;
+    }
+
+    // Pre-flight node limit check using current store count + import count.
+    // This avoids per-node calls to getCachedStatus() inside the loop, which
+    // would never see the incrementing count and silently over-import.
+    const status = getCachedStatus();
+    if (status?.usage?.nodes?.limit !== null && status?.usage?.nodes?.limit !== undefined) {
+      const currentCount = useNodeStore.getState().nodes.length;
+      const wouldBe = currentCount + preview.length;
+      if (wouldBe > status.usage.nodes.limit) {
+        alert(
+          `This import would create ${wouldBe} total nodes, exceeding your limit of ${status.usage.nodes.limit}. ` +
+          `You have ${status.usage.nodes.limit - currentCount} slot(s) remaining.`
+        );
+        return;
+      }
+    }
+
     const cols    = Math.ceil(Math.sqrt(preview.length));
     const spacing = 120;
     const startX  = 200;
@@ -366,9 +389,10 @@ export default function ImportModal({ onClose }) {
                 <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
                 <button
                   className="btn btn-primary"
-                  disabled={preview.length === 0}
+                  disabled={preview.length === 0 || !activeMapId}
                   onClick={handleImport}
-                  style={preview.length === 0 ? { opacity: 0.5, cursor: 'default' } : {}}
+                  style={(preview.length === 0 || !activeMapId) ? { opacity: 0.5, cursor: 'default' } : {}}
+                  title={!activeMapId ? 'Create a map first before importing nodes' : undefined}
                 >
                   Import {preview.length} node{preview.length !== 1 ? 's' : ''}
                 </button>

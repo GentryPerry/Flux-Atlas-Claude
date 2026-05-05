@@ -5,7 +5,8 @@ import {
   Kanban, MagnifyingGlass, Plus,
   ClockCounterClockwise, DotsNine, Tree,
   Note, ChartBar, ArrowsLeftRight, Circle,
-  Hourglass, Lightning, Wrench, DiceSix, Camera, StackSimple,
+  Hourglass, Lightning, Wrench, DiceSix, Camera, StackSimple, Image,
+  ArrowCounterClockwise,
 } from '@phosphor-icons/react';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
@@ -62,6 +63,7 @@ export default function MapToolbar({
   onToggleHistory, historyOpen,
   onTakeSnapshot,
   onAddMapLayer,    // (file: File) => void — called when user picks an image to add as overlay
+  onUndo, canUndo,  // in-memory undo
 }) {
   const toolbarRef  = useRef(null);
   const mapLayerInputRef = useRef(null);
@@ -529,9 +531,27 @@ export default function MapToolbar({
               <DiceSix size={15} />
               <span>Table Roller</span>
             </button>
+            <button
+              className="widget-picker-item"
+              onClick={() => { addWidget(campaignId, 'image-frame', useViewportStore.getState()); setWidgetPickerOpen(false); }}
+            >
+              <Image size={15} />
+              <span>Image</span>
+            </button>
           </div>
         )}
       </div>
+
+      {/* Undo — always visible */}
+      <button
+        className="btn-icon"
+        onClick={onUndo}
+        disabled={!canUndo}
+        title="Undo (Ctrl+Z)"
+        style={{ opacity: canUndo ? 1 : 0.35 }}
+      >
+        <ArrowCounterClockwise size={18} />
+      </button>
 
       {/* Search & settings — always visible, always icon-only */}
       <button className="btn-icon" onClick={onOpenSearch} title="Search nodes (Ctrl+K)">

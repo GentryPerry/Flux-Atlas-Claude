@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import { saveStore, loadCampaign } from '../utils/api';
+import useUndoStore from './undoStore';
 
 const useTerritoryStore = create((set, get) => ({
   territories: [],
@@ -29,6 +30,7 @@ const useTerritoryStore = create((set, get) => ({
   },
 
   createTerritory: (campaignId, mapId, shapeType, data = {}) => {
+    useUndoStore.getState().captureSnapshot();
     const territory = {
       id: uuid(),
       campaignId,
@@ -56,6 +58,7 @@ const useTerritoryStore = create((set, get) => ({
   },
 
   updateTerritory: (campaignId, territoryId, updates) => {
+    useUndoStore.getState().captureDebouncedSnapshot();
     const territories = get().territories.map((t) =>
       t.id === territoryId ? { ...t, ...updates } : t
     );
@@ -64,12 +67,14 @@ const useTerritoryStore = create((set, get) => ({
   },
 
   deleteTerritory: (campaignId, territoryId) => {
+    useUndoStore.getState().captureSnapshot();
     const territories = get().territories.filter((t) => t.id !== territoryId);
     set({ territories });
     get()._persist(campaignId);
   },
 
   linkToNode: (campaignId, territoryId, nodeId) => {
+    useUndoStore.getState().captureSnapshot();
     const territories = get().territories.map((t) =>
       t.id === territoryId ? { ...t, nodeId } : t
     );

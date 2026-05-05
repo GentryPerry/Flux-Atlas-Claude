@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import polygonClipping from 'polygon-clipping';
 import { SquareSplitHorizontal, Rows, Eye, EyeSlash } from '@phosphor-icons/react';
 import useViewportStore from '../stores/viewportStore';
 import useCampaignStore from '../stores/campaignStore';
@@ -31,6 +32,7 @@ import ResetModal from '../components/common/ResetModal';
 import OnboardingTour from '../components/onboarding/OnboardingTour';
 import OnboardingTourMobile from '../components/onboarding/OnboardingTourMobile';
 import useSnapshotStore from '../stores/snapshotStore';
+import useUndoStore from '../stores/undoStore';
 import { uploadImage } from '../utils/api';
 import useWidgetStore from '../stores/widgetStore';
 import useHierarchyStore from '../stores/hierarchyStore';
@@ -91,6 +93,8 @@ export default function WorkspaceView() {
   const [territoryColor, setTerritoryColor] = useState('#8890a0');
   const [selectedTerritoryId, setSelectedTerritoryId] = useState(null);
   const [editingTerritoryId, setEditingTerritoryId] = useState(null);
+  const [selectedTerritoryIds, setSelectedTerritoryIds] = useState([]); // multi-select
+  const [overlapPicker, setOverlapPicker] = useState(null); // { x, y, ids[] }
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchHighlightIds, setSearchHighlightIds] = useState(null);
   const [advanceTimeOpen,    setAdvanceTimeOpen]    = useState(false);
@@ -132,6 +136,33 @@ export default function WorkspaceView() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // ── Undo (Ctrl+Z) ─────────────────────────────────────────────────────────
+  const undoHistory  = useUndoStore((s) => s.history);
+  const canUndo      = undoHistory.length > 0;
+  const handleUndo   = useCallback(() => {
+    if (campaignId) useUndoStore.getState().undo(campaignId);
+  }, [campaignId]);
+
+  // Clear undo history when the campaign changes so old state can't bleed across
+  useEffect(() => {
+    useUndoStore.getState().clearHistory();
+  }, [campaignId]);
+
+  // Ctrl+Z keyboard shortcut
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        // Don't intercept if focus is inside an input or contenteditable
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleUndo]);
+
   // Allow the TroubleEngineWidget on the canvas to open the modal
   useEffect(() => {
     const handler = () => setTroubleEngineOpen(true);
@@ -172,6 +203,74 @@ export default function WorkspaceView() {
     setTerritoryOwnerId(null);
     setTerritoryColor('#8890a0');
   }, [polygonPoints, territoryOwnerId, territoryColor, allNodes, campaignId, activeMapId, createTerritory]);
+
+  // ── Territory overlap picker ──────────────────────────────────────────────────
+  const handleTerritoryOverlapPick = useCallback((x, y, ids) => {
+    setOverlapPicker({ x, y, ids });
+    setSelectedTerritoryIds([]);
+  }, []);
+
+  const handleOverlapSelect = useCallback((id) => {
+    setSelectedTerritoryId(id);
+    setSelectedTerritoryIds([]);
+    setOverlapPicker(null);
+  }, []);
+
+  // ── Territory shift-click multi-select ───────────────────────────────────────
+  const handleTerritoryShiftClick = useCallback((id) => {
+    setOverlapPicker(null);
+    setSelectedTerritoryId(null);
+    setSelectedTerritoryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }, []);
+
+  // ── Territory merge (polygon-clipping union) ──────────────────────────────────
+  const handleMergeTerritories = useCallback(() => {
+    const toMerge  = allTerritories.filter((t) => selectedTerritoryIds.includes(t.id));
+    const polygons = toMerge.filter((t) => t.shapeType === 'polygon' && t.points?.length >= 3);
+    if (polygons.length < 2) return;
+
+    // Convert {x,y}[] → polygon-clipping ring format [[[x,y], ...]]
+    const rings = polygons.map((t) => [t.points.map((p) => [p.x, p.y])]);
+
+    let result;
+    try {
+      result = polygonClipping.union(...rings);
+    } catch (err) {
+      console.warn('Polygon union failed:', err);
+      return;
+    }
+
+    if (!result?.length) return;
+
+    const base = polygons[0];
+
+    // union() returns a MultiPolygon — one entry per disconnected region.
+    // If the territories overlap/touch we get 1; if they're separate we get N.
+    for (const outputPoly of result) {
+      // outputPoly[0] = outer ring; subsequent rings = holes (rare in this context)
+      const outerRing = outputPoly[0];
+      // polygon-clipping closes the ring (last pt === first pt) — drop the duplicate
+      const points = outerRing
+        .slice(0, -1)
+        .map(([x, y]) => ({ x, y }));
+
+      createTerritory(campaignId, activeMapId, 'polygon', {
+        points,
+        nodeId:      base.nodeId,
+        name:        base.name,
+        color:       base.color,
+        strokeColor: base.strokeColor,
+        strokeWidth: base.strokeWidth,
+        opacity:     base.opacity,
+      });
+    }
+
+    // Remove the original territories
+    for (const t of polygons) deleteTerritory(campaignId, t.id);
+    setSelectedTerritoryIds([]);
+  }, [allTerritories, selectedTerritoryIds, campaignId, activeMapId, createTerritory, deleteTerritory]);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -248,7 +347,10 @@ export default function WorkspaceView() {
         polygonPoints={polygonPoints}
         setPolygonPoints={setPolygonPoints}
         selectedTerritoryId={selectedTerritoryId}
-        setSelectedTerritoryId={setSelectedTerritoryId}
+        setSelectedTerritoryId={(id) => { setSelectedTerritoryId(id); setSelectedTerritoryIds([]); setOverlapPicker(null); }}
+        selectedTerritoryIds={selectedTerritoryIds}
+        onTerritoryShiftClick={handleTerritoryShiftClick}
+        onTerritoryOverlapPick={handleTerritoryOverlapPick}
         editingTerritoryId={editingTerritoryId}
         searchHighlightIds={searchHighlightIds}
         orgView={orgView}
@@ -401,7 +503,10 @@ export default function WorkspaceView() {
                   polygonPoints={polygonPoints}
                   setPolygonPoints={setPolygonPoints}
                   selectedTerritoryId={selectedTerritoryId}
-                  setSelectedTerritoryId={setSelectedTerritoryId}
+                  setSelectedTerritoryId={(id) => { setSelectedTerritoryId(id); setSelectedTerritoryIds([]); setOverlapPicker(null); }}
+                  selectedTerritoryIds={selectedTerritoryIds}
+                  onTerritoryShiftClick={handleTerritoryShiftClick}
+                  onTerritoryOverlapPick={handleTerritoryOverlapPick}
                   editingTerritoryId={editingTerritoryId}
                   searchHighlightIds={searchHighlightIds}
                   orgView={orgView}
@@ -469,6 +574,7 @@ export default function WorkspaceView() {
           <MobileSettingsPanel onBack={() => setActiveView('map')} />
         )}
 
+
         {searchOpen && (
           <SearchOverlay
             onClose={() => { setSearchOpen(false); setSearchHighlightIds(null); }}
@@ -482,7 +588,7 @@ export default function WorkspaceView() {
     );
   }
 
-  // ── Desktop layout ──────────────────────────────────────────────────────────
+  // ── Desktop layout ──────────────────────────────
   return (
     <div className="app-layout" style={colorOverrideStyle}>
       <MapSidebar />
@@ -505,6 +611,8 @@ export default function WorkspaceView() {
             `Snapshot ${new Date().toLocaleString()}`,
             { nodes: allNodes ?? [], territories: allTerritories ?? [] },
           )}
+          onUndo={handleUndo}
+          canUndo={canUndo}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -523,6 +631,12 @@ export default function WorkspaceView() {
           ) : activeView === 'hierarchy' ? (
             <div className="view-enter" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
               <HierarchyTreeView />
+              {selectedNodeId && (
+                <>
+                  <div className="split-divider" />
+                  <DetailPanel />
+                </>
+              )}
             </div>
           ) : layout === 'full' && !panelExiting ? (
             <>
@@ -562,6 +676,48 @@ export default function WorkspaceView() {
             editingTerritoryId === selectedTerritoryId ? null : selectedTerritoryId
           )}
         />
+      )}
+
+      {/* ── Territory overlap picker ───────────────────── */}
+      {overlapPicker && (
+        <div
+          className="territory-overlap-picker"
+          style={{ left: overlapPicker.x + 8, top: overlapPicker.y + 8 }}
+          onMouseLeave={() => setOverlapPicker(null)}
+        >
+          <div className="territory-overlap-header">Select territory</div>
+          {overlapPicker.ids.map((id) => {
+            const t = allTerritories.find((t) => t.id === id);
+            if (!t) return null;
+            return (
+              <button
+                key={id}
+                className="territory-overlap-item"
+                onClick={() => handleOverlapSelect(id)}
+              >
+                <span className="territory-overlap-dot" style={{ background: t.color }} />
+                <span className="territory-overlap-name">{t.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Territory combine bar (shown when 2+ are shift-selected) ─── */}
+      {selectedTerritoryIds.length >= 2 && (
+        <div className="territory-combine-bar">
+          <span className="territory-combine-label">
+            {selectedTerritoryIds.length} territories selected
+          </span>
+          {allTerritories.filter((t) => selectedTerritoryIds.includes(t.id) && t.shapeType === 'polygon').length >= 2 && (
+            <button className="territory-combine-btn" onClick={handleMergeTerritories}>
+              Combine into one
+            </button>
+          )}
+          <button className="territory-combine-cancel" onClick={() => setSelectedTerritoryIds([])}>
+            ✕
+          </button>
+        </div>
       )}
 
       {contextMenu && (

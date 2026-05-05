@@ -262,7 +262,7 @@ export default function ClockWidget({ widget, onUpdate, onUpdateData, onRemove, 
   return (
     <div
       className={`widget-shell clock-widget ${isMinimized ? 'widget-minimized' : ''}`}
-      style={{ width: isMinimized ? 200 : widgetWidth }}
+      style={{ width: isMinimized ? 'fit-content' : widgetWidth }}
       onContextMenu={(e) => { e.preventDefault(); onContextMenu?.(e); }}
     >
       {/* ── Title bar ── */}

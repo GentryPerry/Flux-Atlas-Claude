@@ -89,7 +89,16 @@ async function verifyPassword(password, stored) {
     keyMaterial, 256
   );
   const hash = Array.from(new Uint8Array(bits), (b) => b.toString(16).padStart(2, '0')).join('');
-  return hash === expectedHash;
+  // Constant-time comparison to prevent timing side-channel attacks
+  return timingSafeEqual(hash, expectedHash);
+}
+
+/** Constant-time string comparison — prevents hash timing oracles. */
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 const SESSION_DAYS = 30;
@@ -230,11 +239,19 @@ async function handleSignup(request, db) {
   await db.prepare('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)')
     .bind(id, email, password_hash).run();
 
-  // Mark the beta key as used
-  await db
-    .prepare("UPDATE beta_keys SET used_by = ?, used_at = datetime('now') WHERE key = ?")
+  // Mark the beta key as used — conditional update guards against a concurrent
+  // request that passed the read check at the same time (race condition).
+  const keyUpdate = await db
+    .prepare("UPDATE beta_keys SET used_by = ?, used_at = datetime('now') WHERE key = ? AND used_by IS NULL")
     .bind(id, betaKey)
     .run();
+
+  if (keyUpdate.meta?.changes === 0) {
+    // Another request claimed the key between our read and this write.
+    // Roll back the new user row and reject.
+    await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
+    return err('That access key has already been used', 403);
+  }
 
   // Create usage row for the new user
   const now         = new Date();
@@ -381,8 +398,18 @@ async function handleSave(request, db) {
   const store      = url.searchParams.get('store');
   if (!campaignId || !store) return err('campaignId and store query params required');
 
+  // ── Body size guard (prevents storing oversized blobs) ──
+  const MAX_BODY_BYTES = 5 * 1024 * 1024; // 5 MB per store blob
+  const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+  if (contentLength > MAX_BODY_BYTES) return err('Payload too large', 413);
+
   const dataStr = await request.text();
   if (!dataStr) return err('Request body required');
+  if (dataStr.length > MAX_BODY_BYTES) return err('Payload too large', 413);
+
+  // Parse JSON once — reused by entitlement checks and auto-snapshot below.
+  let parsedData = null;
+  try { parsedData = JSON.parse(dataStr); } catch { /* leave null — invalid JSON is stored as-is */ }
 
   // ── Entitlement enforcement for tracked stores ──
   if (store === 'nodes') {
@@ -391,9 +418,7 @@ async function handleSave(request, db) {
     const limit = ents['max_nodes'];
 
     if (limit !== null && limit !== undefined) {
-      let incoming;
-      try { incoming = JSON.parse(dataStr); } catch { incoming = null; }
-      const count = Array.isArray(incoming) ? incoming.length : 0;
+      const count = Array.isArray(parsedData) ? parsedData.length : 0;
 
       if (count > limit) {
         return limitErr(
@@ -411,16 +436,13 @@ async function handleSave(request, db) {
     }
   }
 
-
   if (store === 'campaigns' && campaignId === '__meta__') {
     const user  = await getUserWithPlan(userId, db);
     const ents  = await getEntitlements(user.plan_key, db);
     const limit = ents['max_campaigns'];
 
     if (limit !== null && limit !== undefined) {
-      let incoming;
-      try { incoming = JSON.parse(dataStr); } catch { incoming = null; }
-      const count = Array.isArray(incoming) ? incoming.length : 0;
+      const count = Array.isArray(parsedData) ? parsedData.length : 0;
 
       if (count > limit) {
         return limitErr(
@@ -447,13 +469,9 @@ async function handleSave(request, db) {
     .run();
 
   // ── Rolling auto-snapshot (fire-and-forget, nodes only) ──
-  if (store === 'nodes') {
-    let parsedForSnap;
-    try { parsedForSnap = JSON.parse(dataStr); } catch { parsedForSnap = null; }
-    if (Array.isArray(parsedForSnap)) {
-      // Don't await — auto-snapshot is best-effort, never blocks the response
-      maybeAutoSnapshot(userId, campaignId, parsedForSnap, db).catch(() => {});
-    }
+  // Reuse parsedData — no second JSON.parse needed.
+  if (store === 'nodes' && Array.isArray(parsedData)) {
+    maybeAutoSnapshot(userId, campaignId, parsedData, db).catch(() => {});
   }
 
   return json({ ok: true });
@@ -565,10 +583,19 @@ async function handleImageUpload(request, env, db) {
   return json({ ok: true, key: r2Key, id: fileId, url: `/api/images/${r2Key}` }, 201);
 }
 
-async function handleImageServe(request, env) {
-  const url    = new URL(request.url);
-  const r2Key  = url.pathname.replace('/api/images/', '');
-  if (!r2Key)  return err('Key required', 400);
+async function handleImageServe(request, env, db) {
+  const token  = getToken(request);
+  const userId = await validateSession(token, db);
+  if (!userId) return err('Unauthorized', 401);
+
+  const url   = new URL(request.url);
+  const r2Key = url.pathname.replace('/api/images/', '');
+  if (!r2Key) return err('Key required', 400);
+
+  // Verify the key belongs to this user — prevents enumeration of other users' files.
+  // Keys always follow the pattern images/{userId}/...
+  const expectedPrefix = `images/${userId}/`;
+  if (!r2Key.startsWith(expectedPrefix)) return err('Forbidden', 403);
 
   const obj = await env.flux_atlas_images.get(r2Key);
   if (!obj)  return err('Not found', 404);
@@ -786,11 +813,14 @@ async function handleRecalculate(request, db) {
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
-// Helper: generate a FLUX-XXXXX-XXXXX style key
+// Helper: generate a FLUX-XXXXX-XXXXX style key using CSPRNG
 function generateBetaKey() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I/O/1/0 — avoids confusion
-  const seg = (n) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  return `FLUX-${seg(5)}-${seg(5)}`;
+  const buf = new Uint8Array(10);
+  crypto.getRandomValues(buf);
+  // Map each byte to a char via modulo (slight bias is negligible for 32-char alphabet)
+  const seg = (bytes) => Array.from(bytes, (b) => chars[b % chars.length]).join('');
+  return `FLUX-${seg(buf.slice(0, 5))}-${seg(buf.slice(5))}`;
 }
 
 // Helper: check that the requesting user is an admin
@@ -862,8 +892,11 @@ async function handleRevokeKey(request, db, key) {
 }
 
 async function handleAdminSetPlan(request, db, env, userId_param) {
+  // Guard: if ADMIN_SECRET is not configured, the endpoint is disabled entirely.
+  // An empty ADMIN_SECRET would otherwise accept any empty-string header.
+  if (!env.ADMIN_SECRET) return err('Forbidden', 403);
   const secret = request.headers.get('X-Admin-Secret');
-  if (!secret || secret !== (env.ADMIN_SECRET ?? '')) return err('Forbidden', 403);
+  if (!secret || secret !== env.ADMIN_SECRET) return err('Forbidden', 403);
 
   let body;
   try { body = await request.json(); } catch { return err('Invalid JSON'); }
@@ -925,7 +958,7 @@ export default {
 
     // ── Image routes ──
     if (pathname === '/api/images/upload' && method === 'POST')  return handleImageUpload(request, env, db);
-    if (pathname.startsWith('/api/images/') && method === 'GET') return handleImageServe(request, env);
+    if (pathname.startsWith('/api/images/') && method === 'GET') return handleImageServe(request, env, db);
     if (pathname.startsWith('/api/images/') && method === 'DELETE') return handleImageDelete(request, env, db);
 
     // ── Account / usage routes ──

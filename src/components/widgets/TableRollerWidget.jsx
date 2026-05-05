@@ -158,7 +158,7 @@ export default function TableRollerWidget({ widget, onUpdate, onUpdateData, onRe
     onUpdateData({ rollCount: n });
   };
 
-  const w = isMinimized ? 240 : (data.width ?? 340);
+  const w = isMinimized ? 'fit-content' : (data.width ?? 340);
 
   return (
     <div

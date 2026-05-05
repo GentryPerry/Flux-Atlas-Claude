@@ -1,20 +1,23 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import { saveStore, loadCampaign } from '../utils/api';
+import useUndoStore from './undoStore';
 
-let _widgetSaveTimer = null;
+// Per-campaign timers — same rationale as nodeStore: prevents a rapid campaign
+// switch from cancelling a pending save for a different campaign.
+const _widgetSaveTimers = new Map(); // campaignId → timerId
 
-// Snapshot widgets at call-time for the same reason as nodeStore — prevents a
-// rapid campaign switch from saving campaign B's widgets under campaign A's ID.
 function debouncedWidgetSave(campaignId, widgets) {
+  // Filter to this campaign at call-time so the closure captures the right slice.
   const snapshot = widgets.filter((w) => w.campaignId === campaignId);
-  if (_widgetSaveTimer) clearTimeout(_widgetSaveTimer);
-  _widgetSaveTimer = setTimeout(() => {
+  if (_widgetSaveTimers.has(campaignId)) clearTimeout(_widgetSaveTimers.get(campaignId));
+  const id = setTimeout(() => {
+    _widgetSaveTimers.delete(campaignId);
     saveStore(campaignId, 'widgets', snapshot).catch((e) =>
       console.warn('Widget save failed:', e)
     );
-    _widgetSaveTimer = null;
   }, 400);
+  _widgetSaveTimers.set(campaignId, id);
 }
 
 function defaultData(type) {
@@ -37,6 +40,8 @@ function defaultData(type) {
       return { title: 'Trouble Engine', lastRun: null, width: 280 };
     case 'table-roller':
       return { title: 'Table Roller', tableId: null, rollCount: 1, lastResults: [], width: 340 };
+    case 'image-frame':
+      return { title: 'Image', imageUrl: null, width: 300, height: 220 };
     case 'thread-tracker':
       return {
         title: 'Narrative Arc',
@@ -77,6 +82,7 @@ const useWidgetStore = create((set, get) => ({
   },
 
   addWidget: (campaignId, type, viewportState) => {
+    useUndoStore.getState().captureSnapshot();
     const vx    = viewportState?.x     ?? 0;
     const vy    = viewportState?.y     ?? 0;
     const scale = viewportState?.scale ?? 1;
@@ -114,10 +120,30 @@ const useWidgetStore = create((set, get) => ({
   },
 
   removeWidget: (id) => {
+    useUndoStore.getState().captureSnapshot();
     const w = get().widgets.find((w) => w.id === id);
     const widgets = get().widgets.filter((w) => w.id !== id);
     set({ widgets });
     if (w) get()._persist(w.campaignId);
+  },
+
+  /**
+   * Bulk-set widgets — used by undo restore.
+   * Persists each campaign's widgets to the API.
+   */
+  _setDirect: (widgets) => {
+    set({ widgets });
+    // Group by campaign and save each
+    const byCampaign = {};
+    for (const w of widgets) {
+      if (!byCampaign[w.campaignId]) byCampaign[w.campaignId] = [];
+      byCampaign[w.campaignId].push(w);
+    }
+    for (const [cid, ws] of Object.entries(byCampaign)) {
+      saveStore(cid, 'widgets', ws).catch((e) =>
+        console.warn('_setDirect widget save failed:', e)
+      );
+    }
   },
 }));
 

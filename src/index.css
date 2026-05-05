@@ -2641,6 +2641,102 @@ label {
   border-color: var(--danger);
 }
 
+/* ===== Territory Overlap Picker ===== */
+.territory-overlap-picker {
+  position: fixed;
+  z-index: 300;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  padding: 6px 4px;
+  min-width: 180px;
+  max-width: 260px;
+}
+.territory-overlap-header {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 2px 10px 6px;
+}
+.territory-overlap-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+.territory-overlap-item:hover { background: rgba(255,255,255,0.07); }
+.territory-overlap-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.territory-overlap-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Territory Combine Bar ===== */
+.territory-combine-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  padding: 8px 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.territory-combine-label {
+  color: var(--text-secondary);
+}
+.territory-combine-btn {
+  background: #a78bfa22;
+  border: 1px solid #a78bfa66;
+  border-radius: 14px;
+  color: #a78bfa;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.territory-combine-btn:hover {
+  background: #a78bfa33;
+  border-color: #a78bfa;
+}
+.territory-combine-cancel {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.1s;
+}
+.territory-combine-cancel:hover { color: var(--text-primary); }
+
 /* ===== Territory Detail Panel ===== */
 .territory-detail-panel {
   position: fixed;
@@ -3664,9 +3760,17 @@ label {
 }
 
 .widget-shell.widget-minimized {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  /* Briefly squish on minimize — driven by keyframe */
-  animation: widget-squish 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  border-radius: 999px;   /* pill shape */
+  overflow: hidden;       /* clip children to the pill */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  min-width: 0;
+  max-width: 300px;
+  animation: widget-pill-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes widget-pill-pop {
+  0%   { transform: scale(0.92); opacity: 0.7; }
+  100% { transform: scale(1);    opacity: 1; }
 }
 
 @keyframes widget-squish {
@@ -3692,8 +3796,9 @@ label {
 .widget-tabbar:active { cursor: grabbing; }
 .widget-minimized .widget-tabbar {
   border-bottom: none;
-  border-radius: var(--radius);
-  padding-bottom: 4px;
+  border-radius: 0;
+  padding: 6px 10px;
+  min-height: 0;
 }
 
 .widget-tabs-scroll {
@@ -4068,6 +4173,7 @@ label {
   user-select: none;
 }
 .lt-titlebar:active { cursor: grabbing; }
+.widget-minimized .lt-titlebar { border-bottom: none; border-radius: 0; padding: 6px 10px; min-height: 0; }
 
 .lt-title {
   flex: 1;
@@ -4598,7 +4704,9 @@ label {
 .tt-titlebar:active { cursor: grabbing; }
 .widget-minimized .tt-titlebar {
   border-bottom: none;
-  border-radius: var(--radius);
+  border-radius: 0;
+  padding: 6px 10px;
+  min-height: 0;
 }
 
 .tt-title {
@@ -4945,7 +5053,7 @@ label {
   min-height: 34px;
 }
 .cw-titlebar:active { cursor: grabbing; }
-.widget-minimized .cw-titlebar { border-bottom: none; border-radius: var(--radius); }
+.widget-minimized .cw-titlebar { border-bottom: none; border-radius: 0; padding: 6px 10px; min-height: 0; }
 
 .cw-title {
   flex: 1;
@@ -6997,7 +7105,9 @@ label {
 .te-widget-titlebar:active { cursor: grabbing; }
 .widget-minimized .te-widget-titlebar {
   border-bottom: none;
-  border-radius: var(--radius);
+  border-radius: 0;
+  padding: 6px 10px;
+  min-height: 0;
 }
 
 .te-widget-title {
@@ -10748,7 +10858,9 @@ label {
 .tr-titlebar:active { cursor: grabbing; }
 .widget-minimized .tr-titlebar {
   border-bottom: none;
-  border-radius: var(--radius);
+  border-radius: 0;
+  padding: 6px 10px;
+  min-height: 0;
 }
 
 .tr-title {
@@ -10996,3 +11108,174 @@ label {
 }
 .tr-widget:hover .tr-resize-handle { opacity: 0.7; }
 
+/* ===== Image Frame Widget ===== */
+
+.image-frame-widget {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* Title bar */
+.ifw-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 10px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+}
+.widget-minimized .ifw-titlebar { border-bottom: none; border-radius: 0; padding: 6px 10px; min-height: 0; }
+.ifw-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ifw-title-input {
+  flex: 1;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  padding: 2px 6px;
+  outline: none;
+}
+
+/* Body — the image area */
+.ifw-body {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-inset);
+  min-height: 80px;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Loaded image */
+.ifw-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Replace button — floats over the image on hover */
+.ifw-replace-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+}
+.ifw-replace-btn:hover { background: rgba(0,0,0,0.85); }
+
+/* Upload zone (empty state) */
+.ifw-upload-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: 2px dashed var(--border-strong);
+  border-radius: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  padding: 20px;
+}
+.ifw-upload-zone:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb, 79,140,255), 0.05);
+  color: var(--text-secondary);
+}
+.ifw-upload-zone:disabled { cursor: not-allowed; opacity: 0.7; }
+
+.ifw-upload-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.ifw-upload-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ifw-error {
+  font-size: 11px;
+  color: #e05555;
+  margin-top: 4px;
+}
+
+/* ── Replace button (hover overlay on loaded image) ── */
+.ifw-replace-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.85);
+  font-size: 11.5px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+}
+.ifw-replace-btn:hover { background: rgba(0,0,0,0.8); }
+
+/* ── Uploading overlay (replace) ── */
+.ifw-uploading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.45);
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Spinner ── */
+.ifw-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ifw-spin 0.7s linear infinite;
+}
+@keyframes ifw-spin {
+  to { transform: rotate(360deg); }
+}
+
+.widget-minimized .ifw-titlebar { border-bottom: none; border-radius: 0; padding: 6px 10px; min-height: 0; }

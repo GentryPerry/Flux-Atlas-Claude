@@ -49,7 +49,7 @@ export default function TroubleEngineWidget({ widget, onUpdate, onUpdateData, on
   return (
     <div
       className={`widget-shell te-widget ${isMinimized ? 'widget-minimized' : ''}`}
-      style={{ width: isMinimized ? 220 : (data.width || 280) }}
+      style={{ width: isMinimized ? 'fit-content' : (data.width || 280) }}
       onContextMenu={onContextMenu}
     >
       {/* Drag handle / title bar */}

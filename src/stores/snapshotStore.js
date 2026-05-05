@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import { saveStore, loadCampaign } from '../utils/api';
+// Lazy imports to avoid circular dep issues at module evaluation time
+// (same pattern as undoStore — all access is inside function bodies).
+import useNodeStore      from './nodeStore';
+import useTerritoryStore from './territoryStore';
 
 const useSnapshotStore = create((set, get) => ({
   snapshots: [],
@@ -42,8 +46,8 @@ const useSnapshotStore = create((set, get) => ({
       createdAt: new Date().toISOString(),
       summary,
       worldState: {
-        nodes:       JSON.parse(JSON.stringify(worldState.nodes       || [])),
-        territories: JSON.parse(JSON.stringify(worldState.territories || [])),
+        nodes:       structuredClone(worldState.nodes       || []),
+        territories: structuredClone(worldState.territories || []),
       },
     };
 
@@ -76,6 +80,13 @@ const useSnapshotStore = create((set, get) => ({
       ]);
       set({ currentSnapshotId: snapshotId });
       await saveStore(campaignId, 'snapshot_current', snapshotId);
+
+      // Also update in-memory stores so the UI reflects the restored state
+      // immediately — without this the user would see stale data until they
+      // manually switch campaigns.
+      useNodeStore.getState().setNodes(campaignId, worldState.nodes);
+      useTerritoryStore.getState().setTerritories(campaignId, worldState.territories);
+
       return true;
     } catch (e) {
       console.warn('Snapshot restore failed:', e);

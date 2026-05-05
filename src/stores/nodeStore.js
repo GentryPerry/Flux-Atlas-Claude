@@ -3,26 +3,30 @@ import { v4 as uuid } from 'uuid';
 import { buildDefaultFields, buildDefaultStatusFlags } from '../utils/nodeSchemas';
 import { saveStore, loadCampaign } from '../utils/api';
 import { getCachedStatus } from '../hooks/useAccountStatus';
+import useUndoStore from './undoStore';
 
 /**
  * Debounced API save — batches rapid updates (drag, typing) into one write.
  * Critical for canvas drag performance with 70+ nodes.
  * Node images are now R2 URLs (short strings), so payload size is no longer
  * a concern and nodes can be saved as-is.
+ *
+ * Per-campaign timers: using a Map so rapid campaign switching never silently
+ * drops a pending save for campaign A when campaign B triggers a new save.
  */
-let _saveTimer = null;
+const _saveTimers = new Map(); // campaignId → timerId
 
-// Snapshot nodes at call-time so a rapid campaign switch can't save campaign B's
-// nodes under campaign A's ID while the debounce timer is still pending.
 function debouncedSave(campaignId, nodes) {
+  // Snapshot at call-time so the closure captures the exact state requested.
   const snapshot = [...nodes];
-  if (_saveTimer) clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => {
+  if (_saveTimers.has(campaignId)) clearTimeout(_saveTimers.get(campaignId));
+  const id = setTimeout(() => {
+    _saveTimers.delete(campaignId);
     saveStore(campaignId, 'nodes', snapshot).catch((e) =>
       console.warn('Node save failed:', e)
     );
-    _saveTimer = null;
   }, 400);
+  _saveTimers.set(campaignId, id);
 }
 
 const useNodeStore = create((set, get) => ({
@@ -43,6 +47,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Create a node on a specific map at a position */
   createNode: (campaignId, mapId, nodeType, x, y) => {
+    useUndoStore.getState().captureSnapshot();
     // ── Client-side limit check (server enforces too) ──
     const status = getCachedStatus();
     if (status) {
@@ -92,6 +97,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Update a node's fields */
   updateNodeFields: (campaignId, nodeId, fieldUpdates) => {
+    useUndoStore.getState().captureDebouncedSnapshot();
     const now = new Date().toISOString();
     const nodes = get().nodes.map((n) =>
       n.id === nodeId ? { ...n, updatedAt: now, fields: { ...n.fields, ...fieldUpdates } } : n
@@ -102,6 +108,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Update any top-level node property */
   updateNode: (campaignId, nodeId, updates) => {
+    useUndoStore.getState().captureSnapshot();
     const now = new Date().toISOString();
     const nodes = get().nodes.map((n) =>
       n.id === nodeId ? { ...n, updatedAt: now, ...updates } : n
@@ -127,6 +134,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Nest a node inside a parent */
   nestNode: (campaignId, childId, parentId) => {
+    useUndoStore.getState().captureSnapshot();
     const nodes = get().nodes.map((n) =>
       n.id === childId ? { ...n, parentNodeId: parentId } : n
     );
@@ -136,6 +144,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Unnest a node — restore to top level at given position */
   unnestNode: (campaignId, nodeId, x, y) => {
+    useUndoStore.getState().captureSnapshot();
     const nodes = get().nodes.map((n) =>
       n.id === nodeId ? { ...n, parentNodeId: null, x: x ?? n.x, y: y ?? n.y } : n
     );
@@ -145,6 +154,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Delete a node and ALL its descendants (recursive cascade) */
   deleteNode: (campaignId, nodeId) => {
+    useUndoStore.getState().captureSnapshot();
     const allNodes = get().nodes;
     const toDelete = new Set([nodeId]);
     let changed = true;
@@ -172,6 +182,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Add an image to a node */
   addNodeImage: (campaignId, nodeId, imageDataUrl) => {
+    useUndoStore.getState().captureSnapshot();
     const nodes = get().nodes.map((n) => {
       if (n.id !== nodeId) return n;
       return {
@@ -185,6 +196,7 @@ const useNodeStore = create((set, get) => ({
 
   /** Remove an image from a node */
   removeNodeImage: (campaignId, nodeId, imageId) => {
+    useUndoStore.getState().captureSnapshot();
     const nodes = get().nodes.map((n) => {
       if (n.id !== nodeId) return n;
       return { ...n, images: n.images.filter((img) => img.id !== imageId) };

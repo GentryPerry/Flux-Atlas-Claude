@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import * as api from '../utils/api';
+import { invalidateAccountStatus } from '../hooks/useAccountStatus';
 
 const AuthContext = createContext(null);
 
@@ -35,6 +36,9 @@ export function AuthProvider({ children }) {
 
   async function handleLogout() {
     await api.logout();
+    // Invalidate the shared account-status cache so a subsequent login never
+    // inherits stale plan/usage data from the previous session.
+    invalidateAccountStatus();
     setUser(null);
   }
 

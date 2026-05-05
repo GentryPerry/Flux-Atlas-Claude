@@ -346,7 +346,7 @@ export default function LinearTrackerWidget({
   return (
     <div
       className={`widget-shell linear-tracker-widget ${isMinimized ? 'widget-minimized' : ''}`}
-      style={{ width: isMinimized ? 240 : width }}
+      style={{ width: isMinimized ? 'fit-content' : width }}
       onContextMenu={(e) => { e.preventDefault(); onContextMenu?.(e); }}
     >
       {/* ── Title bar ── */}

@@ -9,6 +9,7 @@ import ThreadTrackerWidget from './ThreadTrackerWidget';
 import ClockWidget from './ClockWidget';
 import TroubleEngineWidget from './TroubleEngineWidget';
 import TableRollerWidget from './TableRollerWidget';
+import ImageWidget from './ImageWidget';
 
 // ── Context Menu ──────────────────────────────────────────────────────────────
 
@@ -301,6 +302,8 @@ export default function WidgetLayer() {
         inner = <TroubleEngineWidget    {...shared} />; break;
       case 'table-roller':
         inner = <TableRollerWidget      {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
+      case 'image-frame':
+        inner = <ImageWidget            {...shared} onResizeStart={(e) => startResize(e, widget)} />; break;
       default: return null;
     }
     return (

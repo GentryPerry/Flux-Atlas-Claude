@@ -11,6 +11,7 @@ import { DEFAULT_TYPE_COLORS, getTypeColor, getTypeIcon } from '../../utils/type
 import { getIconImage, preloadIcons } from '../../utils/iconImages';
 import TopoBackground from '../common/TopoBackground';
 import useViewportStore from '../../stores/viewportStore';
+import useUndoStore from '../../stores/undoStore';
 
 /* ─── Design system helpers ─────────────────────────────────────────────── */
 function hexToRgba(hex, alpha) {
@@ -121,7 +122,7 @@ const MapNode = memo(({
       ref={nodeRef}
       x={x} y={y}
       draggable
-      onDragStart={(e) => { e.target.moveToTop(); }}
+      onDragStart={(e) => { e.target.moveToTop(); useUndoStore.getState().captureSnapshot(); }}
       onDragEnd={(e) => onDragEnd(id, e)}
       onDragMove={(e) => onDragMove?.(id, e)}
       onClick={(e) => {
@@ -744,12 +745,52 @@ const FolderGrid = memo(({
 });
 FolderGrid.displayName = 'FolderGrid';
 
+// ── Territory hit-testing ─────────────────────────────────────────────────────
+// Used to find all territories that contain a world-space click point,
+// enabling the overlap-disambiguation picker.
+
+function pointInPolygon(pt, points) {
+  if (!points || points.length < 3) return false;
+  let inside = false;
+  const n = points.length;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const xi = points[i].x, yi = points[i].y;
+    const xj = points[j].x, yj = points[j].y;
+    if (((yi > pt.y) !== (yj > pt.y)) &&
+        (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function pointInTerritory(pt, territory) {
+  if (territory.shapeType === 'polygon') {
+    return pointInPolygon(pt, territory.points);
+  }
+  if (territory.shapeType === 'rectangle') {
+    return pt.x >= territory.x && pt.x <= territory.x + (territory.width  || 0) &&
+           pt.y >= territory.y && pt.y <= territory.y + (territory.height || 0);
+  }
+  if (territory.shapeType === 'circle') {
+    const cx = territory.center?.cx || 0;
+    const cy = territory.center?.cy || 0;
+    const dx = pt.x - cx;
+    const dy = pt.y - cy;
+    return Math.sqrt(dx * dx + dy * dy) <= (territory.radius || 0);
+  }
+  return false;
+}
+
 /* ─── MapCanvas ──────────────────────────────────────────────────────────*/
 export default function MapCanvas({
   placingType, onPlacingDone,
   onNodeContextMenu, drawingMode, setDrawingMode,
   polygonPoints, setPolygonPoints,
   selectedTerritoryId, setSelectedTerritoryId,
+  selectedTerritoryIds,      // [] — for multi-selection highlighting
+  onTerritoryShiftClick,     // (id) => void — shift+click territory
+  onTerritoryOverlapPick,    // (screenX, screenY, ids[]) => void — overlap picker
   editingTerritoryId,
   searchHighlightIds,
   orgView,          // dims nodes, boosts territory opacity for org/territory overview
@@ -1247,10 +1288,24 @@ export default function MapCanvas({
       if (placed?.id) selectNode(placed.id);
       onPlacingDone();
     } else if (isTerritory) {
-      const territoryId = targetName.replace('territory-', '');
-      setSelectedTerritoryId?.(territoryId);
-      // Close all open folders when clicking a territory
-      Object.keys(folderState).forEach((id) => { if (!folderState[id]?.closing) closeFolder(id); });
+      const shiftKey     = e.evt?.shiftKey;
+      const topId        = targetName.replace('territory-', '');
+
+      // Find every territory that contains this world-space point (not just the topmost Konva hit)
+      const overlapping  = territories.filter((t) => pointInTerritory({ x, y }, t));
+
+      if (shiftKey) {
+        // Shift+click — add/remove from multi-selection
+        onTerritoryShiftClick?.(topId);
+      } else if (overlapping.length > 1) {
+        // Multiple territories here — show disambiguation picker
+        const pointer = stage.getPointerPosition();
+        onTerritoryOverlapPick?.(pointer.x, pointer.y, overlapping.map((t) => t.id));
+      } else {
+        // Single territory — select it normally
+        setSelectedTerritoryId?.(topId);
+        Object.keys(folderState).forEach((id) => { if (!folderState[id]?.closing) closeFolder(id); });
+      }
     } else {
       setSelectedTerritoryId?.(null);
       setSelectedOverlayId(null);
@@ -1258,7 +1313,7 @@ export default function MapCanvas({
       // Close all open folders when clicking the map background
       Object.keys(folderState).forEach((id) => { if (!folderState[id]?.closing) closeFolder(id); });
     }
-  }, [placingType, drawingMode, campaignId, activeMapId, createNode, onPlacingDone, deselectNode, setPolygonPoints, setSelectedTerritoryId, folderState, closeFolder]);
+  }, [placingType, drawingMode, campaignId, activeMapId, createNode, onPlacingDone, deselectNode, setPolygonPoints, setSelectedTerritoryId, onTerritoryShiftClick, onTerritoryOverlapPick, territories, folderState, closeFolder]);
 
   /* ── Node click ──────────────────────────────────────────────────── */
   const handleNodeClick = useCallback((nodeId, e) => {
@@ -1657,15 +1712,18 @@ export default function MapCanvas({
              *  Normal:   use stored territory.opacity (typically 0.15).
              */}
             {territories.map((territory) => {
-              const isSel        = territory.id === selectedTerritoryId;
-              const baseOpacity  = orgView ? 0.65 : territory.opacity;
-              const opacity      = isSel ? 0.45 : baseOpacity;
-              const strokeWidth  = isSel
+              const isSel       = territory.id === selectedTerritoryId ||
+                                  (selectedTerritoryIds ?? []).includes(territory.id);
+              const isMultiSel  = (selectedTerritoryIds ?? []).includes(territory.id);
+              const baseOpacity = orgView ? 0.65 : territory.opacity;
+              const opacity     = isSel ? 0.45 : baseOpacity;
+              const strokeWidth = isSel
                 ? 3
                 : orgView
                   ? Math.max((territory.strokeWidth || 1) * 2, 2)
                   : territory.strokeWidth;
-              const stroke = isSel ? '#fff' : territory.strokeColor;
+              // Multi-selected: accent stroke colour to distinguish from single-select
+              const stroke = isMultiSel ? '#a78bfa' : isSel ? '#fff' : territory.strokeColor;
 
               if (territory.shapeType === 'polygon') {
                 const isEditing = editingTerritoryId === territory.id;

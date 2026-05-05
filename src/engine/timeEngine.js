@@ -53,7 +53,8 @@ export function getYearsFromDelta(timeDelta) {
     '3_years':  3,
     '10_years': 10,
   };
-  if (timeDelta.preset === 'custom') return timeDelta.customYears || 11;
+  // Use ?? (not ||) so that 0 is a valid custom value, not treated as falsy.
+  if (timeDelta.preset === 'custom') return timeDelta.customYears ?? 11;
   return map[timeDelta.preset] || 1;
 }
 
@@ -428,11 +429,16 @@ function generateOneScenario(sourceWorldState, years, volatility, seed, index, c
     }
   }
 
-  // Deduplicate — same node can only have one major fate
+  // Deduplicate — a node can only have one fate per domain (node.*, relationship.*),
+  // but each of its territories is independent and gets its own change slot.
+  // Including territoryId in the key prevents multi-territory nodes from losing
+  // all but the first territory change during deduplication.
   const seen = new Set();
   const deduped = [];
   for (const c of allChanges) {
-    const key = `${c.targetNodeId}-${c.type.split('.')[0]}`;
+    const key = c.territoryId
+      ? `${c.targetNodeId}-${c.type}-${c.territoryId}`
+      : `${c.targetNodeId}-${c.type.split('.')[0]}`;
     if (!seen.has(key)) { seen.add(key); deduped.push(c); }
   }
 

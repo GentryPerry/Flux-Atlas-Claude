@@ -165,7 +165,7 @@ export default function StickyNoteWidget({
     <div
       className={`widget-shell sticky-note-widget ${isMinimized ? 'widget-minimized' : ''}`}
       style={{
-        width: isMinimized ? 240 : width,
+        width: isMinimized ? 'fit-content' : width,
         '--note-bg':     scheme.bg,
         '--note-border': scheme.border,
         '--note-text':   scheme.text,

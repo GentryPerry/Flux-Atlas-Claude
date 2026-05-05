@@ -1,5 +1,9 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, MagnifyingGlass, Rows, LinkSimple, Trash, ArrowSquareOut, Tray, ArrowRight } from '@phosphor-icons/react';
+
+// Module-level — persists board column layout across navigation within a session
+let _sessionColumns = [];
 import useNodeStore from '../../stores/nodeStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useMapStore from '../../stores/mapStore';
@@ -229,10 +233,30 @@ export default function KanbanBoard() {
   const nodeTypeOverrides  = useSettingsStore((s) => s.nodeTypeOverrides) || {};
   const customNodeTypes    = useSettingsStore((s) => s.customNodeTypes)   || [];
 
-  const [boardColumns, setBoardColumns]   = useState([]);
-  const [showPicker, setShowPicker]       = useState(false);
-  const [dragState, setDragState]         = useState(null);
-  const [hoveredCardId, setHoveredCardId] = useState(null);
+  const [boardColumns, setBoardColumnsRaw] = useState(_sessionColumns);
+  const [showPicker, setShowPicker]        = useState(false);
+  const [dragState, setDragState]          = useState(null);
+  const [contextMenu, setContextMenu]      = useState(null); // { nodeId, x, y }
+
+  // Keep module-level cache in sync so columns survive unmount/remount
+  const setBoardColumns = useCallback((updater) => {
+    setBoardColumnsRaw((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      _sessionColumns = next;
+      return next;
+    });
+  }, []);
+
+  // Close context menu on outside click
+  const menuRef = useRef(null);
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setContextMenu(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [contextMenu]);
   const [columnSorts, setColumnSorts]     = useState({});
 
   // Stable key for a column's sort state
@@ -354,7 +378,6 @@ export default function KanbanBoard() {
         }
       }
     }
-    const isHovered = hoveredCardId === memberNode.id;
     return (
       <div
         key={memberNode.id}
@@ -362,9 +385,9 @@ export default function KanbanBoard() {
         draggable
         onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; handleDragStart(memberNode.id); }}
         onDragEnd={handleDragEnd}
-        onMouseEnter={() => setHoveredCardId(memberNode.id)}
-        onMouseLeave={() => setHoveredCardId(null)}
-        style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, position: 'relative' }}
+        onClick={() => selectNode(memberNode.id)}
+        onContextMenu={(e) => { e.preventDefault(); setContextMenu({ nodeId: memberNode.id, x: e.clientX, y: e.clientY, onRemove }); }}
+        style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, cursor: 'pointer' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div className="mini-icon" style={{ background: `${mColor}18`, color: mColor, flexShrink: 0 }}>
@@ -387,16 +410,6 @@ export default function KanbanBoard() {
             {relChips.map(({ refNode, fieldKey: fk }) => (
               <RelChip key={`${fk}:${refNode.id}`} node={refNode} nodeTypeOverrides={nodeTypeOverrides} customNodeTypes={customNodeTypes} onRemove={() => handleRemoveTag(memberNode.id, fk, refNode.id)} />
             ))}
-          </div>
-        )}
-        {isHovered && (
-          <div style={{ display: 'flex', gap: 4, paddingTop: 2, borderTop: '1px solid var(--border)', marginTop: 2 }}>
-            <button onClick={(e) => { e.stopPropagation(); selectNode(memberNode.id); }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 6px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg-hover)', color: 'var(--text-secondary)', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
-              <ArrowSquareOut size={11} /> Open
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); if (confirm('Delete this node?')) deleteNode(campaignId, memberNode.id); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 6px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg-hover)', color: 'var(--danger, #ef4444)', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
-              <Trash size={11} />
-            </button>
           </div>
         )}
       </div>
@@ -630,6 +643,64 @@ export default function KanbanBoard() {
           customNodeTypes={customNodeTypes}
         />
       )}
+
+      {/* Right-click context menu — rendered in a portal so CSS transforms don't offset it */}
+      {contextMenu && (() => {
+        const ctxNode = allNodes.find((n) => n.id === contextMenu.nodeId);
+        if (!ctxNode) return null;
+        return createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: 'fixed',
+              top: contextMenu.y,
+              left: contextMenu.x,
+              zIndex: 999,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 'var(--radius)',
+              boxShadow: 'var(--shadow-lg)',
+              minWidth: 160,
+              overflow: 'hidden',
+              animation: 'fadeIn 100ms var(--ease)',
+            }}
+          >
+            <button
+              onClick={() => { selectNode(contextMenu.nodeId); setContextMenu(null); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <ArrowSquareOut size={14} /> Open Details
+            </button>
+            {contextMenu.onRemove && (
+              <button
+                onClick={() => { contextMenu.onRemove(); setContextMenu(null); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <X size={14} /> Remove from Column
+              </button>
+            )}
+            <div style={{ height: 1, background: 'var(--border)', margin: '2px 0' }} />
+            <button
+              onClick={() => {
+                setContextMenu(null);
+                if (confirm(`Delete "${ctxNode.fields?.name || 'this node'}"? This cannot be undone.`)) {
+                  deleteNode(campaignId, contextMenu.nodeId);
+                }
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: 'transparent', border: 'none', color: '#ef4444', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <Trash size={14} /> Delete Node
+            </button>
+          </div>,
+          document.body
+        );
+      })()}
     </div>
   );
 }
