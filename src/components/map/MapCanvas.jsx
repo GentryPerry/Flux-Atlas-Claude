@@ -832,6 +832,10 @@ export default function MapCanvas({
     setViewport(stagePos.x, stagePos.y, stageScale);
   }, [stagePos, stageScale, setViewport]);
 
+  const [bgImageSelected, setBgImageSelected] = useState(false);
+  const bgImageRef        = useRef(null);
+  const bgTransformerRef  = useRef(null);
+
   const [selectedOverlayId, setSelectedOverlayId] = useState(null);
   const [overlayImages, setOverlayImages] = useState({});
   const overlayNodeRefs = useRef({});
@@ -851,6 +855,7 @@ export default function MapCanvas({
   const drillDownMap = useMapStore((s) => s.drillDown);
   const drillUpMap   = useMapStore((s) => s.drillUp);
   const jumpToMap    = useMapStore((s) => s.jumpTo);
+  const updateMap    = useMapStore((s) => s.updateMap);
   const campaignId   = useCampaignStore((s) => s.activeCampaignId);
   const allNodes     = useNodeStore((s) => s.nodes);
   const selectedNodeId = useNodeStore((s) => s.selectedNodeId);
@@ -958,6 +963,14 @@ export default function MapCanvas({
       img.src = o.url;
     });
   }, [mapOverlays]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Attach Konva Transformer to the background image when selected
+  useEffect(() => {
+    const tf = bgTransformerRef.current;
+    if (!tf) return;
+    tf.nodes(bgImageSelected && bgImageRef.current ? [bgImageRef.current] : []);
+    tf.getLayer()?.batchDraw();
+  }, [bgImageSelected, bgImage]);
 
   // Attach Konva Transformer to the selected overlay node
   useEffect(() => {
@@ -1309,6 +1322,7 @@ export default function MapCanvas({
     } else {
       setSelectedTerritoryId?.(null);
       setSelectedOverlayId(null);
+      setBgImageSelected(false);
       deselectNode();
       // Close all open folders when clicking the map background
       Object.keys(folderState).forEach((id) => { if (!folderState[id]?.closing) closeFolder(id); });
@@ -1630,10 +1644,49 @@ export default function MapCanvas({
           <Layer>
             {/* Background */}
             {bgImage ? (
-              <KImage image={bgImage} name="bg-image" listening={true} perfectDrawEnabled={false} />
+              <KImage
+                image={bgImage}
+                name="bg-image"
+                ref={bgImageRef}
+                x={activeMap?.imageX ?? 0}
+                y={activeMap?.imageY ?? 0}
+                width={activeMap?.imageWidth ?? bgImage.naturalWidth}
+                height={activeMap?.imageHeight ?? bgImage.naturalHeight}
+                draggable={true}
+                listening={true}
+                perfectDrawEnabled={false}
+                onClick={(e) => {
+                  e.cancelBubble = true;
+                  setBgImageSelected(true);
+                  setSelectedOverlayId(null);
+                }}
+                onDragEnd={(e) => {
+                  updateMap(campaignId, activeMapId, { imageX: e.target.x(), imageY: e.target.y() });
+                }}
+                onTransformEnd={(e) => {
+                  const node = e.target;
+                  updateMap(campaignId, activeMapId, {
+                    imageX:      node.x(),
+                    imageY:      node.y(),
+                    imageWidth:  Math.max(10, node.width()  * node.scaleX()),
+                    imageHeight: Math.max(10, node.height() * node.scaleY()),
+                  });
+                  node.scaleX(1);
+                  node.scaleY(1);
+                }}
+              />
             ) : (
               <Rect name="bg-rect" x={-3000} y={-3000} width={6000} height={6000} fill="#031012" listening={true} />
             )}
+            <Transformer
+              ref={bgTransformerRef}
+              rotateEnabled={false}
+              keepRatio={false}
+              borderStroke="#4af"
+              anchorStroke="#4af"
+              anchorFill="#fff"
+              anchorSize={10}
+            />
 
 
             {/* ── Map layer overlays — positioned below territories, above background ── */}
@@ -1657,6 +1710,7 @@ export default function MapCanvas({
                     if (isAccepted && !isEditing) return;
                     e.cancelBubble = true;
                     setSelectedOverlayId(overlay.id);
+                    setBgImageSelected(false);
                   },
                   onDragEnd: (e) => {
                     onUpdateOverlay?.(campaignId, overlay.id, { x: e.target.x(), y: e.target.y() });
