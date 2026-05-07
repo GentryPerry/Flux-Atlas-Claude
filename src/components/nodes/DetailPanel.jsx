@@ -13,6 +13,7 @@ import useTagStore from '../../stores/tagStore';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
 import useSettingsStore from '../../stores/settingsStore';
+import usePlayerRevealStore from '../../stores/playerRevealStore';
 import {
   NODE_TYPES, getFieldSchema, DEFAULT_CUSTOM_FIELDS, DEFAULT_CUSTOM_ABSTRACT_FIELDS,
   DEFAULT_CUSTOM_STATUS_FLAGS, isAbstractType, MAP_MAX_DEPTH,
@@ -119,6 +120,10 @@ export default function DetailPanel() {
   const nodeTypeOverrides  = useSettingsStore((s) => s.nodeTypeOverrides)  || {};
   const imagePool          = useSettingsStore((s) => s.imagePool)          || [];
   const addToImagePool     = useSettingsStore((s) => s.addToImagePool);
+
+  const revealNode   = usePlayerRevealStore((s) => s.revealNode);
+  const unrevealNode = usePlayerRevealStore((s) => s.unrevealNode);
+  const isRevealed   = usePlayerRevealStore((s) => s.isRevealed);
 
   const fileInputRef = useRef(null);
   const mapFileRef = useRef(null);
@@ -892,6 +897,16 @@ export default function DetailPanel() {
             </div>
           </div>
 
+          <button
+            className={`btn-icon reveal-toggle-btn ${isRevealed(node.id) ? 'is-revealed' : ''}`}
+            title={isRevealed(node.id) ? 'Visible to players — click to hide' : 'Hidden from players — click to reveal'}
+            onClick={() => isRevealed(node.id)
+              ? unrevealNode(campaignId, node.id)
+              : revealNode(campaignId, node.id)
+            }
+          >
+            <Eye size={16} weight={isRevealed(node.id) ? 'fill' : 'regular'} />
+          </button>
           <button className="btn-icon" onClick={deselectNode}>
             <X size={18} />
           </button>

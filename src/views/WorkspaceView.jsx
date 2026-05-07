@@ -32,7 +32,9 @@ import OnboardingTour from '../components/onboarding/OnboardingTour';
 import OnboardingTourMobile from '../components/onboarding/OnboardingTourMobile';
 import useSnapshotStore from '../stores/snapshotStore';
 import useUndoStore from '../stores/undoStore';
+import usePlayerRevealStore from '../stores/playerRevealStore';
 import { uploadImage } from '../utils/api';
+import InvitePanel from '../components/player/InvitePanel';
 import useWidgetStore from '../stores/widgetStore';
 import useHierarchyStore from '../stores/hierarchyStore';
 import useMobile from '../hooks/useMobile';
@@ -64,6 +66,9 @@ export default function WorkspaceView() {
   const takeSnapshot     = useSnapshotStore((s) => s.takeSnapshot);
   const loadWidgets      = useWidgetStore((s) => s.loadWidgets);
   const loadHierarchies  = useHierarchyStore((s) => s.loadHierarchies);
+
+  const loadReveal       = usePlayerRevealStore((s) => s.loadReveal);
+  const revealedNodeIds  = usePlayerRevealStore((s) => s.revealedNodeIds);
 
   // Map layer overlay store
   const loadOverlays   = useMapOverlayStore((s) => s.loadOverlays);
@@ -99,6 +104,8 @@ export default function WorkspaceView() {
   const [troubleEngineOpen,  setTroubleEngineOpen]  = useState(false);
   const [historyOpen,        setHistoryOpen]         = useState(false);
   const [resetOpen,          setResetOpen]           = useState(false);
+  const [playerPreviewMode,  setPlayerPreviewMode]   = useState(false);
+  const [invitePanelOpen,    setInvitePanelOpen]     = useState(false);
 
   // Mobile-specific state
   const [mobileDetailOpen,    setMobileDetailOpen]    = useState(false);
@@ -281,7 +288,8 @@ export default function WorkspaceView() {
     loadWidgets(campaignId);
     loadHierarchies(campaignId);
     loadOverlays(campaignId);
-  }, [campaignId, loadMaps, loadNodes, loadTags, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies, loadOverlays]);
+    loadReveal(campaignId);
+  }, [campaignId, loadMaps, loadNodes, loadTags, loadSettings, loadTerritories, loadSnapshots, loadWidgets, loadHierarchies, loadOverlays, loadReveal]);
 
   const handlePlacingDone = useCallback(() => {
     setPlacingType(null);
@@ -354,6 +362,8 @@ export default function WorkspaceView() {
         mapOverlays={mapOverlays}
         onUpdateOverlay={updateOverlay}
         onDeleteOverlay={deleteOverlay}
+        playerPreviewMode={playerPreviewMode}
+        revealedNodeIds={revealedNodeIds}
       />
     </ErrorBoundary>
   );
@@ -507,6 +517,8 @@ export default function WorkspaceView() {
                   editingTerritoryId={editingTerritoryId}
                   searchHighlightIds={searchHighlightIds}
                   orgView={orgView}
+                  playerPreviewMode={playerPreviewMode}
+                  revealedNodeIds={revealedNodeIds}
                 />
               </ErrorBoundary>
               {/* Widgets render but are non-interactive on mobile (CSS: pointer-events:none) */}
@@ -610,7 +622,14 @@ export default function WorkspaceView() {
           )}
           onUndo={handleUndo}
           canUndo={canUndo}
+          playerPreviewMode={playerPreviewMode}
+          onTogglePlayerPreview={() => setPlayerPreviewMode((v) => !v)}
+          onOpenInvitePanel={() => setInvitePanelOpen((v) => !v)}
         />
+
+        {invitePanelOpen && (
+          <InvitePanel campaignId={campaignId} onClose={() => setInvitePanelOpen(false)} />
+        )}
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
           <TopoBackground style={{ position: 'absolute', inset: 0, zIndex: 0 }} opacity={0.35} />

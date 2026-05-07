@@ -603,17 +603,26 @@ async function handleImageUpload(request, env, db) {
 }
 
 async function handleImageServe(request, env, db) {
-  const token  = getToken(request) || getCookieToken(request);
-  const userId = await validateSession(token, db);
-  if (!userId) return err('Unauthorized', 401);
+  // Try regular user session first
+  const userToken = getToken(request) || getCookieToken(request);
+  const userId    = userToken ? await validateSession(userToken, db) : null;
+
+  // Fall back to player session (cookie only — <img> tags can't send headers)
+  let ownerUserId = userId;
+  if (!ownerUserId) {
+    const playerToken   = getPlayerCookieToken(request);
+    const playerSession = playerToken ? await validatePlayerSession(playerToken, db) : null;
+    if (playerSession?.status === 'approved') {
+      ownerUserId = playerSession.owner_user_id;
+    }
+  }
+  if (!ownerUserId) return err('Unauthorized', 401);
 
   const url   = new URL(request.url);
   const r2Key = url.pathname.replace('/api/images/', '');
   if (!r2Key) return err('Key required', 400);
 
-  // Verify the key belongs to this user — prevents enumeration of other users' files.
-  // Keys always follow the pattern images/{userId}/...
-  const expectedPrefix = `images/${userId}/`;
+  const expectedPrefix = `images/${ownerUserId}/`;
   if (!r2Key.startsWith(expectedPrefix)) return err('Forbidden', 403);
 
   const obj = await env.flux_atlas_images.get(r2Key);
@@ -932,6 +941,287 @@ async function handleAdminSetPlan(request, db, env, userId_param) {
   return json({ ok: true, userId: userId_param, plan_key: planKey });
 }
 
+// ─── Player View ─────────────────────────────────────────────────────────────
+
+const PLAYER_COLORS = [
+  '#fb923c', '#60a5fa', '#4ade80', '#e879a8', '#fbbf24',
+  '#c084fc', '#38bdf8', '#f87171', '#a3e635', '#fb7185',
+];
+
+function getPlayerToken(request) {
+  const auth = request.headers.get('Authorization') || '';
+  if (auth.startsWith('Bearer ')) return auth.slice(7).trim();
+  const cookie = request.headers.get('Cookie') || '';
+  const m = cookie.match(/(?:^|;\s*)flux_player_session=([^;]+)/);
+  return m ? m[1].trim() : null;
+}
+
+function getPlayerCookieToken(request) {
+  const cookie = request.headers.get('Cookie') || '';
+  const m = cookie.match(/(?:^|;\s*)flux_player_session=([^;]+)/);
+  return m ? m[1].trim() : null;
+}
+
+async function validatePlayerSession(token, db) {
+  if (!token) return null;
+  const row = await db
+    .prepare('SELECT id, campaign_id, owner_user_id, display_name, color, status FROM player_sessions WHERE token = ?')
+    .bind(token).first();
+  if (!row || row.status === 'rejected') return null;
+  return row;
+}
+
+function playerSessionCookie(token) {
+  return `flux_player_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${30 * 86400}`;
+}
+
+async function handlePlayerCreateInvite(request, db) {
+  const token  = getToken(request) || getCookieToken(request);
+  const userId = await validateSession(token, db);
+  if (!userId) return err('Unauthorized', 401);
+
+  let body;
+  try { body = await request.json(); } catch { return err('Invalid JSON'); }
+  const campaignId = body.campaignId;
+  if (!campaignId) return err('campaignId required');
+
+  let invite = await db
+    .prepare('SELECT id, token FROM campaign_invites WHERE campaign_id = ? AND owner_user_id = ?')
+    .bind(campaignId, userId).first();
+
+  if (!invite) {
+    const id = randomUUID();
+    const inviteToken = randomToken(24);
+    await db
+      .prepare('INSERT INTO campaign_invites (id, campaign_id, owner_user_id, token) VALUES (?, ?, ?, ?)')
+      .bind(id, campaignId, userId, inviteToken).run();
+    invite = { id, token: inviteToken };
+  }
+
+  return json({ ok: true, token: invite.token });
+}
+
+async function handlePlayerGetPending(request, db) {
+  const token  = getToken(request) || getCookieToken(request);
+  const userId = await validateSession(token, db);
+  if (!userId) return err('Unauthorized', 401);
+
+  const url        = new URL(request.url);
+  const campaignId = url.searchParams.get('campaignId');
+  if (!campaignId) return err('campaignId required');
+
+  const rows = await db
+    .prepare(`SELECT ps.id, ps.display_name, ps.color, ps.status, ps.created_at
+              FROM player_sessions ps
+              JOIN campaign_invites ci ON ci.id = ps.invite_id
+              WHERE ci.campaign_id = ? AND ci.owner_user_id = ? AND ps.status = 'pending'
+              ORDER BY ps.created_at ASC`)
+    .bind(campaignId, userId).all();
+
+  return json({ players: rows.results });
+}
+
+async function handlePlayerGetApproved(request, db) {
+  const token  = getToken(request) || getCookieToken(request);
+  const userId = await validateSession(token, db);
+  if (!userId) return err('Unauthorized', 401);
+
+  const url        = new URL(request.url);
+  const campaignId = url.searchParams.get('campaignId');
+  if (!campaignId) return err('campaignId required');
+
+  const rows = await db
+    .prepare(`SELECT ps.id, ps.display_name, ps.color, ps.approved_at
+              FROM player_sessions ps
+              JOIN campaign_invites ci ON ci.id = ps.invite_id
+              WHERE ci.campaign_id = ? AND ci.owner_user_id = ? AND ps.status = 'approved'
+              ORDER BY ps.approved_at ASC`)
+    .bind(campaignId, userId).all();
+
+  return json({ players: rows.results });
+}
+
+async function handlePlayerApprove(request, db, sessionId) {
+  const token  = getToken(request) || getCookieToken(request);
+  const userId = await validateSession(token, db);
+  if (!userId) return err('Unauthorized', 401);
+
+  const session = await db
+    .prepare(`SELECT ps.id FROM player_sessions ps
+              JOIN campaign_invites ci ON ci.id = ps.invite_id
+              WHERE ps.id = ? AND ci.owner_user_id = ?`)
+    .bind(sessionId, userId).first();
+  if (!session) return err('Not found', 404);
+
+  await db
+    .prepare(`UPDATE player_sessions SET status = 'approved', approved_at = datetime('now') WHERE id = ?`)
+    .bind(sessionId).run();
+
+  return json({ ok: true });
+}
+
+async function handlePlayerReject(request, db, sessionId) {
+  const token  = getToken(request) || getCookieToken(request);
+  const userId = await validateSession(token, db);
+  if (!userId) return err('Unauthorized', 401);
+
+  const session = await db
+    .prepare(`SELECT ps.id FROM player_sessions ps
+              JOIN campaign_invites ci ON ci.id = ps.invite_id
+              WHERE ps.id = ? AND ci.owner_user_id = ?`)
+    .bind(sessionId, userId).first();
+  if (!session) return err('Not found', 404);
+
+  await db
+    .prepare(`UPDATE player_sessions SET status = 'rejected' WHERE id = ?`)
+    .bind(sessionId).run();
+
+  return json({ ok: true });
+}
+
+async function handlePlayerJoin(request, db) {
+  let body;
+  try { body = await request.json(); } catch { return err('Invalid JSON'); }
+
+  const inviteToken = (body.inviteToken || '').trim();
+  const displayName = (body.displayName || '').trim().slice(0, 40);
+  if (!inviteToken) return err('inviteToken required');
+  if (!displayName) return err('displayName required');
+
+  const invite = await db
+    .prepare('SELECT id, campaign_id, owner_user_id FROM campaign_invites WHERE token = ?')
+    .bind(inviteToken).first();
+  if (!invite) return err('Invalid invite link', 404);
+
+  const countRow = await db
+    .prepare('SELECT COUNT(*) as count FROM player_sessions WHERE invite_id = ?')
+    .bind(invite.id).first();
+  const color = PLAYER_COLORS[(countRow?.count || 0) % PLAYER_COLORS.length];
+
+  const id          = randomUUID();
+  const playerToken = randomToken(32);
+
+  await db
+    .prepare(`INSERT INTO player_sessions (id, invite_id, campaign_id, owner_user_id, display_name, color, token)
+              VALUES (?, ?, ?, ?, ?, ?, ?)`)
+    .bind(id, invite.id, invite.campaign_id, invite.owner_user_id, displayName, color, playerToken)
+    .run();
+
+  return json(
+    { ok: true, status: 'pending', displayName, color, campaignId: invite.campaign_id, playerToken },
+    200,
+    { 'Set-Cookie': playerSessionCookie(playerToken) }
+  );
+}
+
+async function handlePlayerStatus(request, db) {
+  const token   = getPlayerToken(request);
+  const session = await validatePlayerSession(token, db);
+  if (!session) return err('No valid player session', 401);
+
+  return json({
+    status:      session.status,
+    displayName: session.display_name,
+    color:       session.color,
+    campaignId:  session.campaign_id,
+    sessionId:   session.id,
+  });
+}
+
+async function handlePlayerView(request, db) {
+  const token   = getPlayerToken(request);
+  const session = await validatePlayerSession(token, db);
+  if (!session)                       return err('No valid player session', 401);
+  if (session.status !== 'approved')  return err('Not approved yet', 403);
+
+  const campaignId  = session.campaign_id;
+  const ownerUserId = session.owner_user_id;
+
+  const revealRow = await db
+    .prepare("SELECT data FROM campaign_data WHERE user_id = ? AND campaign_id = ? AND store = 'player_reveal'")
+    .bind(ownerUserId, campaignId).first();
+  const revealedNodeIds = revealRow ? (JSON.parse(revealRow.data) || []) : [];
+
+  const nodeRow = await db
+    .prepare("SELECT data FROM campaign_data WHERE user_id = ? AND campaign_id = ? AND store = 'nodes'")
+    .bind(ownerUserId, campaignId).first();
+  let nodes = [];
+  if (nodeRow && revealedNodeIds.length > 0) {
+    try {
+      const all = JSON.parse(nodeRow.data);
+      nodes = all.filter((n) => revealedNodeIds.includes(n.id));
+    } catch { nodes = []; }
+  }
+
+  const mapsRow = await db
+    .prepare("SELECT data FROM campaign_data WHERE user_id = ? AND campaign_id = ? AND store = 'maps'")
+    .bind(ownerUserId, campaignId).first();
+  let maps = [];
+  if (mapsRow) { try { maps = JSON.parse(mapsRow.data); } catch { maps = []; } }
+
+  const overlaysRow = await db
+    .prepare("SELECT data FROM campaign_data WHERE user_id = ? AND campaign_id = ? AND store = 'overlays'")
+    .bind(ownerUserId, campaignId).first();
+  let overlays = [];
+  if (overlaysRow) { try { overlays = JSON.parse(overlaysRow.data); } catch { overlays = []; } }
+
+  let allNotes = [];
+  if (revealedNodeIds.length > 0) {
+    const placeholders = revealedNodeIds.map(() => '?').join(', ');
+    const notesRows = await db
+      .prepare(`SELECT pn.node_id, pn.text, pn.updated_at, ps.display_name, ps.color, ps.id as player_session_id
+                FROM player_notes pn
+                JOIN player_sessions ps ON ps.id = pn.player_session_id
+                WHERE pn.campaign_id = ? AND pn.node_id IN (${placeholders}) AND ps.status = 'approved'`)
+      .bind(campaignId, ...revealedNodeIds).all();
+    allNotes = notesRows.results;
+  }
+
+  return json({
+    revealedNodeIds,
+    nodes,
+    maps,
+    overlays,
+    allNotes,
+    session: { id: session.id, displayName: session.display_name, color: session.color },
+  });
+}
+
+async function handlePlayerGetNotes(request, db) {
+  const token   = getPlayerToken(request);
+  const session = await validatePlayerSession(token, db);
+  if (!session || session.status !== 'approved') return err('Not approved', 403);
+
+  const rows = await db
+    .prepare('SELECT node_id, text, updated_at FROM player_notes WHERE player_session_id = ?')
+    .bind(session.id).all();
+
+  return json({ notes: rows.results });
+}
+
+async function handlePlayerSaveNote(request, db) {
+  const token   = getPlayerToken(request);
+  const session = await validatePlayerSession(token, db);
+  if (!session || session.status !== 'approved') return err('Not approved', 403);
+
+  let body;
+  try { body = await request.json(); } catch { return err('Invalid JSON'); }
+
+  const nodeId = body.nodeId;
+  const text   = (body.text || '').slice(0, 2000);
+  if (!nodeId) return err('nodeId required');
+
+  const id = randomUUID();
+  await db
+    .prepare(`INSERT INTO player_notes (id, player_session_id, campaign_id, node_id, text)
+              VALUES (?, ?, ?, ?, ?)
+              ON CONFLICT (player_session_id, node_id)
+              DO UPDATE SET text = excluded.text, updated_at = datetime('now')`)
+    .bind(id, session.id, session.campaign_id, nodeId, text).run();
+
+  return json({ ok: true });
+}
+
 // ─── Billing Webhook (stub) ───────────────────────────────────────────────────
 
 async function handleBillingWebhook(request, db, env) {
@@ -996,6 +1286,22 @@ export default {
 
     // ── Billing webhook ──
     if (pathname === '/api/billing/webhook' && method === 'POST') return handleBillingWebhook(request, db, env);
+
+    // ── Player View routes ──
+    if (pathname === '/api/player/invite'  && method === 'POST') return handlePlayerCreateInvite(request, db);
+    if (pathname === '/api/player/pending' && method === 'GET')  return handlePlayerGetPending(request, db);
+    if (pathname === '/api/player/approved'&& method === 'GET')  return handlePlayerGetApproved(request, db);
+    if (pathname === '/api/player/join'    && method === 'POST') return handlePlayerJoin(request, db);
+    if (pathname === '/api/player/status'  && method === 'GET')  return handlePlayerStatus(request, db);
+    if (pathname === '/api/player/view'    && method === 'GET')  return handlePlayerView(request, db);
+    if (pathname === '/api/player/notes'   && method === 'GET')  return handlePlayerGetNotes(request, db);
+    if (pathname === '/api/player/notes'   && method === 'POST') return handlePlayerSaveNote(request, db);
+
+    const approveMatch = pathname.match(/^\/api\/player\/approve\/(.+)$/);
+    if (approveMatch && method === 'POST') return handlePlayerApprove(request, db, approveMatch[1]);
+
+    const rejectMatch = pathname.match(/^\/api\/player\/reject\/(.+)$/);
+    if (rejectMatch && method === 'POST') return handlePlayerReject(request, db, rejectMatch[1]);
 
     // ── Passthrough to static assets ──
     return env.ASSETS.fetch(request);

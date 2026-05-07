@@ -794,9 +794,11 @@ export default function MapCanvas({
   editingTerritoryId,
   searchHighlightIds,
   orgView,          // dims nodes, boosts territory opacity for org/territory overview
-  mapOverlays,      // array of overlay objects from mapOverlayStore
-  onUpdateOverlay,  // (campaignId, overlayId, updates) => void
-  onDeleteOverlay,  // (campaignId, overlayId) => void
+  mapOverlays,       // array of overlay objects from mapOverlayStore
+  onUpdateOverlay,   // (campaignId, overlayId, updates) => void
+  onDeleteOverlay,   // (campaignId, overlayId) => void
+  playerPreviewMode, // bool — show only revealed nodes (GM preview)
+  revealedNodeIds,   // string[] — node IDs visible to players
 }) {
   const stageRef     = useRef(null);
   const containerRef = useRef(null);
@@ -875,10 +877,13 @@ export default function MapCanvas({
     [allMaps, activeMapId]
   );
 
-  const mapNodes = useMemo(
-    () => allNodes.filter((n) => n.mapId === activeMapId),
-    [allNodes, activeMapId]
-  );
+  const mapNodes = useMemo(() => {
+    const base = allNodes.filter((n) => n.mapId === activeMapId);
+    if (!playerPreviewMode || !revealedNodeIds?.length) {
+      return playerPreviewMode ? [] : base;
+    }
+    return base.filter((n) => revealedNodeIds.includes(n.id));
+  }, [allNodes, activeMapId, playerPreviewMode, revealedNodeIds]);
 
   // O(1) node lookup used by isAncestorOf during drag events (avoids O(n²) finds)
   const nodeById = useMemo(() => {

@@ -6,7 +6,7 @@ import {
   ClockCounterClockwise, DotsNine, Tree,
   Note, ChartBar, ArrowsLeftRight, Circle,
   Hourglass, Lightning, Wrench, DiceSix, Camera, StackSimple, Image,
-  ArrowCounterClockwise,
+  ArrowCounterClockwise, Eye, UserCircle,
 } from '@phosphor-icons/react';
 import useMapStore from '../../stores/mapStore';
 import useCampaignStore from '../../stores/campaignStore';
@@ -62,8 +62,9 @@ export default function MapToolbar({
   onOpenTroubleEngine,
   onToggleHistory, historyOpen,
   onTakeSnapshot,
-  onAddMapLayer,    // (file: File) => void — called when user picks an image to add as overlay
-  onUndo, canUndo,  // in-memory undo
+  onAddMapLayer,
+  onUndo, canUndo,
+  playerPreviewMode, onTogglePlayerPreview, onOpenInvitePanel,
 }) {
   const toolbarRef  = useRef(null);
   const mapLayerInputRef = useRef(null);
@@ -551,6 +552,23 @@ export default function MapToolbar({
         style={{ opacity: canUndo ? 1 : 0.35 }}
       >
         <ArrowCounterClockwise size={18} />
+      </button>
+
+      {/* Player view controls */}
+      <button
+        className={`btn-icon ${playerPreviewMode ? 'active' : ''}`}
+        onClick={onTogglePlayerPreview}
+        title={playerPreviewMode ? 'Exit player preview' : 'Preview player view'}
+        style={{ color: playerPreviewMode ? 'var(--accent)' : undefined }}
+      >
+        <Eye size={18} />
+      </button>
+      <button
+        className="btn-icon"
+        onClick={onOpenInvitePanel}
+        title="Player access &amp; invites"
+      >
+        <UserCircle size={18} />
       </button>
 
       {/* Search & settings — always visible, always icon-only */}

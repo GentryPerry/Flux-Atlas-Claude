@@ -152,6 +152,89 @@ export async function uploadImage(file) {
   return data.url; // e.g. /api/images/userid/abc123.jpg
 }
 
+// ─── Player View ─────────────────────────────────────────────────────────────
+
+const PLAYER_TOKEN_KEY = 'flux_player_token';
+
+export function getPlayerSessionToken() {
+  return localStorage.getItem(PLAYER_TOKEN_KEY) || null;
+}
+
+function playerAuthHeaders() {
+  const h = {};
+  const t = getPlayerSessionToken();
+  if (t) h['Authorization'] = `Bearer ${t}`;
+  return h;
+}
+
+export async function playerCreateInvite(campaignId) {
+  return request('POST', '/api/player/invite', { campaignId });
+}
+
+export async function playerGetPending(campaignId) {
+  return request('GET', `/api/player/pending?campaignId=${encodeURIComponent(campaignId)}`);
+}
+
+export async function playerGetApproved(campaignId) {
+  return request('GET', `/api/player/approved?campaignId=${encodeURIComponent(campaignId)}`);
+}
+
+export async function playerApprove(sessionId) {
+  return request('POST', `/api/player/approve/${sessionId}`);
+}
+
+export async function playerReject(sessionId) {
+  return request('POST', `/api/player/reject/${sessionId}`);
+}
+
+export async function playerJoin(inviteToken, displayName) {
+  const res = await fetch('/api/player/join', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ inviteToken, displayName }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Join failed');
+  if (data.playerToken) localStorage.setItem(PLAYER_TOKEN_KEY, data.playerToken);
+  return data;
+}
+
+export async function playerGetStatus() {
+  const res = await fetch('/api/player/status', { headers: playerAuthHeaders() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Status check failed');
+  return data;
+}
+
+export async function playerGetView() {
+  const res = await fetch('/api/player/view', { headers: playerAuthHeaders() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'View load failed');
+  return data;
+}
+
+export async function playerGetNotes() {
+  const res = await fetch('/api/player/notes', { headers: playerAuthHeaders() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Notes load failed');
+  return data;
+}
+
+export async function playerSaveNote(nodeId, text) {
+  const res = await fetch('/api/player/notes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...playerAuthHeaders() },
+    body: JSON.stringify({ nodeId, text }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Note save failed');
+  return data;
+}
+
+export function clearPlayerSession() {
+  localStorage.removeItem(PLAYER_TOKEN_KEY);
+}
+
 // ─── Admin — Beta Keys ────────────────────────────────────────────────────────
 
 export async function adminListKeys() {
