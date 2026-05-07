@@ -28,13 +28,14 @@
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function json(data, status = 200) {
+function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      ...extraHeaders,
     },
   });
 }
@@ -52,6 +53,20 @@ function limitErr(code, message, limit, currentUsage, planKey) {
 function getToken(request) {
   const auth = request.headers.get('Authorization') || '';
   return auth.startsWith('Bearer ') ? auth.slice(7).trim() : null;
+}
+
+function getCookieToken(request) {
+  const cookie = request.headers.get('Cookie') || '';
+  const match = cookie.match(/(?:^|;\s*)flux_session=([^;]+)/);
+  return match ? match[1].trim() : null;
+}
+
+function sessionCookie(token) {
+  return `flux_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_DAYS * 86400}`;
+}
+
+function clearSessionCookie() {
+  return 'flux_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0';
 }
 
 function randomToken(bytes = 32) {
@@ -268,7 +283,9 @@ async function handleSignup(request, db) {
   await db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)')
     .bind(token, id, expires_at).run();
 
-  return json({ token, user: { id, email, plan_key: 'free' } }, 201);
+  return json({ token, user: { id, email, plan_key: 'free' } }, 201, {
+    'Set-Cookie': sessionCookie(token),
+  });
 }
 
 async function handleLogin(request, db) {
@@ -293,15 +310,17 @@ async function handleLogin(request, db) {
   await db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)')
     .bind(token, user.id, expires_at).run();
 
-  return json({ token, user: { id: user.id, email: user.email, plan_key: user.plan_key } });
+  return json({ token, user: { id: user.id, email: user.email, plan_key: user.plan_key } }, 200, {
+    'Set-Cookie': sessionCookie(token),
+  });
 }
 
 async function handleLogout(request, db) {
-  const token = getToken(request);
+  const token = getToken(request) || getCookieToken(request);
   if (token) {
     await db.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();
   }
-  return json({ ok: true });
+  return json({ ok: true }, 200, { 'Set-Cookie': clearSessionCookie() });
 }
 
 async function handleMe(request, db) {
@@ -584,7 +603,7 @@ async function handleImageUpload(request, env, db) {
 }
 
 async function handleImageServe(request, env, db) {
-  const token  = getToken(request);
+  const token  = getToken(request) || getCookieToken(request);
   const userId = await validateSession(token, db);
   if (!userId) return err('Unauthorized', 401);
 
