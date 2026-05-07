@@ -86,7 +86,42 @@ Single large CSS file. Key namespaces:
 - `.te-widget-*` — TroubleEngine widget
 - `.tt-*` — ThreadTracker widget
 - `.lt-*` — LinearTracker widget
+- `.player-*`, `.invite-*` — player view and GM invite panel
 - Konva stage sits in `.map-canvas-container`; `WidgetLayer` is `.widget-layer` with matching `transform`
+
+### Authentication & Image Serving (`src/worker.js`)
+
+The Cloudflare Worker serves both the API and static assets. Session auth uses two cookies:
+- `flux_session` — set on GM login/signup, used for all GM API calls and image serving
+- `flux_player_session` — set when a player joins via invite link, used for player API calls and image serving
+
+`handleImageServe` checks the regular user session first, then falls back to the player cookie. Player image access is scoped to the campaign owner's images (`images/{ownerUserId}/...`), verified via the player session's `owner_user_id`.
+
+### Player View System (`src/components/player/`)
+
+Lets the GM share a read-only map view with players. No player accounts — invite link only.
+
+**Data model (D1 tables):**
+- `campaign_invites` — one per campaign, stores the invite token
+- `player_sessions` — one per player per campaign: `display_name`, `color` (auto-assigned from palette), `status` (`pending` | `approved` | `rejected`), `token`
+- `player_notes` — one row per player per node: freetext, auto-saves
+
+**GM workflow:**
+1. Open invite panel (people icon in toolbar) → copy the invite URL
+2. When players join, pending list appears → approve or reject each
+3. Toggle the Eye button in toolbar to preview exactly what players see (hides unrevealed nodes)
+4. Open any node's DetailPanel → click the Eye icon (header row) to reveal/hide that node
+
+**Reveal state** is stored in `playerRevealStore` (`src/stores/playerRevealStore.js`) and persisted to `campaign_data` under `store='player_reveal'` as an array of node IDs. The store is loaded alongside other stores on campaign load in `WorkspaceView.jsx`.
+
+**Player routing** (`src/App.jsx`): if `?join=TOKEN` is in the URL or `flux_player_token` exists in localStorage, the normal GM app is bypassed entirely and the player flow renders instead:
+1. `PlayerJoinScreen` — name entry, calls `POST /api/player/join`
+2. Pending screen — polls `GET /api/player/status` every 8s until approved
+3. `PlayerView` (`src/components/player/PlayerView.jsx`) — standalone Konva canvas showing only bg images, overlays, and revealed nodes. Clicking a node opens `PlayerNotePanel`.
+
+**Player notes** auto-save 1.2s after the user stops typing. All approved players' notes for a node are returned by `GET /api/player/view` and displayed with name + color attribution.
+
+**Player canvas** is a lightweight standalone component (not MapCanvas) — it renders the background image using the same `imageX/Y/Width/Height` fields as the GM view, so repositioned backgrounds look correct for players too.
 
 ## Key Files
 
@@ -97,4 +132,8 @@ Single large CSS file. Key namespaces:
 | `src/components/map/MapCanvas.jsx` | Konva canvas, all rendering |
 | `src/components/widgets/WidgetLayer.jsx` | Widget container + drag/resize |
 | `src/components/import/ImportModal.jsx` | Markdown import, three-pass |
+| `src/stores/playerRevealStore.js` | Revealed node IDs, persisted to campaign_data |
+| `src/components/player/PlayerView.jsx` | Player-facing canvas + note panel |
+| `src/components/player/InvitePanel.jsx` | GM invite link + approval UI |
+| `src/worker.js` | Cloudflare Worker: all API routes, auth, image serving |
 | `src/index.css` | All styles (single file) |
