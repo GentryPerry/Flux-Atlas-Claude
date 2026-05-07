@@ -981,11 +981,21 @@ export default function MapCanvas({
     tf.getLayer()?.batchDraw();
   }, [selectedOverlayId, overlayImages]);
 
+  // Listen for sidebar pencil → enter edit mode for the background image
+  useEffect(() => {
+    const handler = () => {
+      setBgImageSelected(true);
+      setSelectedOverlayId(null);
+    };
+    window.addEventListener('flux:editBgImage', handler);
+    return () => window.removeEventListener('flux:editBgImage', handler);
+  }, []);
+
   // Listen for sidebar pencil → enter edit mode for an overlay
   useEffect(() => {
     const handler = (e) => {
       const overlayId = e.detail?.overlayId;
-      if (overlayId) setSelectedOverlayId(overlayId);
+      if (overlayId) { setSelectedOverlayId(overlayId); setBgImageSelected(false); }
     };
     window.addEventListener('flux:editOverlay', handler);
     return () => window.removeEventListener('flux:editOverlay', handler);
@@ -1652,14 +1662,10 @@ export default function MapCanvas({
                 y={activeMap?.imageY ?? 0}
                 width={activeMap?.imageWidth ?? bgImage.naturalWidth}
                 height={activeMap?.imageHeight ?? bgImage.naturalHeight}
-                draggable={true}
-                listening={true}
+                draggable={bgImageSelected}
+                listening={bgImageSelected}
                 perfectDrawEnabled={false}
-                onClick={(e) => {
-                  e.cancelBubble = true;
-                  setBgImageSelected(true);
-                  setSelectedOverlayId(null);
-                }}
+                onClick={(e) => { e.cancelBubble = true; }}
                 onDragEnd={(e) => {
                   updateMap(campaignId, activeMapId, { imageX: e.target.x(), imageY: e.target.y() });
                 }}

@@ -246,6 +246,19 @@ function MapTreeItem({ map, allMaps, allNodes, activeMapId, depth, onSelect, onD
         {!renaming && (
           <>
 
+            {map.image && map.id === activeMapId && (
+              <button
+                className="btn-icon"
+                title="Edit background image placement"
+                style={{ opacity: 0.45, flexShrink: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent('flux:editBgImage'));
+                }}
+              >
+                <PencilSimple size={12} />
+              </button>
+            )}
             <button
               className="btn-icon"
               onClick={(e) => { e.stopPropagation(); onReplaceImage(map.id); }}
