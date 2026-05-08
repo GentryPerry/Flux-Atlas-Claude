@@ -1,4 +1,5 @@
 import { NODE_TYPES } from './nodeSchemas';
+import { loadCampaign } from './api';
 
 /**
  * Serialize all nodes for a campaign to Flux Atlas import markdown format.
@@ -85,40 +86,26 @@ export function exportToMarkdown(nodes, tags) {
 }
 
 /**
- * Bundle all campaign localStorage keys into a single JSON object.
- * This is a lossless full-fidelity backup — includes widgets, viewport,
- * settings, and anything else not captured in the markdown format.
+ * Fetch all campaign stores from D1 and bundle into a single JSON backup.
  *
- * Restore: paste each key/value back into localStorage and reload.
+ * Includes every store blob saved for the campaign: nodes, tags, widgets,
+ * settings, territories, snapshots, hierarchies, overlays, maps, and any
+ * others added in future. Version 2+ uses the live API instead of localStorage.
+ *
+ * Returns a JSON string ready for downloadFile().
  */
-export function exportToJSON(campaignId, campaignName) {
-  const keys = [
-    'flux_campaigns',
-    `flux_nodes_${campaignId}`,
-    `flux_tags_${campaignId}`,
-    `flux_widgets_${campaignId}`,
-    `flux_settings_${campaignId}`,
-  ];
+export async function exportToJSON(campaignId, campaignName) {
+  const stores = await loadCampaign(campaignId);
 
   const data = {
     _meta: {
       exportedAt: new Date().toISOString(),
       campaignId,
       campaignName,
-      version: 1,
+      version: 2,
     },
+    ...stores,
   };
-
-  for (const key of keys) {
-    const raw = localStorage.getItem(key);
-    if (raw !== null) {
-      try {
-        data[key] = JSON.parse(raw);
-      } catch {
-        data[key] = raw; // keep as string if it can't be parsed
-      }
-    }
-  }
 
   return JSON.stringify(data, null, 2);
 }

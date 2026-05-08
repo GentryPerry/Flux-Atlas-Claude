@@ -248,11 +248,18 @@ export default function SettingsPanel({ mobileEmbed = false }) {
     flashFeedback('md');
   }
 
-  function handleExportJSON() {
-    const content  = exportToJSON(campaignId, campaign?.name);
-    const filename = `${safeFilename(campaign?.name)}-backup.json`;
-    downloadFile(content, filename, 'application/json');
-    flashFeedback('json');
+  async function handleExportJSON() {
+    setExportFeedback('json-loading');
+    try {
+      const content  = await exportToJSON(campaignId, campaign?.name);
+      const filename = `${safeFilename(campaign?.name)}-backup.json`;
+      downloadFile(content, filename, 'application/json');
+      flashFeedback('json');
+    } catch (e) {
+      console.error('Export failed:', e);
+      setExportFeedback(null);
+      alert('Export failed — please try again.');
+    }
   }
 
   function renderPane() {
@@ -372,10 +379,13 @@ export default function SettingsPanel({ mobileEmbed = false }) {
                     className="btn btn-secondary btn-sm"
                     style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}
                     onClick={handleExportJSON}
+                    disabled={exportFeedback === 'json-loading'}
                   >
                     {exportFeedback === 'json'
                       ? <><Check size={14} weight="bold" /> Saved</>
-                      : <><DownloadSimple size={14} /> Export</>
+                      : exportFeedback === 'json-loading'
+                        ? <>Exporting…</>
+                        : <><DownloadSimple size={14} /> Export</>
                     }
                   </button>
                 </div>
